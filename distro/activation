@@ -1,0 +1,190 @@
+# Configuration for rPath activation client
+#
+# Note: When setting the following configuration parameters, be sure to
+# take the following into account:
+# 
+# o The total number of systems that will be activating with a given
+#   rBuilder
+#
+# o The way in which the rBuilder has been configured to handle the
+#   activation and polling of systems
+#
+# For more details, see the rBuilder Administration Guide.
+
+# *** PARAMETERS CONTROLLING WHEN ACTIVATION SHOULD OCCUR ***
+#
+# The following parameters define the situations under which the
+# activation (and deactivation) process should happen:
+
+# Activate at boot -- Attempt to activate the system as the system goes
+# through its normal startup processing.  Disabling this feature means
+# that the system will only activate itself if either the activation
+# interval or the contact timeout interval is non-zero, or an rBuilder
+# administrator has manually entered the system's IP address into
+# rBuilder's system inventory.
+#
+# Minimum value: 0 (disables boot-time activation)
+# Maximum value: 1 (enables boot-time activation)
+bootActivate 1
+
+# Deactivate at shutdown -- Attempt to deactivate the system as the
+# system goes through its normal shutdown processing.  Disabling this
+# feature means that the rBuilder will only be able to determine that the
+# system is no longer accessible as part of its normal "aging out"
+# process and, until that process takes place, the system inventory will
+# show the system as still being active.
+#
+# Minimum value: 0 (disables deactivation at shutdown)
+# Maximum value: 1 (enables deactivation at shutdown)
+shutdownDeActivation 1
+
+# Activation interval -- Attempt to activate the system on a periodic
+# basis.  NOTE: Enabling this feature with a short interval on a large
+# number of systems can result in unpredictable loads on the rBuilder.
+# Specifies the interval in a number of days.
+#
+# Minimum value: 0 (disables periodic activation)
+# Minimum interval: 1
+# Maximum interval: 30 (days)
+activationInterval 1
+
+# Contact timeout interval -- Attempt to activate the system if rBuilder
+# has not contacted the system within this time period.  Disabling this
+# feature (without enabling activationInterval) means that there is no
+# way (short of restarting the system) to attempt to activate with
+# rBuilder should rBuilder lose contact with the system.
+# Specifies the interval in a number of days.
+#
+# Minimum value: 0 (no timeout)
+# Maximum value: 30 (days)
+contactTimeoutInterval 3
+
+# *** PARAMETERS CONTROLLING THE ACTIVATION PROCESS ***
+#
+# The following parameters define the way in which activation should be
+# attempted:
+
+# Activation port -- the IP port number to be used during activation
+# attempts.
+activationPort 13579
+
+# Activation methods -- A white space seperated list of ways to attempt an
+# activation.  Each method listed is attempted, in sequence, until the
+# activation succeeds, or all activation methods have been attempted.
+#
+# The supported activation methods are:
+#
+# "DIRECT" -- Attempt to activate using a list of IP addresses and/or
+# hostnames specifying the rBuilder and/or SPUTNIK(s)
+#
+# "SLP" -- Attempt to activate by first using the Service Location
+# Protocol to identify the IP address of an rBuilder or SPUTNIK,
+# and then attempting to activate with that IP address.
+#
+# Minimum value: "" (disables all activation activity)
+# Maximum value: N/A
+activationMethod DIRECT 
+
+# Direct method list -- A white space separated list of IP addresses and/or
+# hostnames indicating the rBuilder and/or SPUTNIK(s)
+# against which activation should be attempted.
+#
+# Minimum value: "" (disables all direct activation attempts)
+# Maximum value: N/A
+directMethod 
+
+# SLP method list -- A white space separated list of SLP resources that should
+# be queried to find the IP address of an rBuilder or SPUTNIK
+# against which activation should be attempted.
+#
+# Note that the resource(s) listed here must agree with the resource(s)
+# configured to be used by the relevant rBuilder(s) and/or SPUTNIK(s).
+#
+# Minimum value: "" (disables all SLP activation attempts)
+# Maximum value: N/A
+slpMethod rpath-inventory
+
+# Activation retry count -- Once a specific entry is obtained from one
+# of the activation method lists (direct or SLP), the number of times
+# the activation client should attempt to activate against that entry.
+# Once this retry count has been reached, the activation client will
+# move on the next entry (if one exists), the first entry in the next
+# method (if one exists), or fails (if this was the last/only entry for
+# the last/only activation method).
+#
+# Minimum value: 0 (Makes one activation attempt only; no retries)
+# Maximum value: 10
+activationRetryCount 3
+
+# Retry slot time -- The time (in seconds) used as part of the calculation
+# to determine a randomized delay between activation attempts.  The
+# maximum potential delay for retry #N is:
+#
+# MaxDelay = retrySlotTime * 2**N
+#
+# Minimum value: 15 (seconds)
+# Maximum value: 900 (seconds)
+retrySlotTime 15
+
+# sfcb url -- The url to use to connect to the sfcb cim broker to querying
+# system information.  Communication to the locally running sfcb can go over
+# the unix socket.
+#
+# Minimum value: N/A
+# Maximum value: N/A
+sfcbUrl /tmp/sfcbHttpSocket
+
+# debug mode -- Whether to enable debugging.  Extra debugging information is
+# logged to the logfile and to stdout.
+debugMode False
+
+# *** PARAMETERS FOR FILE LOCATIONS FOR THE ACTIVATION PROCESS ***
+# *** These do not need to be changed under normal circumstances ***
+# The following parameters tell the activaction client where to read/store
+# files on the filesystem.
+
+# top directory -- Directory used as the base for all other file locations.
+topDir /etc/conary/rregister
+
+# generated uuid file -- File for the value of the generated uuid.
+generatedUuidFile generated-uuid
+
+# local uuid file -- File for the value of the local uuid read from dmi data.
+localUuidFile local-uuid
+
+# local uuid backup directory -- Directory to backup the contents of the old
+# local uuid file in case the contents change.
+localUuidBackupDirectory backup-local-uuid
+
+# credentials directory name -- Directory for the sfcb credentials
+credentialsDirectoryName credentials
+
+# credentials certificate file name -- File for the public certificate for
+# sfcb
+credentialsCertFileName credentials.cert
+
+# credentials key file name -- File for the private key for the sfcb
+credentialsKeyFileName credentials.key
+
+# sfcb configuration file -- File for the configuration file for sfcb
+sfcbConfigurationFile /etc/conary/sfcb/sfcb.cfg
+
+# last poll file -- File for the timestamp of when the last time that the system
+# was polled by the rBA/Sputnik.  If the timestamp in this file is older than
+# the current time - contactTimeoutInterval, the system will attempt an
+# activation when the activation client is run.  If the --force parameter is
+# specified, an activation will always be run.
+lastPollFileName lastPoll
+
+# log file -- File for logging all of the activation client's actions.
+logFile /var/log/activation
+
+# disable activation file -- File for indicating if the activation client
+# should even attempt to activate.  If the file exists (contents are ignored)
+# the activation client will exit and not attempt an activation, irregardless
+# of any other options (including --force).
+disableActivationFileName disableActivation
+
+# last activation file -- File for storing the timestamp the last time that
+# the system was activated.
+lastActivationFileName lastActivation

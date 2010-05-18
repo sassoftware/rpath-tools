@@ -1,0 +1,1161 @@
+Starting run of activation client...
+2010-05-07 15:43:35,332 - INFO - Starting run of activation client...
+2010-05-07 15:49:01,912 - INFO - Starting run of activation client...
+2010-05-07 15:50:38,606 - INFO - Starting run of activation client...
+2010-05-07 15:50:41,463 - INFO - Starting run of activation client...
+2010-05-07 15:50:47,649 - INFO - Starting run of activation client...
+2010-05-07 16:07:59,431 - INFO - Starting run of activation client...
+2010-05-07 16:08:08,168 - INFO - Starting run of activation client...
+2010-05-07 16:08:08,171 - INFO - Running command: register
+2010-05-07 16:11:13,487 - INFO - Starting run of activation client...
+2010-05-07 16:11:13,490 - INFO - Running command: register
+2010-05-07 16:11:19,488 - INFO - Starting run of activation client...
+2010-05-07 16:11:19,490 - INFO - Running command: register
+2010-05-07 16:15:28,310 - INFO - Starting run of activation client...
+2010-05-07 16:15:28,313 - INFO - Running command: register
+2010-05-07 16:15:45,608 - INFO - Starting run of activation client...
+2010-05-07 16:15:45,611 - INFO - Running command: register
+2010-05-07 16:15:45,611 - ERROR - <traceback object at 0x2505488>
+2010-05-07 16:15:59,442 - INFO - Starting run of activation client...
+2010-05-07 16:15:59,445 - INFO - Running command: register
+2010-05-07 16:15:59,445 - ERROR - Must run as root
+2010-05-07 16:16:08,905 - INFO - Starting run of activation client...
+2010-05-07 16:16:08,907 - INFO - Running command: register
+2010-05-07 16:17:21,445 - INFO - Starting run of activation client...
+2010-05-07 16:17:21,448 - INFO - Running command: register
+2010-05-07 16:17:21,449 - ERROR - Must run as root
+2010-05-07 16:17:21,456 - ERROR - None
+2010-05-07 16:21:37,524 - INFO - Starting run of activation client...
+2010-05-07 16:21:37,527 - INFO - Running command: register
+2010-05-07 16:21:37,534 - ERROR - None
+2010-05-07 16:22:20,050 - INFO - Starting run of activation client...
+2010-05-07 16:22:20,052 - INFO - Running command: register
+2010-05-07 16:22:59,085 - INFO - Starting run of activation client...
+2010-05-07 16:22:59,088 - INFO - Running command: register
+2010-05-07 16:23:03,776 - INFO - Starting run of activation client...
+2010-05-07 16:23:03,778 - INFO - Running command: register
+2010-05-07 16:23:03,780 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 88, in main
+    return _main(argv, RRegistrationMain)
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 69, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 45, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 30, in runCommand
+    registration = register.Registration(self.cfg)
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 103, in __init__
+    self.cfg.localUuidOldDirectoryPath).uuid
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 29, in uuid
+    self.read()
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 65, in read
+    dmidecodeUuid = self._getDmidecodeUuid().lower()
+
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 77, in _getDmidecodeUuid
+    raise Exception("Must run as root")
+
+2010-05-07 16:23:28,243 - INFO - Starting run of activation client...
+2010-05-07 16:23:28,246 - INFO - Running command: register
+2010-05-07 16:23:28,247 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 88, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 69, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 45, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 30, in runCommand
+    registration = register.Registration(self.cfg)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 103, in __init__
+    self.cfg.localUuidOldDirectoryPath).uuid
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 29, in uuid
+    self.read()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 65, in read
+    dmidecodeUuid = self._getDmidecodeUuid().lower()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 77, in _getDmidecodeUuid
+    raise Exception("Must run as root")
+
+2010-05-07 16:23:55,097 - INFO - Starting run of activation client...
+2010-05-07 16:23:55,100 - INFO - Running command: register
+2010-05-07 16:23:55,101 - ERROR - An exception has occurred: Must run as root
+2010-05-07 16:23:55,102 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 88, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 69, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 45, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 30, in runCommand
+    registration = register.Registration(self.cfg)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 103, in __init__
+    self.cfg.localUuidOldDirectoryPath).uuid
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 29, in uuid
+    self.read()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 65, in read
+    dmidecodeUuid = self._getDmidecodeUuid().lower()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 77, in _getDmidecodeUuid
+    raise Exception("Must run as root")
+
+2010-05-07 16:26:13,398 - INFO - Starting run of activation client...
+2010-05-07 16:26:13,401 - INFO - Running command: register
+2010-05-07 16:26:13,402 - ERROR - An exception has occurred: Must run as root
+2010-05-07 16:26:13,403 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 88, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 69, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 45, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 30, in runCommand
+    registration = register.Registration(self.cfg)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 103, in __init__
+    self.cfg.localUuidOldDirectoryPath).uuid
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 29, in uuid
+    self.read()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 65, in read
+    dmidecodeUuid = self._getDmidecodeUuid().lower()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 77, in _getDmidecodeUuid
+    raise Exception("Must run as root")
+
+2010-05-07 16:26:56,248 - INFO - Starting run of activation client...
+2010-05-07 16:26:56,251 - INFO - Running command: register
+2010-05-07 16:26:56,273 - ERROR - An exception has occurred: [src/dmidecodemodule.c:307] Error decoding DMI data
+2010-05-07 16:26:56,274 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 88, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 69, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 45, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 30, in runCommand
+    registration = register.Registration(self.cfg)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 103, in __init__
+    self.cfg.localUuidOldDirectoryPath).uuid
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 29, in uuid
+    self.read()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 65, in read
+    dmidecodeUuid = self._getDmidecodeUuid().lower()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 80, in _getDmidecodeUuid
+    return dmidecode.system()['0x0001']['data']['UUID']
+
+2010-05-07 16:32:11,864 - INFO - Starting run of activation client...
+2010-05-07 16:32:11,867 - INFO - Running command: register
+2010-05-07 16:32:11,890 - ERROR - An exception has occurred: 'RegistrationCommand' object has no attribute 'registerSystem'
+2010-05-07 16:32:11,891 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 88, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 69, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 45, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 40, in runCommand
+    self.registerSystem(system)
+
+2010-05-11 11:45:38,620 - INFO - Starting run of activation client...
+2010-05-11 11:45:38,623 - INFO - Running command: register
+2010-05-11 11:45:38,646 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 11:45:38,655 - ERROR - An exception has occurred: 'Registration' object has no attribute 'registrationMethods'
+2010-05-11 11:45:38,657 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 89, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 70, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 45, in runCommand
+    registration.registerSystem(system)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 186, in registerSystem
+    func = self.registrationMethods.get(method.upper(), None)
+
+2010-05-11 11:45:53,313 - INFO - Starting run of activation client...
+2010-05-11 11:45:53,316 - INFO - Running command: register
+2010-05-11 11:45:53,338 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 11:52:45,630 - DEBUG - foo
+2010-05-11 11:53:05,667 - INFO - foo
+2010-05-11 11:53:08,571 - INFO - Starting run of activation client...
+2010-05-11 11:53:08,571 - INFO - Running command: register
+2010-05-11 11:53:08,594 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 11:54:07,489 - INFO - Starting run of activation client...
+2010-05-11 11:54:07,491 - INFO - Running command: register
+2010-05-11 11:54:07,520 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 11:54:09,011 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 11:54:09,012 - ERROR - An exception has occurred: global name 'client' is not defined
+2010-05-11 11:54:09,013 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 89, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 70, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    return mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 45, in runCommand
+    registration.registerSystem(system)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 195, in registerSystem
+    registered = func(system)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 204, in registerDirect
+    actClient = client.ActivationClient(remote)
+
+2010-05-11 12:04:44,443 - INFO - Starting run of activation client...
+2010-05-11 12:04:44,445 - INFO - Running command: register
+2010-05-11 12:04:44,469 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 12:04:44,469 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 12:04:44,469 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 12:04:44,469 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-11 12:04:44,470 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-11 12:05:00,316 - INFO - Starting run of activation client...
+2010-05-11 12:05:00,318 - INFO - Running command: register
+2010-05-11 12:05:00,341 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 12:05:00,342 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 12:05:00,342 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 12:05:00,342 - INFO - Direct activation succesful
+2010-05-11 12:05:56,248 - INFO - Starting run of activation client...
+2010-05-11 12:05:56,251 - INFO - Running command: register
+2010-05-11 12:05:56,274 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 12:05:56,274 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 12:05:56,275 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 12:05:56,286 - INFO - Direct activation succesful
+2010-05-11 12:05:56,286 - INFO - Activation client exiting.
+2010-05-11 12:20:29,503 - INFO - Starting run of activation client...
+2010-05-11 12:20:29,506 - INFO - Running command: register
+2010-05-11 12:20:29,528 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 12:20:29,537 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 12:20:29,538 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 12:20:29,552 - INFO - Direct activation succesful
+2010-05-11 12:20:29,552 - INFO - Activation client exiting.
+2010-05-11 14:18:14,765 - INFO - Starting run of activation client...
+2010-05-11 14:18:14,768 - INFO - Running command: register
+2010-05-11 14:18:14,802 - ERROR - An exception has occurred: (0, 'Socket error: [Errno 111] Connection refused')
+2010-05-11 14:18:14,804 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 43, in runCommand
+    ip = self.getIpAddr()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 31, in getIpAddr
+    hardwareInfo = hw.hardware
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/hardware.py", line 45, in hardware
+    self.populate()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/hardware.py", line 18, in populate
+    insts = getattr(self.server, cimClass).EnumerateInstances()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/utils/wbemlib.py", line 76, in __call__
+    return self._send(self._CIMClassName, self._name, *args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/utils/wbemlib.py", line 122, in _method_call
+    raise WBEMException(str(e))
+
+2010-05-11 14:18:35,848 - INFO - Starting run of activation client...
+2010-05-11 14:18:35,851 - INFO - Running command: register
+2010-05-11 14:27:44,761 - INFO - Starting run of activation client...
+2010-05-11 14:27:44,764 - INFO - Running command: register
+2010-05-11 14:27:45,816 - ERROR - An exception has occurred: 'IPv4Address'
+2010-05-11 14:27:45,818 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 39, in runCommand
+    ip = hw.getIpAddr()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/hardware.py", line 50, in getIpAddr
+    ip = self.hardware['Linux_IPProtocolEndpoint']['IPv4Address']
+
+2010-05-11 14:28:34,175 - INFO - Starting run of activation client...
+2010-05-11 14:28:34,179 - INFO - Running command: register
+2010-05-11 14:29:01,345 - INFO - Starting run of activation client...
+2010-05-11 14:29:01,347 - INFO - Running command: register
+2010-05-11 14:29:01,757 - ERROR - An exception has occurred: 'IPv4Address'
+2010-05-11 14:29:01,758 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 39, in runCommand
+    ip = hw.getIpAddr()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/hardware.py", line 50, in getIpAddr
+    ip = self.hardware['Linux_IPProtocolEndpoint']['IPv4Address']
+
+2010-05-11 14:29:32,657 - INFO - Starting run of activation client...
+2010-05-11 14:29:32,660 - INFO - Running command: register
+2010-05-11 14:29:32,874 - ERROR - An exception has occurred: global name 'ips' is not defined
+2010-05-11 14:29:32,875 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 39, in runCommand
+    ip = hw.getIpAddr()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/hardware.py", line 52, in getIpAddr
+    ips.append(ip)
+
+2010-05-11 14:29:39,951 - INFO - Starting run of activation client...
+2010-05-11 14:29:39,953 - INFO - Running command: register
+2010-05-11 14:29:40,172 - ERROR - An exception has occurred: __init__() got an unexpected keyword argument 'system_ip_addr'
+2010-05-11 14:29:40,173 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 46, in runCommand
+    system_ip_addr=ip)
+  File "/usr/lib64/python2.6/site-packages/rpath_models/generateds_system.py", line 230, in factory
+    return managed_system_type(*args_, **kwargs_)
+
+2010-05-11 14:29:55,604 - INFO - Starting run of activation client...
+2010-05-11 14:29:55,607 - INFO - Running command: register
+2010-05-11 14:29:55,841 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:29:55,842 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:29:55,842 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:29:55,842 - INFO - Direct activation succesful
+2010-05-11 14:29:55,842 - INFO - Activation client exiting.
+2010-05-11 14:33:46,118 - INFO - Starting run of activation client...
+2010-05-11 14:33:46,121 - INFO - Running command: register
+2010-05-11 14:33:46,356 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:33:46,357 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:33:46,357 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:33:46,373 - INFO - Direct activation succesful
+2010-05-11 14:33:46,374 - INFO - Activation client exiting.
+2010-05-11 14:34:00,995 - INFO - Starting run of activation client...
+2010-05-11 14:34:00,998 - INFO - Running command: register
+2010-05-11 14:34:01,237 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:34:01,238 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:34:01,238 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:34:01,253 - ERROR - An exception has occurred: global name 'log' is not defined
+2010-05-11 14:34:01,254 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 49, in runCommand
+    registration.registerSystem(system)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 200, in registerSystem
+    registered = func(systemXml)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 229, in registerDirect
+    log.info('Direct activation with %s failed.' % remote)
+
+2010-05-11 14:34:15,462 - INFO - Starting run of activation client...
+2010-05-11 14:34:15,464 - INFO - Running command: register
+2010-05-11 14:34:15,694 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:34:15,695 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:34:15,695 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:34:15,695 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:34:15,696 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:34:15,696 - INFO - Sleeping for 30
+2010-05-11 14:34:44,160 - INFO - Starting run of activation client...
+2010-05-11 14:34:44,163 - INFO - Running command: register
+2010-05-11 14:34:44,391 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:34:44,392 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:34:44,393 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:34:44,408 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:34:44,409 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:34:44,409 - INFO - Sleeping for 15 seconds.
+2010-05-11 14:34:59,422 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-11 14:34:59,422 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:34:59,422 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:34:59,423 - INFO - Sleeping for 30 seconds.
+2010-05-11 14:35:14,065 - INFO - Starting run of activation client...
+2010-05-11 14:35:14,068 - INFO - Running command: register
+2010-05-11 14:35:14,280 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:35:14,281 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:35:14,281 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:35:14,281 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:35:14,281 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:35:14,282 - INFO - Sleeping for 2 seconds...
+2010-05-11 14:35:16,284 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-11 14:35:16,285 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:35:16,285 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:35:16,285 - INFO - Sleeping for 4 seconds...
+2010-05-11 14:35:20,289 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-11 14:35:20,290 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:35:20,290 - INFO - Activation client exiting.
+2010-05-11 14:35:41,853 - INFO - Starting run of activation client...
+2010-05-11 14:35:41,856 - INFO - Running command: register
+2010-05-11 14:35:42,092 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:35:42,092 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:35:42,093 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:35:42,093 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:35:42,093 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:35:42,093 - INFO - Sleeping for 2 seconds...
+2010-05-11 14:35:44,096 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-11 14:35:44,096 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:35:44,096 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:35:44,096 - INFO - Sleeping for 4 seconds...
+2010-05-11 14:35:48,101 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-11 14:35:48,101 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:35:48,102 - INFO - Activation client exiting.
+2010-05-11 14:42:08,011 - INFO - Starting run of activation client...
+2010-05-11 14:42:08,013 - INFO - Running command: register
+2010-05-11 14:42:08,241 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:42:08,242 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:42:08,242 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:42:08,242 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:42:08,242 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:42:08,243 - INFO - Sleeping for 2 seconds...
+2010-05-11 14:42:10,245 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-11 14:42:10,246 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:42:10,246 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:42:10,246 - INFO - Sleeping for 4 seconds...
+2010-05-11 14:42:14,250 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-11 14:42:14,251 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:42:14,251 - INFO - Activation client exiting.
+2010-05-11 14:53:39,544 - INFO - Starting run of activation client...
+2010-05-11 14:53:39,547 - INFO - Running command: register
+2010-05-11 14:53:39,548 - ERROR - An exception has occurred: [Errno 2] No such file or directory: '/home/jslagle/rpath-hg/si/client/rregister/devel/contactk'
+2010-05-11 14:53:39,550 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 41, in runCommand
+    contact = self.checkContact()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 30, in checkContact
+    f = open(self.cfg.contactFile)
+
+2010-05-11 14:53:48,434 - INFO - Starting run of activation client...
+2010-05-11 14:53:48,437 - INFO - Running command: register
+2010-05-11 14:53:48,438 - ERROR - An exception has occurred: global name 'time' is not defined
+2010-05-11 14:53:48,439 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 41, in runCommand
+    contact = self.checkContact()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 34, in checkContact
+    return (time.time() - self.cfg.contactTimeoutInterval * 60 * 60) < contactTime
+
+2010-05-11 14:54:00,975 - INFO - Starting run of activation client...
+2010-05-11 14:54:00,978 - INFO - Running command: register
+2010-05-11 14:54:00,978 - INFO - Activation client exiting.
+2010-05-11 14:54:05,360 - INFO - Starting run of activation client...
+2010-05-11 14:54:05,363 - INFO - Running command: register
+2010-05-11 14:54:05,363 - INFO - Activation client exiting.
+2010-05-11 14:59:24,689 - INFO - Starting run of activation client...
+2010-05-11 14:59:24,692 - INFO - Running command: register
+2010-05-11 14:59:24,693 - INFO - Activation client exiting.
+2010-05-11 14:59:30,913 - INFO - Starting run of activation client...
+2010-05-11 14:59:30,916 - INFO - Running command: register
+2010-05-11 14:59:31,148 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-11 14:59:31,149 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-11 14:59:31,149 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-11 14:59:31,150 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-11 14:59:31,150 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-11 14:59:31,150 - INFO - Sleeping for 2 seconds...
+2010-05-12 15:29:13,221 - INFO - Starting run of activation client...
+2010-05-12 15:29:13,225 - INFO - Running command: register
+2010-05-12 15:29:13,243 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:29:13,244 - ERROR - An exception has occurred: global name 'lastPoll' is not defined
+2010-05-12 15:29:13,245 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 89, in runCommand
+    if not self.shouldRun():
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 80, in shouldRun
+    return self.checkPollTimeout() or self.checkActivationTimeout()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 55, in checkPollTimeout
+    self.cfg.contactTimeoutInterval * 60 * 60)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 48, in _checkTimeout
+    tStamp = int(float(lastPoll))
+
+2010-05-12 15:29:26,600 - INFO - Starting run of activation client...
+2010-05-12 15:29:26,603 - INFO - Running command: register
+2010-05-12 15:29:26,603 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:29:26,604 - INFO - Poll timeout exceeded, running activation.
+2010-05-12 15:29:27,087 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 15:29:27,088 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 15:29:27,088 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 15:29:27,104 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 15:29:27,105 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 15:29:27,105 - INFO - Sleeping for 2 seconds...
+2010-05-12 15:29:29,108 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 15:29:29,122 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 15:29:29,123 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 15:29:29,123 - INFO - Sleeping for 4 seconds...
+2010-05-12 15:29:33,128 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 15:29:33,129 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 15:29:33,129 - INFO - Activation client exiting.
+2010-05-12 15:30:54,318 - INFO - Starting run of activation client...
+2010-05-12 15:30:54,321 - INFO - Running command: register
+2010-05-12 15:30:54,321 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:30:54,322 - INFO - Poll timeout exceeded, running activation.
+2010-05-12 15:30:54,552 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 15:30:54,553 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 15:30:54,553 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 15:30:54,554 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 15:30:54,554 - INFO - Activation client exiting.
+2010-05-12 15:33:49,557 - INFO - Starting run of activation client...
+2010-05-12 15:33:49,559 - INFO - Running command: register
+2010-05-12 15:33:49,560 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:33:49,560 - INFO - Poll timeout exceeded, running activation.
+2010-05-12 15:33:49,785 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 15:33:49,787 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 15:33:49,787 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 15:33:49,787 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 15:33:49,788 - DEBUG - Updating activation file timestamp to 1273692829.79
+2010-05-12 15:33:49,788 - ERROR - An exception has occurred: argument 1 must be string or read-only character buffer, not float
+2010-05-12 15:33:49,790 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 110, in runCommand
+    registration.registerSystem(system)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 209, in registerSystem
+    self.updateActivationFile()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/register.py", line 190, in updateActivationFile
+    f.write(now)
+
+2010-05-12 15:34:21,146 - INFO - Starting run of activation client...
+2010-05-12 15:34:21,149 - INFO - Running command: register
+2010-05-12 15:34:21,150 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:34:21,151 - INFO - Poll timeout exceeded, running activation.
+2010-05-12 15:34:21,383 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 15:34:21,384 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 15:34:21,384 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 15:34:21,384 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 15:34:21,384 - DEBUG - Updating activation file timestamp to 1273692861.38
+2010-05-12 15:34:21,385 - INFO - Activation client exiting.
+2010-05-12 15:34:43,195 - INFO - Starting run of activation client...
+2010-05-12 15:34:43,197 - INFO - Running command: register
+2010-05-12 15:34:43,198 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:34:43,198 - INFO - Poll timeout exceeded, running activation.
+2010-05-12 15:34:43,422 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 15:34:43,422 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 15:34:43,423 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 15:34:43,423 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 15:34:43,424 - DEBUG - Updating activation file timestamp to 1273692883.42
+2010-05-12 15:34:43,425 - INFO - Activation client exiting.
+2010-05-12 15:45:29,493 - INFO - Starting run of activation client...
+2010-05-12 15:45:29,497 - INFO - Running command: register
+2010-05-12 15:45:29,497 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:45:29,497 - DEBUG - Poll timeout not exceeded.
+2010-05-12 15:45:29,497 - ERROR - An exception has occurred: 'RRegisterConfiguration' object has no attribute 'activationTimeout'
+2010-05-12 15:45:29,498 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 89, in runCommand
+    if not self.shouldRun():
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 80, in shouldRun
+    return self.checkPollTimeout() or self.checkActivationTimeout()
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 64, in checkActivationTimeout
+    self.cfg.activationTimeout * 60 * 60)
+
+2010-05-12 15:46:16,224 - INFO - Starting run of activation client...
+2010-05-12 15:46:16,227 - INFO - Running command: register
+2010-05-12 15:46:16,227 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:46:16,228 - DEBUG - Poll timeout not exceeded.
+2010-05-12 15:46:16,228 - DEBUG - Activation timeout not exceeded
+2010-05-12 15:46:16,229 - INFO - Activation Client will not run, exiting.
+2010-05-12 15:46:16,229 - ERROR - An exception has occurred: global name 'sys' is not defined
+2010-05-12 15:46:16,230 - ERROR -   File "commands/rregister", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 91, in main
+    return _main(argv, RRegistrationMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 72, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/main.py", line 46, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/rregister/command.py", line 91, in runCommand
+    sys.exit(0)
+
+2010-05-12 15:46:24,635 - INFO - Starting run of activation client...
+2010-05-12 15:46:24,637 - INFO - Running command: register
+2010-05-12 15:46:24,638 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:46:24,638 - DEBUG - Poll timeout not exceeded.
+2010-05-12 15:46:24,638 - DEBUG - Activation timeout not exceeded
+2010-05-12 15:46:24,638 - INFO - Activation Client will not run, exiting.
+2010-05-12 15:46:52,927 - INFO - Starting run of activation client...
+2010-05-12 15:46:52,929 - INFO - Running command: register
+2010-05-12 15:46:52,929 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:46:52,930 - DEBUG - Poll timeout not exceeded.
+2010-05-12 15:46:52,930 - DEBUG - Activation interval not exceeded.
+2010-05-12 15:46:52,930 - INFO - Activation Client will not run, exiting.
+2010-05-12 15:47:19,778 - INFO - Starting run of activation client...
+2010-05-12 15:47:19,780 - INFO - Running command: register
+2010-05-12 15:47:19,780 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 15:47:19,781 - INFO - Poll timeout not exceeded.
+2010-05-12 15:47:19,781 - INFO - Activation interval not exceeded.
+2010-05-12 15:47:19,783 - INFO - Activation Client will not run, exiting.
+2010-05-12 17:01:30,685 - INFO - Starting run of activation client...
+2010-05-12 17:01:30,688 - INFO - Running command: register
+2010-05-12 17:01:30,689 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:01:30,689 - INFO - Poll timeout not exceeded.
+2010-05-12 17:01:30,690 - INFO - Activation interval exceeded, running activation.
+2010-05-12 17:01:30,924 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:01:30,925 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:01:30,926 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:01:30,934 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 17:01:30,934 - DEBUG - Updating activation file timestamp to 1273698090.93
+2010-05-12 17:01:30,935 - INFO - Activation client exiting.
+2010-05-12 17:01:35,150 - INFO - Starting run of activation client...
+2010-05-12 17:01:35,153 - INFO - Running command: register
+2010-05-12 17:01:35,154 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:01:35,154 - INFO - Poll timeout not exceeded.
+2010-05-12 17:01:35,155 - INFO - Activation interval not exceeded.
+2010-05-12 17:01:35,155 - INFO - Activation Client will not run, exiting.
+2010-05-12 17:01:37,634 - INFO - Starting run of activation client...
+2010-05-12 17:01:37,637 - INFO - Running command: register
+2010-05-12 17:01:37,637 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:01:37,637 - INFO - Poll timeout not exceeded.
+2010-05-12 17:01:37,638 - INFO - Activation interval not exceeded.
+2010-05-12 17:01:37,638 - INFO - Activation Client will not run, exiting.
+2010-05-12 17:01:39,660 - INFO - Starting run of activation client...
+2010-05-12 17:01:39,663 - INFO - Running command: register
+2010-05-12 17:01:39,663 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:01:39,664 - INFO - Poll timeout not exceeded.
+2010-05-12 17:01:39,665 - INFO - Activation interval not exceeded.
+2010-05-12 17:01:39,665 - INFO - Activation Client will not run, exiting.
+2010-05-12 17:01:40,688 - INFO - Starting run of activation client...
+2010-05-12 17:01:40,691 - INFO - Running command: register
+2010-05-12 17:01:40,691 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:01:40,692 - INFO - Poll timeout not exceeded.
+2010-05-12 17:01:40,692 - INFO - Activation interval not exceeded.
+2010-05-12 17:01:40,693 - INFO - Activation Client will not run, exiting.
+2010-05-12 17:01:41,636 - INFO - Starting run of activation client...
+2010-05-12 17:01:41,638 - INFO - Running command: register
+2010-05-12 17:01:41,639 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:01:41,639 - INFO - Poll timeout not exceeded.
+2010-05-12 17:01:41,639 - INFO - Activation interval not exceeded.
+2010-05-12 17:01:41,640 - INFO - Activation Client will not run, exiting.
+2010-05-12 17:01:44,561 - INFO - Starting run of activation client...
+2010-05-12 17:01:44,565 - INFO - Running command: register
+2010-05-12 17:01:44,566 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:01:44,795 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:01:44,795 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:01:44,795 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:01:44,796 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 17:01:44,796 - DEBUG - Updating activation file timestamp to 1273698104.8
+2010-05-12 17:01:44,796 - INFO - Activation client exiting.
+2010-05-12 17:11:11,637 - INFO - Starting run of activation client...
+2010-05-12 17:11:11,640 - INFO - Running command: register
+2010-05-12 17:11:11,640 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:11:11,874 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:11:11,875 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:11:11,875 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:11:11,875 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 17:11:11,876 - DEBUG - Updating activation file timestamp to 1273698671.88
+2010-05-12 17:11:11,876 - INFO - Activation client exiting.
+2010-05-12 17:11:14,816 - INFO - Starting run of activation client...
+2010-05-12 17:11:14,819 - INFO - Running command: register
+2010-05-12 17:11:14,819 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:11:15,049 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:11:15,050 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:11:15,051 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:11:15,067 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 17:11:15,067 - DEBUG - Updating activation file timestamp to 1273698675.07
+2010-05-12 17:11:15,068 - INFO - Activation client exiting.
+2010-05-12 17:11:18,362 - INFO - Starting run of activation client...
+2010-05-12 17:11:18,364 - INFO - Running command: register
+2010-05-12 17:11:18,364 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:11:18,587 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:11:18,588 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:11:18,588 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:11:18,588 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 17:11:18,588 - DEBUG - Updating activation file timestamp to 1273698678.59
+2010-05-12 17:11:18,589 - INFO - Activation client exiting.
+2010-05-12 17:11:19,733 - INFO - Starting run of activation client...
+2010-05-12 17:11:19,736 - INFO - Running command: register
+2010-05-12 17:11:19,737 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:11:19,965 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:11:19,966 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:11:19,966 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:11:19,966 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-12 17:11:19,967 - DEBUG - Updating activation file timestamp to 1273698679.97
+2010-05-12 17:11:19,967 - INFO - Activation client exiting.
+2010-05-12 17:11:27,371 - INFO - Starting run of activation client...
+2010-05-12 17:11:27,374 - INFO - Running command: register
+2010-05-12 17:11:27,374 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:11:27,584 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:11:27,585 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:11:27,585 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:11:27,585 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:27,585 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:11:27,586 - INFO - Sleeping for 0.892507240296 seconds...
+2010-05-12 17:11:28,479 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:11:28,479 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:28,480 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:11:28,480 - INFO - Sleeping for 2.18525950904 seconds...
+2010-05-12 17:11:30,666 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 17:11:30,667 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:30,667 - INFO - Activation client exiting.
+2010-05-12 17:11:32,079 - INFO - Starting run of activation client...
+2010-05-12 17:11:32,082 - INFO - Running command: register
+2010-05-12 17:11:32,082 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:11:32,309 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:11:32,309 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:11:32,309 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:11:32,310 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:32,310 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:11:32,310 - INFO - Sleeping for 1.6911057443 seconds...
+2010-05-12 17:11:34,003 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:11:34,004 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:34,004 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:11:34,004 - INFO - Sleeping for 2.59148802462 seconds...
+2010-05-12 17:11:36,599 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 17:11:36,599 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:36,599 - INFO - Activation client exiting.
+2010-05-12 17:11:44,312 - INFO - Starting run of activation client...
+2010-05-12 17:11:44,315 - INFO - Running command: register
+2010-05-12 17:11:44,315 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:11:44,532 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:11:44,532 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:11:44,532 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:11:44,533 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:44,533 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:11:44,533 - INFO - Sleeping for 3.81095846559 seconds...
+2010-05-12 17:11:48,348 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:11:48,349 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:48,349 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:11:48,349 - INFO - Sleeping for 4.13285451807 seconds...
+2010-05-12 17:11:52,486 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 17:11:52,487 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:11:52,487 - INFO - Activation client exiting.
+2010-05-12 17:12:01,155 - INFO - Starting run of activation client...
+2010-05-12 17:12:01,158 - INFO - Running command: register
+2010-05-12 17:12:01,159 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:12:01,378 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:12:01,379 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:12:01,379 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:12:01,394 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:12:01,395 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:12:01,395 - INFO - Sleeping for 6.3666978311 seconds...
+2010-05-12 17:12:07,766 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:12:07,766 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:12:07,766 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:12:07,767 - INFO - Sleeping for 18.7295428477 seconds...
+2010-05-12 17:12:36,051 - INFO - Starting run of activation client...
+2010-05-12 17:12:36,054 - INFO - Running command: register
+2010-05-12 17:12:36,054 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:12:36,274 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:12:36,275 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:12:36,275 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:12:36,275 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:12:36,276 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:12:36,276 - INFO - Sleeping for 1 seconds...
+2010-05-12 17:12:37,277 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:12:37,277 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:12:37,277 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:12:37,278 - INFO - Sleeping for 17 seconds...
+2010-05-12 17:13:01,009 - INFO - Starting run of activation client...
+2010-05-12 17:13:01,011 - INFO - Running command: register
+2010-05-12 17:13:01,012 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:13:01,224 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:13:01,224 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:13:01,225 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:13:01,225 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:13:01,225 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:13:01,225 - INFO - Sleeping for 5 seconds...
+2010-05-12 17:13:06,230 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:13:06,231 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:13:06,231 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:13:06,231 - INFO - Sleeping for 9 seconds...
+2010-05-12 17:13:15,239 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 17:13:15,239 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:13:15,240 - INFO - Activation client exiting.
+2010-05-12 17:13:30,154 - INFO - Starting run of activation client...
+2010-05-12 17:13:30,157 - INFO - Running command: register
+2010-05-12 17:13:30,157 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:13:30,376 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:13:30,377 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:13:30,377 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:13:30,377 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:13:30,377 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:13:30,378 - INFO - Sleeping for 7 seconds...
+2010-05-12 17:13:37,382 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:13:37,382 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:13:37,383 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:13:37,383 - INFO - Sleeping for 8 seconds...
+2010-05-12 17:13:45,385 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 17:13:45,386 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:13:45,386 - INFO - Activation client exiting.
+2010-05-12 17:17:34,786 - INFO - Starting run of activation client...
+2010-05-12 17:17:34,788 - INFO - Running command: register
+2010-05-12 17:17:34,789 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:17:35,013 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:17:35,013 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:17:35,014 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:17:35,014 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:17:35,014 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:17:35,014 - INFO - Sleeping for 3 seconds...
+2010-05-12 17:17:38,017 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:17:38,017 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:17:38,018 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:17:38,018 - INFO - Sleeping for 13 seconds...
+2010-05-12 17:17:51,031 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 17:17:51,031 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:17:51,032 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:17:51,032 - INFO - Sleeping for 27 seconds...
+2010-05-12 17:18:18,033 - DEBUG - Direct activation attempt 3 with 1.2.3.4
+2010-05-12 17:18:18,034 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:18:18,034 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:18:18,034 - INFO - Sleeping for 69 seconds...
+2010-05-12 17:18:45,143 - INFO - Starting run of activation client...
+2010-05-12 17:18:45,146 - INFO - Running command: register
+2010-05-12 17:18:45,146 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-12 17:18:45,379 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-12 17:18:45,380 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-12 17:18:45,380 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-12 17:18:45,396 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:18:45,396 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:18:45,397 - INFO - Sleeping for 1 seconds...
+2010-05-12 17:18:46,398 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-12 17:18:46,414 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:18:46,414 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:18:46,414 - INFO - Sleeping for 3 seconds...
+2010-05-12 17:18:49,418 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-12 17:18:49,418 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:18:49,418 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:18:49,419 - INFO - Sleeping for 4 seconds...
+2010-05-12 17:18:53,421 - DEBUG - Direct activation attempt 3 with 1.2.3.4
+2010-05-12 17:18:53,422 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:18:53,422 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-12 17:18:53,422 - INFO - Sleeping for 5 seconds...
+2010-05-12 17:18:58,427 - DEBUG - Direct activation attempt 4 with 1.2.3.4
+2010-05-12 17:18:58,428 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-12 17:18:58,428 - INFO - Activation client exiting.
+2010-05-14 13:50:45,765 - INFO - Starting run of activation client...
+2010-05-14 13:50:45,780 - INFO - Running command: register
+2010-05-14 13:50:45,804 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-14 13:50:45,829 - INFO - Poll timeout exceeded, running activation.
+2010-05-14 13:50:46,283 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-14 13:50:46,284 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-14 13:50:46,284 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-14 13:50:46,292 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:50:46,292 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:50:46,292 - INFO - Sleeping for 1 seconds...
+2010-05-14 13:50:47,295 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-14 13:50:47,303 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:50:47,303 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:50:47,303 - INFO - Sleeping for 1 seconds...
+2010-05-14 13:50:48,305 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-14 13:50:48,312 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:50:48,313 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:50:48,313 - INFO - Sleeping for 1 seconds...
+2010-05-14 13:50:49,315 - DEBUG - Direct activation attempt 3 with 1.2.3.4
+2010-05-14 13:50:49,320 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:50:49,320 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:50:49,320 - INFO - Sleeping for 23 seconds...
+2010-05-14 13:51:15,067 - INFO - Starting run of activation client...
+2010-05-14 13:51:15,068 - INFO - Running command: register
+2010-05-14 13:51:15,068 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-14 13:51:15,068 - INFO - Poll timeout exceeded, running activation.
+2010-05-14 13:51:15,346 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-14 13:51:15,347 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-14 13:51:15,347 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-14 13:51:15,354 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:51:15,354 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:51:15,355 - INFO - Sleeping for 1 seconds...
+2010-05-14 13:51:16,356 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-14 13:51:16,364 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:51:16,364 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:51:16,364 - INFO - Sleeping for 4 seconds...
+2010-05-14 13:51:20,368 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-14 13:51:20,377 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:51:20,377 - INFO - Activation client exiting.
+2010-05-14 13:51:47,713 - INFO - Starting run of activation client...
+2010-05-14 13:51:47,714 - INFO - Running command: register
+2010-05-14 13:51:47,714 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-14 13:51:47,714 - INFO - Poll timeout exceeded, running activation.
+2010-05-14 13:51:47,992 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-14 13:51:47,993 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-14 13:51:47,995 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-14 13:51:47,996 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:51:47,996 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:51:47,996 - DEBUG - Direct activation attempt 1 with 1.2.3.4
+2010-05-14 13:51:48,010 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:51:48,011 - INFO - Retrying direct activation attempt with 1.2.3.4
+2010-05-14 13:51:48,011 - DEBUG - Direct activation attempt 2 with 1.2.3.4
+2010-05-14 13:51:48,022 - INFO - Direct activation with 1.2.3.4 failed.
+2010-05-14 13:51:48,023 - INFO - Activation client exiting.
+2010-05-14 13:55:17,861 - INFO - Starting run of activation client...
+2010-05-14 13:55:17,861 - INFO - Running command: register
+2010-05-14 13:55:17,861 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-14 13:55:17,862 - INFO - Poll timeout exceeded, running activation.
+2010-05-14 13:55:18,135 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-14 13:55:18,136 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-14 13:55:18,137 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-14 13:55:18,145 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-14 13:55:18,146 - DEBUG - Updating activation file timestamp to 1273859718.15
+2010-05-14 13:55:18,147 - INFO - Activation client exiting.
+2010-05-14 13:55:20,752 - INFO - Starting run of activation client...
+2010-05-14 13:55:20,753 - INFO - Running command: register
+2010-05-14 13:55:20,753 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-14 13:55:20,753 - INFO - Poll timeout exceeded, running activation.
+2010-05-14 13:55:21,028 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-14 13:55:21,029 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-14 13:55:21,030 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-14 13:55:21,040 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-14 13:55:21,040 - DEBUG - Updating activation file timestamp to 1273859721.04
+2010-05-14 13:55:21,041 - INFO - Activation client exiting.
+2010-05-14 13:55:26,733 - INFO - Starting run of activation client...
+2010-05-14 13:55:26,734 - INFO - Running command: register
+2010-05-14 13:55:26,734 - DEBUG - Activation disable file does not exist (/var/lib/conary-cim/activationdisable).
+2010-05-14 13:55:26,734 - INFO - Poll timeout exceeded, running activation.
+2010-05-14 13:55:27,018 - INFO - Registering System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-14 13:55:27,019 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-14 13:55:27,019 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-14 13:55:27,019 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-14 13:55:27,019 - DEBUG - Updating activation file timestamp to 1273859727.02
+2010-05-14 13:55:27,020 - INFO - Activation client exiting.
+2010-05-18 15:50:46,985 - INFO - Starting run of activation client...
+2010-05-18 15:50:47,013 - INFO - Running command: activate
+2010-05-18 15:50:47,013 - DEBUG - Activation disable file does not exist ((<class 'conary.lib.cfgtypes.CfgType'>, '/etc/conary/ractivate')/disableActivation).
+2010-05-18 15:50:47,014 - INFO - Poll timeout exceeded, running activation.
+2010-05-18 15:50:47,316 - INFO - Activating System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-18 15:50:47,316 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-18 15:50:47,316 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-18 15:50:47,317 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-18 15:50:47,317 - DEBUG - Updating activation file timestamp to 1274212247.32
+2010-05-18 15:50:47,317 - INFO - Activation client exiting.
+2010-05-18 15:50:50,099 - INFO - Starting run of activation client...
+2010-05-18 15:50:50,100 - INFO - Running command: activate
+2010-05-18 15:50:50,100 - DEBUG - Activation disable file does not exist ((<class 'conary.lib.cfgtypes.CfgType'>, '/etc/conary/ractivate')/disableActivation).
+2010-05-18 15:50:50,100 - INFO - Poll timeout exceeded, running activation.
+2010-05-18 15:50:50,266 - INFO - Activating System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-18 15:50:50,267 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-18 15:50:50,267 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-18 15:50:50,268 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-18 15:50:50,268 - DEBUG - Updating activation file timestamp to 1274212250.27
+2010-05-18 15:50:50,269 - INFO - Activation client exiting.
+2010-05-18 15:50:54,287 - INFO - Starting run of activation client...
+2010-05-18 15:50:54,288 - INFO - Running command: activate
+2010-05-18 15:50:54,288 - DEBUG - Activation disable file does not exist ((<class 'conary.lib.cfgtypes.CfgType'>, '/etc/conary/ractivate')/disableActivation).
+2010-05-18 15:50:54,288 - INFO - Poll timeout exceeded, running activation.
+2010-05-18 15:50:54,457 - INFO - Activating System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-18 15:50:54,457 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-18 15:50:54,457 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-18 15:50:54,458 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-18 15:50:54,458 - DEBUG - Updating activation file timestamp to 1274212254.46
+2010-05-18 15:50:54,458 - INFO - Activation client exiting.
+2010-05-18 15:50:59,808 - INFO - Starting run of activation client...
+2010-05-18 15:50:59,809 - INFO - Running command: activate
+2010-05-18 15:50:59,809 - DEBUG - Activation disable file does not exist ((<class 'conary.lib.cfgtypes.CfgType'>, '/etc/conary/ractivate')/disableActivation).
+2010-05-18 15:50:59,809 - INFO - Poll timeout exceeded, running activation.
+2010-05-18 15:50:59,981 - INFO - Activating System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-18 15:50:59,981 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-18 15:50:59,981 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-18 15:50:59,982 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-18 15:50:59,982 - DEBUG - Updating activation file timestamp to 1274212259.98
+2010-05-18 15:50:59,982 - INFO - Activation client exiting.
+2010-05-18 16:11:14,577 - INFO - Starting run of activation client...
+2010-05-18 16:11:14,577 - INFO - Running command: activate
+2010-05-18 16:11:14,578 - ERROR - An exception has occurred: 'rActivateConfiguration' object has no attribute 'disableActivationFilePath'
+2010-05-18 16:11:14,578 - ERROR -   File "commands/ractivate", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 104, in main
+    return _main(argv, rActivateMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 85, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 59, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/command.py", line 102, in runCommand
+    if not self.shouldRun():
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/command.py", line 85, in shouldRun
+    activationDisabled = self.checkActivationDisabled()
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/command.py", line 48, in checkActivationDisabled
+    exists = os.path.exists(self.cfg.disableActivationFilePath)
+
+2010-05-18 16:11:29,406 - INFO - Starting run of activation client...
+2010-05-18 16:11:29,406 - INFO - Running command: activate
+2010-05-18 16:11:29,406 - ERROR - An exception has occurred: 'rActivateConfiguration' object has no attribute 'activationDisableFile'
+2010-05-18 16:11:29,407 - ERROR -   File "commands/ractivate", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 104, in main
+    return _main(argv, rActivateMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 85, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 59, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/command.py", line 102, in runCommand
+    if not self.shouldRun():
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/command.py", line 85, in shouldRun
+    activationDisabled = self.checkActivationDisabled()
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/command.py", line 54, in checkActivationDisabled
+    % self.cfg.activationDisableFile)
+
+2010-05-18 16:11:58,643 - INFO - Starting run of activation client...
+2010-05-18 16:11:58,643 - INFO - Running command: activate
+2010-05-18 16:11:58,644 - DEBUG - Activation disable file does not exist (/home/jslagle/rpath-hg/si/client/rregister/devel/disableActivation).
+2010-05-18 16:11:58,644 - INFO - Poll timeout exceeded, running activation.
+2010-05-18 16:11:58,810 - INFO - Activating System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-18 16:11:58,810 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-18 16:11:58,810 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-18 16:11:58,811 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-18 16:11:58,811 - DEBUG - Updating activation file timestamp to 1274213518.81
+2010-05-18 16:11:58,811 - ERROR - An exception has occurred: 'rActivateConfiguration' object has no attribute 'activationFile'
+2010-05-18 16:11:58,812 - ERROR -   File "commands/ractivate", line 7, in <module>
+    sys.exit(main.main(sys.argv))
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 104, in main
+    return _main(argv, rActivateMain)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 85, in _main
+    rc = MainClass().main(argv, debuggerException=debuggerException)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 266, in main
+    return self.runCommand(thisCommand, cfg, argSet, otherArgs, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/main.py", line 59, in runCommand
+    response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
+  File "/usr/lib64/python2.6/site-packages/conary/lib/mainhandler.py", line 269, in runCommand
+    return thisCommand.runCommand(*args, **kw)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/command.py", line 125, in runCommand
+    activation.activateSystem(system)
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/activate.py", line 224, in activateSystem
+    self.updateActivationFile()
+  File "/home/jslagle/rpath-hg/si/client/rregister/ractivate/activate.py", line 204, in updateActivationFile
+    f = open(self.cfg.activationFile, 'w')
+
+2010-05-18 16:12:11,690 - INFO - Starting run of activation client...
+2010-05-18 16:12:11,690 - INFO - Running command: activate
+2010-05-18 16:12:11,690 - DEBUG - Activation disable file does not exist (/home/jslagle/rpath-hg/si/client/rregister/devel/disableActivation).
+2010-05-18 16:12:11,690 - INFO - Poll timeout exceeded, running activation.
+2010-05-18 16:12:11,861 - INFO - Activating System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-18 16:12:11,862 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-18 16:12:11,863 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-18 16:12:11,864 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-18 16:12:11,864 - DEBUG - Updating activation file timestamp to 1274213531.86
+2010-05-18 16:12:11,865 - INFO - Activation client exiting.
+2010-05-18 16:12:13,567 - INFO - Starting run of activation client...
+2010-05-18 16:12:13,567 - INFO - Running command: activate
+2010-05-18 16:12:13,568 - DEBUG - Activation disable file does not exist (/home/jslagle/rpath-hg/si/client/rregister/devel/disableActivation).
+2010-05-18 16:12:13,568 - INFO - Poll timeout exceeded, running activation.
+2010-05-18 16:12:13,737 - INFO - Activating System with local uuid 37b57b01-48d7-11cb-afdb-fedb0213827a and generated uuid 8ec532c2-aeee-1c71-6962-4952d039c261
+2010-05-18 16:12:13,738 - INFO - Attempting direct activation with 1.2.3.4
+2010-05-18 16:12:13,738 - DEBUG - Direct activation attempt 0 with 1.2.3.4
+2010-05-18 16:12:13,738 - INFO - Direct activation with 1.2.3.4 succesful
+2010-05-18 16:12:13,738 - DEBUG - Updating activation file timestamp to 1274213533.74
+2010-05-18 16:12:13,739 - INFO - Activation client exiting.
