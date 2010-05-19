@@ -20,6 +20,6 @@ available through the rpath_proddef module.
 """
 
 # NOTE: constants.py is auto generated from constants.py.in
-_VERSION          = "1.0"        # code version
+_VERSION          = "1.2.3"        # code version
 
 version = _VERSION
