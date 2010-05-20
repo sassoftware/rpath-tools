@@ -12,25 +12,36 @@
 # full details.
 #
 
-
+import logging
 import urllib
 import urllib2
 import urlparse
+
+logger = logging.getLogger('activation')
 
 class Client(object):
     def __init__(self, url):
         self.url = url
 
     def request(self, data=None):
-        print data
-        return
+        logger.debug("POSTing XML data:\n%s" % data)
         self.response = urllib.urlopen(self.url, data)
         self.responseBody = self.response.read()
-        return self.responseBody
+        if self.response.code == self.SUCCESS_CODE:
+            return True
+        else:
+            return False
 
 class ActivationClient(Client):
+
+    SUCCESS_CODE = 201
+
     def activate(self, data):
-        print data
-        # return None
-        return data
-        return self.request(data)
+        activated = self.request(data)
+
+        if not activated:
+            logger.error("Failed activation with %s." % self.url)
+            logger.error("Response code: %s" % self.response.code)
+            logger.error("Response: %s" % self.responseBody)
+
+        return activated
