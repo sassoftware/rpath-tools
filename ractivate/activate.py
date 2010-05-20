@@ -228,36 +228,54 @@ class Activation(object):
         for remote in self.cfg.directMethod:
             logger.info('Attempting direct activation with %s' % remote)
             actClient = client.ActivationClient(remote)
+            actResp = self._activate(remote)
+            if actResp:
+                break
 
-            sleepTime = 0
-            attempts = 0
-
-            while attempts < self.cfg.activationRetryCount:
-                if attempts > 0:
-                    logger.info('Retrying direct activation attempt with %s' % remote)
-                if sleepTime > 0:
-                    logger.info('Sleeping for %s seconds...' % sleepTime)
-                    time.sleep(sleepTime)
-
-                logger.debug('Direct activation attempt %s with %s' % \
-                             (attempts, remote))
-                response = actClient.activate(systemXml)
-
-                # TODO: validate the response to make sure we activated correctly.
-                if response:
-                    logger.info('Direct activation with %s succesful' % remote)
-                    return response
-                    break
-                else:
-                    logger.info('Direct activation with %s failed.' % remote)
-                    sleepInc = (self.cfg.retrySlotTime * 2**attempts) - sleepTime
-                    randSleepInc = random.random() * sleepInc
-                    sleepTime = sleepTime + int(randSleepInc)
-                    attempts += 1
+        return actResp
 
     def activateSLP(self, systemXml):
-        pass
+        import subprocess 
+        for service in self.cfg.slpMethod:
+            slptool = subprocess.Popen(['/usr/bin/slptool', 'findsrvs', 
+                                        'service:%s' % service],
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+            stdoutData, stderrData = slptool.communicate()
+            remote = stdoutData.strip('service:%s//' % service).split(',')[0]
+            actResp = self._activate(remote)
+            if actResp:
+                break
 
+        return actResp
+
+    def _activate(self, remote):
+        sleepTime = 0
+        attempts = 0
+
+        while attempts < self.cfg.activationRetryCount:
+            if attempts > 0:
+                logger.info('Retrying activation attempt with %s' % remote)
+            if sleepTime > 0:
+                logger.info('Sleeping for %s seconds...' % sleepTime)
+                time.sleep(sleepTime)
+
+            logger.debug('Activation attempt %s with %s' % \
+                         (attempts, remote))
+            response = actClient.activate(systemXml)
+
+            # TODO: validate the response to make sure we activated correctly.
+            if response:
+                logger.info('Activation with %s succesful' % remote)
+                return response
+                break
+            else:
+                logger.info('Activation with %s failed.' % remote)
+                sleepInc = (self.cfg.retrySlotTime * 2**attempts) - sleepTime
+                randSleepInc = random.random() * sleepInc
+                sleepTime = sleepTime + int(randSleepInc)
+                attempts += 1
 
 if __name__ == '__main__':
     sys.exit(main())
