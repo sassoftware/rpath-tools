@@ -226,7 +226,6 @@ class Activation(object):
                 
     def activateDirect(self, systemXml):
         for remote in self.cfg.directMethod:
-            logger.info('Attempting direct activation with %s' % remote)
             actClient = client.ActivationClient(remote)
             actResp = self._activate(remote)
             if actResp:
@@ -237,20 +236,28 @@ class Activation(object):
     def activateSLP(self, systemXml):
         import subprocess 
         for service in self.cfg.slpMethod:
+            logger.info("Searching for %s SLP service." % service)
             slptool = subprocess.Popen(['/usr/bin/slptool', 'findsrvs', 
                                         'service:%s' % service],
                                        stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE)
             stdoutData, stderrData = slptool.communicate()
-            remote = stdoutData.strip('service:%s//' % service).split(',')[0]
+            if stdoutData:
+                remote = stdoutData.strip('service:%s//' % service).split(',')[0]
+                logger.info('%s SLP service found at %s' % remote)
+            else:
+                logger.info('No %s SLP service found.' % service)
+
             actResp = self._activate(remote)
+
             if actResp:
                 break
 
         return actResp
 
     def _activate(self, remote):
+        logger.info('Attempting activation with %s' % remote)
         sleepTime = 0
         attempts = 0
 
