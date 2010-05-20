@@ -56,7 +56,11 @@ class ActivationCommand(rActivateCommand):
         return exists
 
     def _checkTimeout(self, timeoutFile, timeout):
-        f = open(timeoutFile)
+        try:
+            f = open(timeoutFile)
+        except IOError, e:
+            logger.error("Could not open file %s for reading." % timeoutFile)
+            return
         tStamp = f.read().strip()
         tStamp = int(float(tStamp))
         if (time.time() - timeout) > tStamp:
