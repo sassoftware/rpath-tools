@@ -14,7 +14,6 @@
 
 import logging
 import urllib
-import urllib2
 import urlparse
 
 logger = logging.getLogger('activation')
@@ -35,6 +34,10 @@ class Client(object):
 class ActivationClient(Client):
 
     SUCCESS_CODE = 201
+    PATH = '/api/inventory/systems'
+
+    def __init__(self, url):
+        self.url = urlparse.urljoin(url, self.PATH)
 
     def activate(self, data):
         activated = self.request(data)
