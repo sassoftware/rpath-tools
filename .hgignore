@@ -2,3 +2,4 @@
 \.patch$
 ^devel$
 ^activation$
+^ractivate-devel$

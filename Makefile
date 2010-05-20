@@ -65,6 +65,33 @@ forcetag:
 tag:
 	hg tag ractivate-$(VERSION)
 
+devel:
+		mkdir -p devel/sfcb/clients
+		rm -f devel/sfcb.cfg
+		echo "sslClientTrustStore: $(TOPDIR)/devel/sfcb/clients" >> devel/sfcb.cfg
+		echo "sslCertificateFilePath: $(TOPDIR)/devel/sfcb/server.pem" >> devel/sfcb.cfg
+		echo "SERVER.PEM DATA" > devel/sfcb/server.pem
+		rm -f activation
+		echo "topDir $(TOPDIR)/devel" >> activation
+		echo "generatedUuidFile generated-uuid" >> activation
+		echo "localUuidFile local-uuid" >> activation
+		echo "localUuidOldDirectory old" >> activation
+		echo "sfcbConfigurationFile $(TOPDIR)/devel/sfcb.cfg" >> activation
+		echo "credentialsDirectoryName credentials" >> activation
+		echo "credentialsCertFileName credentials.cert" >> activation
+		echo "credentialsKeyFileName credentials.key" >> activation
+		echo "logFile $(TOPDIR)/devel/activation.log" >> activation
+		echo "debugMode True" >> activation
+		echo "activationMethod direct" >> activation
+		echo "directMethod 1.2.3.4" >> activation
+		echo "retrySlotTime 3" >> activation
+		echo "lastPollFileName $(TOPDIR)/devel/poll" >> activation
+		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> activation
+		echo "activationRetryCount 3" >> activation
+		echo "sudo PYTHONPATH=$(TOPDIR) commands/ractivate" > ractivate-devel
+		chmod +x ractivate-devel
+        
+
 clean: clean-subdirs default-clean
 
 include Make.rules
