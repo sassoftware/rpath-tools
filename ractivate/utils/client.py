@@ -24,7 +24,7 @@ class Client(object):
 
     def request(self, data=None):
         logger.debug("POSTing XML data:\n%s" % data)
-        self.response = urllib.urlopen(self.url, data)
+        self.response = urllib.urlopen(self.url, data=data)
         self.responseBody = self.response.read()
         if self.response.code == self.SUCCESS_CODE:
             return True
@@ -35,9 +35,10 @@ class ActivationClient(Client):
 
     SUCCESS_CODE = 201
     PATH = '/api/inventory/systems'
+    SCHEME = 'http'
 
     def __init__(self, url):
-        self.url = urlparse.urljoin(url, self.PATH)
+        self.url = urlparse.urlunsplit([self.SCHEME, url, self.PATH, None, None])
 
     def activate(self, data):
         activated = self.request(data)

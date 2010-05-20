@@ -226,8 +226,7 @@ class Activation(object):
                 
     def activateDirect(self, systemXml):
         for remote in self.cfg.directMethod:
-            actClient = client.ActivationClient(remote)
-            actResp = self._activate(remote)
+            actResp = self._activate(remote, systemXml)
             if actResp:
                 break
 
@@ -249,15 +248,16 @@ class Activation(object):
             else:
                 logger.info('No %s SLP service found.' % service)
 
-            actResp = self._activate(remote)
+            actResp = self._activate(remote, systemXml)
 
             if actResp:
                 break
 
         return actResp
 
-    def _activate(self, remote):
+    def _activate(self, remote, systemXml):
         logger.info('Attempting activation with %s' % remote)
+        actClient = client.ActivationClient(remote)
         sleepTime = 0
         attempts = 0
 
