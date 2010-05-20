@@ -25,7 +25,7 @@ class rActivateConfiguration(cfg.ConfigFile):
     activationPort = (cfg.CfgInt, 13579)
     activationMethod = (cfg.CfgList(cfg.CfgString), ["DIRECT",])
     directMethod = (cfg.CfgList(cfg.CfgString), "")
-    slpMethod = (cfg.CfgList(cfg.CfgString), "rpath-inventory")
+    slpMethod = (cfg.CfgList(cfg.CfgString), ["rpath-inventory",])
     activationRetryCount = (cfg.CfgInt, 3)
     retrySlotTime = (cfg.CfgInt, 15)
     sfcbUrl = (cfg.CfgString, "/tmp/sfcbHttpSocket")

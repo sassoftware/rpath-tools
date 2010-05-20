@@ -235,7 +235,7 @@ class Activation(object):
     def activateSLP(self, systemXml):
         import subprocess 
         for service in self.cfg.slpMethod:
-            logger.info("Searching for %s SLP service." % service)
+            logger.info('Searching for "%s" SLP service.' % service)
             slptool = subprocess.Popen(['/usr/bin/slptool', 'findsrvs', 
                                         'service:%s' % service],
                                        stdin=subprocess.PIPE,
@@ -244,9 +244,10 @@ class Activation(object):
             stdoutData, stderrData = slptool.communicate()
             if stdoutData:
                 remote = stdoutData.strip('service:%s//' % service).split(',')[0]
-                logger.info('%s SLP service found at %s' % remote)
+                logger.info('"%s" SLP service found at %s' % (service, remote))
             else:
-                logger.info('No %s SLP service found.' % service)
+                logger.info('No "%s" SLP service found.' % service)
+                continue
 
             actResp = self._activate(remote, systemXml)
 
