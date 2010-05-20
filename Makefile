@@ -88,11 +88,16 @@ devel:
 		echo "lastPollFileName $(TOPDIR)/devel/poll" >> activation
 		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> activation
 		echo "activationRetryCount 3" >> activation
-		echo "sudo PYTHONPATH=$(TOPDIR) commands/ractivate" > ractivate-devel
+		echo 'sudo PYTHONPATH=$(TOPDIR) commands/ractivate $$@' > ractivate-devel
 		chmod +x ractivate-devel
         
+clean-devel:
+		rm -rf devel
+		rm -f activation
+		rm -f ractivate-devel
 
-clean: clean-subdirs default-clean
+
+clean: clean-devel clean-subdirs default-clean 
 
 include Make.rules
 include Make.defs
