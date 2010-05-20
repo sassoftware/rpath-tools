@@ -225,6 +225,7 @@ class Activation(object):
                 return
                 
     def activateDirect(self, systemXml):
+        logger.info("Using Direct activation.")
         for remote in self.cfg.directMethod:
             actResp = self._activate(remote, systemXml)
             if actResp:
@@ -233,6 +234,7 @@ class Activation(object):
         return actResp
 
     def activateSLP(self, systemXml):
+        logger.info("Using SLP activation.")
         import subprocess 
         for service in self.cfg.slpMethod:
             logger.info('Searching for "%s" SLP service.' % service)
