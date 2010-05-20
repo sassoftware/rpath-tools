@@ -18,6 +18,7 @@ all-subdirs:
 	for d in $(MAKEALLSUBDIRS); do make -C $$d DIR=$$d || exit 1; done
 
 export TOPDIR = $(shell pwd)
+export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
 
 SUBDIRS=ractivate distro
 MAKEALLSUBDIRS=ractivate distro
@@ -88,6 +89,8 @@ devel:
 		echo "lastPollFileName $(TOPDIR)/devel/poll" >> activation
 		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> activation
 		echo "activationRetryCount 3" >> activation
+		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
+		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/activation
 		echo 'sudo PYTHONPATH=$(TOPDIR) commands/ractivate $$@' > ractivate-devel
 		chmod +x ractivate-devel
         
