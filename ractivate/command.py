@@ -104,8 +104,11 @@ class ActivationCommand(rActivateCommand):
         self.shutdown = argSet.pop('shutdown', False)
 
         if not self.shouldRun():
+            print 'Activation not needed.'
             logger.info('Activation Client will not run, exiting.')
-            sys.exit(0)
+            sys.exit(2)
+        else:
+            print 'Activation needed.'
 
         activation = activate.Activation(self.cfg)
         hwData = hardware.HardwareData(self.cfg.sfcbUrl)
@@ -126,7 +129,10 @@ class ActivationCommand(rActivateCommand):
                                 available=available)
         logger.info('Activating System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
+        print 'Activating...'
         activation.activateSystem(system)
+        print 'Complete.'
+        return 0
 
 class HardwareCommand(rActivateCommand):
     commands = ['hardware']
