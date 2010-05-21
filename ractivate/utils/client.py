@@ -34,7 +34,7 @@ class Client(object):
 class ActivationClient(Client):
 
     SUCCESS_CODE = 201
-    PATH = '/api/inventory/systems'
+    PATH = '/api/inventory/systems/'
     SCHEME = 'http'
 
     def __init__(self, url):
