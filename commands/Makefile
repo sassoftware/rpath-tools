@@ -21,7 +21,7 @@ extra_dist = Makefile
 
 all: default-all 
 	mkdir -p $(TOPDIR)/bin
-	install -m755 rregister $(TOPDIR)/bin/rregister
+	install -m755 ractivate $(TOPDIR)/bin/ractivate
 
 install-mkdirs:
 	mkdir -p $(DESTDIR)$(bindir)
