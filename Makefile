@@ -20,7 +20,7 @@ all-subdirs:
 export TOPDIR = $(shell pwd)
 export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
 
-SUBDIRS=ractivate distro
+SUBDIRS=ractivate distro commands
 MAKEALLSUBDIRS=ractivate distro commands
 
 extra_files = \
