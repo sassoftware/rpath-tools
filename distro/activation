@@ -144,7 +144,7 @@ debugMode False
 # files on the filesystem.
 
 # top directory -- Directory used as the base for all other file locations.
-topDir /etc/conary/rregister
+topDir /etc/conary/ractivate
 
 # generated uuid file -- File for the value of the generated uuid.
 generatedUuidFile generated-uuid

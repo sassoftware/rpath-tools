@@ -212,8 +212,7 @@ class Activation(object):
             func = self.activationMethods.get(method.upper(), None)
 
             if not func:
-                msg = 'Invalid activation method %s. Check the ' + \
-                      'activationMethod configuration parameter ' % method
+                msg = 'Invalid activation method "%s". Check the activationMethod configuration parameter ' % method
                 logger.error(msg)
                 raise errors.rActivateError(msg)
 
@@ -236,6 +235,7 @@ class Activation(object):
     def activateSLP(self, systemXml):
         logger.info("Using SLP activation.")
         import subprocess 
+        actResp = None
         for service in self.cfg.slpMethod:
             logger.info('Searching for "%s" SLP service.' % service)
             slptool = subprocess.Popen(['/usr/bin/slptool', 'findsrvs', 
