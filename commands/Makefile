@@ -14,7 +14,7 @@
 
 TOPDIR=..
 
-bin_files = rregister
+bin_files = ractivate
 
 extra_dist = Makefile
 
