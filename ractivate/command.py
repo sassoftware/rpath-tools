@@ -143,3 +143,22 @@ class HardwareCommand(rActivateCommand):
         self.cfg = args[0]
         hwData = hardware.main(self.cfg)
         return hwData
+
+class ConfigCommand(rActivateCommand):
+    commands = ['config']
+    help = 'Display the current configuration'
+    
+    def runCommand(self, cfg, argSet, args, **kwargs):
+        try:
+            prettyPrint = sys.stdout.isatty()
+        except AttributeError:
+            prettyPrint = False
+        cfg.setDisplayOptions(hidePasswords=True,
+                              showContexts=False,
+                              prettyPrint=True,
+                              showLineOrigins=False)
+        if argSet: return self.usage()
+        if (len(args) > 2):
+            return self.usage()
+        else:
+            cfg.display()

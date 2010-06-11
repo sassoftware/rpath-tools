@@ -19,6 +19,7 @@ all-subdirs:
 
 export TOPDIR = $(shell pwd)
 export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
+export CFGDEVEL=ractivaterc
 
 SUBDIRS=ractivate distro commands
 MAKEALLSUBDIRS=ractivate distro commands
@@ -68,35 +69,36 @@ tag:
 
 devel:
 		mkdir -p devel/sfcb/clients
+		mkdir devel/config.d
 		rm -f devel/sfcb.cfg
 		echo "sslClientTrustStore: $(TOPDIR)/devel/sfcb/clients" >> devel/sfcb.cfg
 		echo "sslCertificateFilePath: $(TOPDIR)/devel/sfcb/server.pem" >> devel/sfcb.cfg
 		echo "SERVER.PEM DATA" > devel/sfcb/server.pem
-		rm -f activation
-		echo "topDir $(TOPDIR)/devel" >> activation
-		echo "generatedUuidFile generated-uuid" >> activation
-		echo "localUuidFile local-uuid" >> activation
-		echo "localUuidOldDirectory old" >> activation
-		echo "sfcbConfigurationFile $(TOPDIR)/devel/sfcb.cfg" >> activation
-		echo "credentialsDirectoryName credentials" >> activation
-		echo "credentialsCertFileName credentials.cert" >> activation
-		echo "credentialsKeyFileName credentials.key" >> activation
-		echo "logFile $(TOPDIR)/devel/activation.log" >> activation
-		echo "debugMode True" >> activation
-		echo "activationMethod direct" >> activation
-		echo "directMethod 1.2.3.4" >> activation
-		echo "retrySlotTime 3" >> activation
-		echo "lastPollFileName $(TOPDIR)/devel/poll" >> activation
-		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> activation
-		echo "activationRetryCount 3" >> activation
+		rm -f $(CFGDEVEL)
+		echo "topDir $(TOPDIR)/devel" >> $(CFGDEVEL)
+		echo "generatedUuidFile generated-uuid" >> $(CFGDEVEL)
+		echo "localUuidFile local-uuid" >> $(CFGDEVEL)
+		echo "localUuidOldDirectory old" >> $(CFGDEVEL)
+		echo "sfcbConfigurationFile $(TOPDIR)/devel/sfcb.cfg" >> $(CFGDEVEL)
+		echo "credentialsDirectoryName credentials" >> $(CFGDEVEL)
+		echo "credentialsCertFileName credentials.cert" >> $(CFGDEVEL)
+		echo "credentialsKeyFileName credentials.key" >> $(CFGDEVEL)
+		echo "logFile $(TOPDIR)/devel/activation.log" >> $(CFGDEVEL)
+		echo "debugMode True" >> $(CFGDEVEL)
+		echo "activationMethod direct" >> $(CFGDEVEL)
+		echo "directMethod 127.0.0.1:8000" >> $(CFGDEVEL)
+		echo "retrySlotTime 3" >> $(CFGDEVEL)
+		echo "lastPollFileName $(TOPDIR)/devel/poll" >> $(CFGDEVEL)
+		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> $(CFGDEVEL)
+		echo "activationRetryCount 3" >> $(CFGDEVEL)
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/activation
 		echo 'sudo PYTHONPATH=$(TOPDIR) commands/ractivate $$@' > ractivate-devel
 		chmod +x ractivate-devel
         
 clean-devel:
-		rm -rf devel
-		rm -f activation
+		sudo rm -rf devel
+		rm -f $(CFGDEVEL)
 		rm -f ractivate-devel
 
 

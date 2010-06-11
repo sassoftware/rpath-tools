@@ -55,11 +55,11 @@ class rActivateConfiguration(cfg.ConfigFile):
         @param root: if specified, search for config file under the given
         root instead of on the base system.  Useful for testing.
         """
-        self.read(root + '/etc/conary/config.d/activation', exception=False)
+        self.read(root + '/etc/conary/ractivate/ractivaterc', exception=False)
         if os.environ.has_key("HOME"):
-            self.read(root + os.environ["HOME"] + "/" + ".activation",
+            self.read(root + os.environ["HOME"] + "/" + ".ractivaterc",
                       exception=False)
-        self.read('activation', exception=False)
+        self.read('ractivaterc', exception=False)
 
     @property
     def generatedUuidFilePath(self):

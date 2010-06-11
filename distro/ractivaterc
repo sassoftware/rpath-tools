@@ -11,6 +11,11 @@
 #
 # For more details, see the rBuilder Administration Guide.
 
+# Include all config files defined under this directory.  Allows for
+# overriding configuration options and setting configuration options from boot
+# time parameters.
+includeConfigFile /etc/conary/ractivate/config.d/*
+
 # *** PARAMETERS CONTROLLING WHEN ACTIVATION SHOULD OCCUR ***
 #
 # The following parameters define the situations under which the

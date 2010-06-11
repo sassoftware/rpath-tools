@@ -31,7 +31,8 @@ class rActivateMain(mainhandler.MainHandler):
 
     abstractCommand = command.rActivateCommand
     configClass = config.rActivateConfiguration
-    commandList = [command.ActivationCommand, command.HardwareCommand]
+    commandList = [command.ActivationCommand, command.HardwareCommand,
+                   command.ConfigCommand]
 
     setSysExcepthook = False
 
