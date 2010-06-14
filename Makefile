@@ -91,6 +91,7 @@ devel:
 		echo "lastPollFileName $(TOPDIR)/devel/poll" >> $(CFGDEVEL)
 		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> $(CFGDEVEL)
 		echo "activationRetryCount 3" >> $(CFGDEVEL)
+		echo "includeConfigFile $(TOPDIR)/devel/config.d/*" >> $(CFGDEVEL)
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/activation
 		echo 'sudo PYTHONPATH=$(TOPDIR) commands/ractivate $$@' > ractivate-devel
