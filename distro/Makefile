@@ -9,7 +9,8 @@
 all: default-all
 
 install: default-install
-	install -D -m0644 activation $(DESTDIR)/etc/conary/config.d/activation
+	install -D -m0644 ractivaterc $(DESTDIR)/etc/conary/ractivate/ractivaterc
+	install -D -m0755 ractivate.init $(DESTDIR)/etc/init.d/ractivate
 
 include ../Make.rules
 include ../Make.defs
