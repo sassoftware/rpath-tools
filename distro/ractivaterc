@@ -9,6 +9,10 @@
 # o The way in which the rBuilder has been configured to handle the
 #   activation and polling of systems
 #
+# These values can also be overridden at boot time on the kernel command line
+# if specified in the form of RACTIVATE=OPTION=VALUE.  For example:
+# RACTIVATE=bootActivate=1
+#
 # For more details, see the rBuilder Administration Guide.
 
 # Include all config files defined under this directory.  Allows for
