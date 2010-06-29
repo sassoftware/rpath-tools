@@ -30,9 +30,9 @@ class rActivateConfiguration(cfg.ConfigFile):
     retrySlotTime = (cfg.CfgInt, 15)
     sfcbUrl = (cfg.CfgString, "/tmp/sfcbHttpSocket")
     topDir = (cfg.CfgString, "/etc/conary/ractivate")
-    generatedUuidFile = (cfg.CfgString, "uuid1")
-    localUuidFile = (cfg.CfgString, "uuid2")
-    localUuidOldDirectory = (cfg.CfgString, "old-registrations")
+    generatedUuidFile = (cfg.CfgString, "generated-uuid")
+    localUuidFile = (cfg.CfgString, "local-uuid")
+    localUuidBackupDirectoryName = (cfg.CfgString, "old-registrations")
     credentialsDirectoryName = (cfg.CfgString, "credentials")
     credentialsCertFileName = (cfg.CfgString, "credentials.cert")
     credentialsKeyFileName = (cfg.CfgString, "credentials.key")
@@ -71,20 +71,20 @@ class rActivateConfiguration(cfg.ConfigFile):
 
     @property
     def localUuidOldDirectoryPath(self):
-        return os.path.join(self.topDir, self.localUuidOldDirectory)
+        return os.path.join(self.topDir, self.localUuidBackupDirectoryName)
 
     @property
-    def credentialsDirectory(self):
+    def credentialsDirectoryPath(self):
         return os.path.join(self.topDir, self.credentialsDirectoryName)
 
     @property
     def credentialsCertFilePath(self):
-        return os.path.join(self.credentialsDirectory,
+        return os.path.join(self.credentialsDirectoryPath,
             self.credentialsCertFileName)
 
     @property
     def credentialsKeyFilePath(self):
-        return os.path.join(self.credentialsDirectory,
+        return os.path.join(self.credentialsDirectoryPath,
             self.credentialsKeyFileName)
 
     @property

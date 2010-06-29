@@ -159,7 +159,7 @@ localUuidFile local-uuid
 
 # local uuid backup directory -- Directory to backup the contents of the old
 # local uuid file in case the contents change.
-localUuidBackupDirectory backup-local-uuid
+localUuidBackupDirectoryName backup-local-uuid
 
 # credentials directory name -- Directory for the sfcb credentials
 credentialsDirectoryName credentials
