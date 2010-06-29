@@ -130,7 +130,10 @@ class ActivationCommand(rActivateCommand):
         logger.info('Activating System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
         print 'Activating...'
-        activation.activateSystem(system)
+        success = activation.activateSystem(system)
+        if not success:
+            print 'Failure'
+            return 1
         print 'Complete.'
         return 0
 

@@ -221,10 +221,13 @@ class Activation(object):
             # methods.
             if activated:
                 self.updateActivationFile()
-                return
+                return True
+
+        return False
                 
     def activateDirect(self, systemXml):
         logger.info("Using Direct activation.")
+        actResp = None
         for remote in self.cfg.directMethod:
             actResp = self._activate(remote, systemXml)
             if actResp:
