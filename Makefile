@@ -78,7 +78,7 @@ devel:
 		echo "topDir $(TOPDIR)/devel" >> $(CFGDEVEL)
 		echo "generatedUuidFile generated-uuid" >> $(CFGDEVEL)
 		echo "localUuidFile local-uuid" >> $(CFGDEVEL)
-		echo "localUuidOldDirectory old" >> $(CFGDEVEL)
+		echo "localUuidBackupDirectoryName old" >> $(CFGDEVEL)
 		echo "sfcbConfigurationFile $(TOPDIR)/devel/sfcb.cfg" >> $(CFGDEVEL)
 		echo "credentialsDirectoryName credentials" >> $(CFGDEVEL)
 		echo "credentialsCertFileName credentials.cert" >> $(CFGDEVEL)
@@ -92,6 +92,7 @@ devel:
 		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> $(CFGDEVEL)
 		echo "activationRetryCount 3" >> $(CFGDEVEL)
 		echo "includeConfigFile $(TOPDIR)/devel/config.d/*" >> $(CFGDEVEL)
+		echo "validateRemoteIdentity False" >> $(CFGDEVEL)
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/activation
 		echo 'sudo PYTHONPATH=$(TOPDIR) commands/ractivate $$@' > ractivate-devel

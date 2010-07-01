@@ -42,6 +42,8 @@ class rActivateConfiguration(cfg.ConfigFile):
     disableActivationFileName = (cfg.CfgString, 'disableActivation')
     lastActivationFileName= (cfg.CfgString, 'lastActivation')
     debugMode = (cfg.CfgBool, False)
+    remoteCAFilePath = (cfg.CfgString, "/etc/conary/ractivate/remoteCA.cert")
+    validateRemoteIdentity = (cfg.CfgBool, True)
 
     def __init__(self, readConfigFiles=False, ignoreErrors=False, root=''):
         cfg.ConfigFile.__init__(self)

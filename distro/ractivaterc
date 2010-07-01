@@ -97,6 +97,8 @@ activationMethod DIRECT
 # Direct method list -- A white space separated list of IP addresses and/or
 # hostnames indicating the rBuilder and/or SPUTNIK(s)
 # against which activation should be attempted.
+# Hostnames can be specified with a port in the format of <hostname>:<port>.  If
+# no port is specified, 443 is used.
 #
 # Minimum value: "" (disables all direct activation attempts)
 # Maximum value: N/A
@@ -197,3 +199,14 @@ disableActivationFileName disableActivation
 # last activation file -- File for storing the timestamp the last time that
 # the system was activated.
 lastActivationFileName lastActivation
+
+# validate remote identity -- Boolean option to turn on or off validation of
+# the identity of the remote activation server.  Validation occurs by
+# verifying the SSL certificate offered by the activation server is signed by
+# the CA certificate found at remoteCAFilePath.
+validateRemoteIdentity True
+
+# remote CA file path -- File for the CA cert of the remote activation server.
+# The SSL cert offered by the remote server during activation will be verified
+# that it is signed by this CA.
+remoteCAFilePath /etc/conary/ractivate/remoteCA.cert

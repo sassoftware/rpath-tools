@@ -54,3 +54,11 @@ class X509(object):
         x509 = cls.load(certFile)
         certHash = "%08x" % x509.get_issuer().as_hash()
         return certHash
+
+    @classmethod
+    def verify(cls, caFile, remote):
+        host, port = remote.split(':')
+        if not port:
+            port = 443
+        return gencert.verifyCert(caFile, host, port)
+        

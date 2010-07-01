@@ -5,7 +5,7 @@ import random
 import sys
 import tempfile
 import time
-from M2Crypto import ASN1, EVP, RSA, X509
+from M2Crypto import ASN1, EVP, RSA, X509, SSL, httpslib
 from M2Crypto import threading as m2threading
 
 
@@ -203,6 +203,21 @@ def writeCert(options, rsa, x509):
     certOut.write(x509.as_pem())
 
     return 0
+
+def verifyCert(caCert, host, port=443):
+    """
+    Verify the certificate.
+    """
+    ctx = SSL.Context()
+    ctx.load_verify_locations(cafile=caCert)
+    ctx.set_allow_unknown_ca(False)
+    ctx.set_verify(SSL.verify_peer, 1)
+
+    try:
+        conn = httpslib.HTTPSConnection("%s:%s" % (host, port), ssl_context=ctx)
+        conn.request("GET", "/")
+    finally:
+        conn.close()
 
 
 def main(args):

@@ -13,14 +13,17 @@
 #
 
 
+import StringIO
 import logging
 import random
 import os
 import pwd
 import subprocess
 import sys
+import tempfile
 import time
-import StringIO
+
+from M2Crypto.SSL.Checker import SSLVerificationError
 
 from conary.lib import util
 
@@ -263,6 +266,10 @@ class Activation(object):
 
     def _activate(self, remote, systemXml):
         logger.info('Attempting activation with %s' % remote)
+
+        if self.cfg.validateRemoteIdentity and not self._validate(remote):
+            return None
+
         actClient = client.ActivationClient(remote)
         sleepTime = 0
         attempts = 0
@@ -289,6 +296,22 @@ class Activation(object):
                 randSleepInc = random.random() * sleepInc
                 sleepTime = sleepTime + int(randSleepInc)
                 attempts += 1
+
+    def _validate(self, remote):
+        logger.info("Validating identity of %s..." % remote)
+        try:
+            x509.X509.verify(self.cfg.remoteCAFilePath, remote) 
+        except SSLVerificationError, e:
+            logger.error("%s failed identity validation!" % remote)
+            logger.error(str(e))
+            return False
+        except Exception, e:
+            logger.error("Unknown error ocurred during identity validation "
+                         "of %s" % remote)
+            logger.error(str(e))
+            return False
+
+        return True
 
 if __name__ == '__main__':
     sys.exit(main())

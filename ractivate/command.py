@@ -117,7 +117,13 @@ class ActivationCommand(rActivateCommand):
         sslClientCert = file(sslClientCertPath).read()
         sslClientKey = file(sslClientKeyPath).read()
         sslServerCert = file(activation.sslCertificateFilePath).read()
-        ip = hwData.getIpAddr()
+
+        try:
+            ip = hwData.getIpAddr()
+        except Exception, e:
+            logger.error("Error fetching IP address of system")
+            raise e
+
         available = not self.shutdown
 
         system = System.factory(generated_uuid=activation.generatedUuid,
