@@ -3,3 +3,4 @@
 ^devel$
 ^ractivaterc$
 ^ractivate-devel$
+^bin/ractivate$
