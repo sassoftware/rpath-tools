@@ -13,7 +13,7 @@
 #
 
 import logging
-import urllib
+import urllib2
 import urlparse
 
 logger = logging.getLogger('activation')
@@ -24,7 +24,7 @@ class Client(object):
 
     def request(self, data=None):
         logger.debug("Sending XML data as POST:\n%s" % data)
-        self.response = urllib.urlopen(self.url, data=data)
+        self.response = urllib2.urlopen(self.url, data=data)
         self.responseBody = self.response.read()
         if self.response.code in self.SUCCESS_CODES:
             return True

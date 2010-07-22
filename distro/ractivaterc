@@ -34,7 +34,7 @@ includeConfigFile /etc/conary/ractivate/config.d/*
 #
 # Minimum value: 0 (disables boot-time activation)
 # Maximum value: 1 (enables boot-time activation)
-bootActivate 1
+bootActivation 1
 
 # Deactivate at shutdown -- Attempt to deactivate the system as the
 # system goes through its normal shutdown processing.  Disabling this
@@ -178,7 +178,7 @@ credentialsCertFileName credentials.cert
 credentialsKeyFileName credentials.key
 
 # sfcb configuration file -- File for the configuration file for sfcb
-sfcbConfigurationFile /etc/conary/sfcb/sfcb.cfg
+sfcbConfigurationFile /etc/sfcb/sfcb.cfg
 
 # last poll file -- File for the timestamp of when the last time that the system
 # was polled by the rBA/Sputnik.  If the timestamp in this file is older than
@@ -188,7 +188,7 @@ sfcbConfigurationFile /etc/conary/sfcb/sfcb.cfg
 lastPollFileName lastPoll
 
 # log file -- File for logging all of the activation client's actions.
-logFile /var/log/activation
+logFile /var/log/ractivate
 
 # disable activation file -- File for indicating if the activation client
 # should even attempt to activate.  If the file exists (contents are ignored)
