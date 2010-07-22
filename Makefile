@@ -95,7 +95,7 @@ devel:
 		echo "validateRemoteIdentity False" >> $(CFGDEVEL)
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/activation
-		echo 'sudo PYTHONPATH=$(TOPDIR) commands/ractivate $$@' > ractivate-devel
+		echo 'sudo PYTHONPATH=$(TOPDIR):$(TOPDIR)/../../../rbuilder/bayonet/include commands/ractivate $$@' > ractivate-devel
 		chmod +x ractivate-devel
         
 clean-devel:

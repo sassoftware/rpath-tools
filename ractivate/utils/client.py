@@ -23,17 +23,17 @@ class Client(object):
         self.url = url
 
     def request(self, data=None):
-        logger.debug("POSTing XML data:\n%s" % data)
+        logger.debug("Sending XML data as POST:\n%s" % data)
         self.response = urllib.urlopen(self.url, data=data)
         self.responseBody = self.response.read()
-        if self.response.code == self.SUCCESS_CODE:
+        if self.response.code in self.SUCCESS_CODES:
             return True
         else:
             return False
 
 class ActivationClient(Client):
 
-    SUCCESS_CODE = 201
+    SUCCESS_CODES = [200, 201]
     PATH = '/api/inventory/systems/'
     SCHEME = 'http'
 
