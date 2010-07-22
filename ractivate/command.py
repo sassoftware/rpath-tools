@@ -59,8 +59,10 @@ class ActivationCommand(rActivateCommand):
         try:
             f = open(timeoutFile)
         except IOError, e:
+            # If the file was not found, be safe and assume we need to
+            # activate
             logger.error("Could not open file %s for reading." % timeoutFile)
-            return
+            return True
         tStamp = f.read().strip()
         tStamp = int(float(tStamp))
         if (time.time() - timeout) > tStamp:
