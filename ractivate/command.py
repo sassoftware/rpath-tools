@@ -126,14 +126,18 @@ class ActivationCommand(rActivateCommand):
             logger.error("Error fetching IP address of system")
             raise e
 
-        available = not int(self.shutdown)
+        if self.shutdown:
+            state = 'shut_down'
+        else:
+            state = 'activated'
 
         system = System.factory(generated_uuid=activation.generatedUuid,
                                 local_uuid=activation.localUuid, 
                                 ssl_client_certificate=sslClientCert,
                                 ssl_client_key=sslClientKey, 
                                 ssl_server_certificate=sslServerCert,
-                                available=available)
+                                state=state,
+                                activated=True)
         network = Network.factory(ip_address=ip)
         networks = Networks.factory()
         networks.add_network(network)
