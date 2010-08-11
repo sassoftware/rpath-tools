@@ -138,7 +138,8 @@ class ActivationCommand(rActivateCommand):
                                 ssl_server_certificate=sslServerCert,
                                 state=state,
                                 activated=True)
-        network = Network.factory(ip_address=ip)
+        network = Network.factory(ip_address=ip,
+            public_dns_name=ip)
         networks = Networks.factory()
         networks.add_network(network)
         system.set_networks(networks)
