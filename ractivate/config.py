@@ -18,8 +18,6 @@ import os
 from conary.lib import cfg
 
 class rActivateConfiguration(cfg.ConfigFile):
-    CONFIGURATION_FILE_GLOBAL = '/etc/conary/ractivate/ractivaterc'
-
     bootActivation = (cfg.CfgBool, 1)
     shutdownDeActivation = (cfg.CfgBool, 1)
     activationInterval = (cfg.CfgInt, 1)
@@ -49,7 +47,6 @@ class rActivateConfiguration(cfg.ConfigFile):
 
     def __init__(self, readConfigFiles=False, ignoreErrors=False, root=''):
         cfg.ConfigFile.__init__(self)
-        self.lastConfigFile = None
         if readConfigFiles:
             self.readFiles()
 
@@ -60,18 +57,11 @@ class rActivateConfiguration(cfg.ConfigFile):
         @param root: if specified, search for config file under the given
         root instead of on the base system.  Useful for testing.
         """
-        self.read(root + self.CONFIGURATION_FILE_GLOBAL, exception=False)
+        self.read(root + '/etc/conary/ractivate/ractivaterc', exception=False)
         if os.environ.has_key("HOME"):
             self.read(root + os.environ["HOME"] + "/" + ".ractivaterc",
                       exception=False)
         self.read('ractivaterc', exception=False)
-
-    def readObject(self, path, f):
-        # Record which file we used last, so we know where to write the new
-        # config
-        ret = cfg.ConfigFile.readObject(self, path, f)
-        self.lastConfigFile = path
-        return ret
 
     @property
     def generatedUuidFilePath(self):
