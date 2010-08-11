@@ -110,7 +110,7 @@ class ActivationCommand(rActivateCommand):
             logger.info('Activation Client will not run, exiting.')
             sys.exit(2)
         else:
-            print 'Activation needed.'
+            print 'Activation needed...'
 
         activation = activate.Activation(self.cfg)
         hwData = hardware.HardwareData(self.cfg.sfcbUrl)
@@ -144,7 +144,6 @@ class ActivationCommand(rActivateCommand):
         system.set_networks(networks)
         logger.info('Activating System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
-        print 'Activating...'
         success = activation.activateSystem(system)
         if not success:
             print 'Failure'

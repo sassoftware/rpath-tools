@@ -226,6 +226,8 @@ class Activation(object):
                 self.updateActivationFile()
                 return True
 
+        print '  Activation failed.  Check the log file at %s' % \
+            self.cfg.logFile
         return False
                 
     def activateDirect(self, systemXml):
@@ -266,6 +268,7 @@ class Activation(object):
 
     def _activate(self, remote, systemXml):
         logger.info('Attempting activation with %s' % remote)
+        print '  Attempting activation with %s...' % remote,
 
         if self.cfg.validateRemoteIdentity and not self._validate(remote):
             return None
@@ -285,12 +288,13 @@ class Activation(object):
                          (attempts, remote))
             response = actClient.activate(systemXml)
 
-            # TODO: validate the response to make sure we activated correctly.
             if response:
                 logger.info('Activation with %s succesful' % remote)
+                print "successful."
                 return response
                 break
             else:
+                print "failed."
                 logger.info('Activation with %s failed.' % remote)
                 sleepInc = (self.cfg.retrySlotTime * 2**attempts) - sleepTime
                 randSleepInc = random.random() * sleepInc
