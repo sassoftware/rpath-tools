@@ -83,7 +83,7 @@ devel:
 		echo "credentialsDirectoryName credentials" >> $(CFGDEVEL)
 		echo "credentialsCertFileName credentials.cert" >> $(CFGDEVEL)
 		echo "credentialsKeyFileName credentials.key" >> $(CFGDEVEL)
-		echo "logFile $(TOPDIR)/devel/activation.log" >> $(CFGDEVEL)
+		echo "logFile $(TOPDIR)/devel/ractivate" >> $(CFGDEVEL)
 		echo "debugMode True" >> $(CFGDEVEL)
 		echo "activationMethod direct" >> $(CFGDEVEL)
 		echo "directMethod 127.0.0.1:8000" >> $(CFGDEVEL)

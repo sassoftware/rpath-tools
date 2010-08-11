@@ -126,7 +126,7 @@ class ActivationCommand(rActivateCommand):
             logger.error("Error fetching IP address of system")
             raise e
 
-        available = not self.shutdown
+        available = not int(self.shutdown)
 
         system = System.factory(generated_uuid=activation.generatedUuid,
                                 local_uuid=activation.localUuid, 
