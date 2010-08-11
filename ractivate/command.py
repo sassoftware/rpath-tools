@@ -21,7 +21,7 @@ import StringIO
 from conary.lib import command
 from conary.lib import options
 
-from rpath_models import System
+from rpath_models import System, Networks, Network
 from ractivate import hardware
 from ractivate import activate
 from ractivate.utils import client
@@ -133,8 +133,11 @@ class ActivationCommand(rActivateCommand):
                                 ssl_client_certificate=sslClientCert,
                                 ssl_client_key=sslClientKey, 
                                 ssl_server_certificate=sslServerCert,
-                                ip_address=ip,
                                 available=available)
+        network = Network.factory(ip_address=ip)
+        networks = Networks.factory()
+        networks.add_network(network)
+        system.set_networks(networks)
         logger.info('Activating System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
         print 'Activating...'
