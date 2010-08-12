@@ -93,7 +93,10 @@ class ActivationCommand(rActivateCommand):
         if activationDisabled:
             return False
 
-        if self.force or self.boot or self.shutdown:
+        if self.boot and self.cfg.bootActivation:
+            return True
+
+        if self.force or self.shutdown:
             return True
 
         return self.checkPollTimeout() or self.checkActivationTimeout()
