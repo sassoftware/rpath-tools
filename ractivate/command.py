@@ -144,7 +144,7 @@ class ActivationCommand(rActivateCommand):
                                 state=state,
                                 activated=True)
         network = Network.factory(ip_address=ip,
-            public_dns_name=ip)
+            public_dns_name=ip, primary=True)
         networks = Networks.factory()
         networks.add_network(network)
         system.set_networks(networks)
