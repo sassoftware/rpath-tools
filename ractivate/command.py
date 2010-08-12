@@ -122,8 +122,9 @@ class ActivationCommand(rActivateCommand):
 
         try:
             ip = hwData.getIpAddr()
+            hostname = hwData.getHostname()
         except Exception, e:
-            logger.error("Error fetching IP address of system")
+            logger.error("Error fetching network information of system")
             raise e
 
         if self.shutdown:
@@ -131,7 +132,8 @@ class ActivationCommand(rActivateCommand):
         else:
             state = 'activated'
 
-        system = System.factory(generated_uuid=activation.generatedUuid,
+        system = System.factory(name=hostname, description=hostname,
+                                generated_uuid=activation.generatedUuid,
                                 local_uuid=activation.localUuid, 
                                 ssl_client_certificate=sslClientCert,
                                 ssl_client_key=sslClientKey, 

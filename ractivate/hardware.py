@@ -49,7 +49,7 @@ class HardwareData(WBEMData):
     cimCpuClasses = {'Linux_Processor' : ['ElementName',
                             'NumberOfEnabledCores', 'MaxClockSpeed']}
     cimNetworkClasses = {'Linux_IPProtocolEndpoint' : ['IPv4Address',
-                            'SubnetMask', 'ProtocolType']}
+                            'SubnetMask', 'ProtocolType', 'SystemName']}
 
     cimClasses = [cimNetworkClasses]
 
@@ -67,6 +67,17 @@ class HardwareData(WBEMData):
 
         # TODO: handle multiple ip's
         return ips[0]
+
+    def getHostname(self):
+        hostnames = [i['SystemName'] for i \
+            in self.hardware['Linux_IPProtocolEndpoint'].values()] 
+        for hostname in hostnames:
+            if hostname != 'localhost.localdomain':
+                return hostname
+        if hostnames:
+            return hostnames[0]
+
+        return None
 
 def main(url=None):
     h = HardwareData(url)
