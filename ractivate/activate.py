@@ -148,7 +148,7 @@ class Activation(object):
         certFile, keyFile = x509.X509.new(cn, certDir)
 
         sfcbClientTrustStore = self.sfcbConfig.get('sslClientTrustStore',
-            '/etc/sfcb/conary/clients')
+            '/etc/conary/sfcb/clients')
         # Copy the public key to sfcb's directory
         util.copyfile([ certFile ], sfcbClientTrustStore)
 
