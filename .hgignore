@@ -4,3 +4,4 @@
 ^ractivaterc$
 ^ractivate-devel$
 ^bin/ractivate$
+^.*constants.py$
