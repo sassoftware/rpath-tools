@@ -13,6 +13,8 @@
 #
 
 
+import socket
+from conary.lib import util
 from ractivate.utils import wbemlib
 
 class WBEMData(object):
@@ -58,15 +60,13 @@ class HardwareData(WBEMData):
         self.populate()
         return self.getData()
 
-    def getIpAddr(self):
+    def getIpAddresses(self):
         ips = []
         for iface in self.hardware['Linux_IPProtocolEndpoint'].values():
             ip = iface['IPv4Address']
             if ip is not None and ip not in ('NULL', '127.0.0.1'):
                 ips.append(ip)
-
-        # TODO: handle multiple ip's
-        return ips[0]
+        return ips
 
     def getHostname(self):
         hostnames = [i['SystemName'] for i \
@@ -78,6 +78,24 @@ class HardwareData(WBEMData):
             return hostnames[0]
 
         return None
+
+    def getLocalIp(self, ipList):
+        if ipList:
+            return self._getLocalIp(ipList[0])
+        # Hope for the best
+        return self._getLocalIp('8.8.8.8')
+
+    @classmethod
+    def _getLocalIp(cls, destination):
+        """Return my IP address visible to the destination host"""
+        if "://" not in destination:
+            destination = "http://%s" % destination
+        hostname, port = util.urlSplit(destination, defaultPort=443)[3:5]
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect((hostname, int(port)))
+        ret = s.getsockname()[0]
+        s.close()
+        return ret
 
 def main(url=None):
     h = HardwareData(url)

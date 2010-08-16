@@ -122,9 +122,10 @@ class ActivationCommand(rActivateCommand):
         sslClientCert = file(sslClientCertPath).read()
         sslClientKey = file(sslClientKeyPath).read()
         sslServerCert = file(activation.sslCertificateFilePath).read()
+        agentPort = int(activation.sfcbConfig.get('httpsPort', 5989))
 
         try:
-            ip = hwData.getIpAddr()
+            ips = hwData.getIpAddresses()
             hostname = hwData.getHostname()
         except Exception, e:
             logger.error("Error fetching network information of system")
@@ -142,11 +143,16 @@ class ActivationCommand(rActivateCommand):
                                 ssl_client_key=sslClientKey, 
                                 ssl_server_certificate=sslServerCert,
                                 state=state,
-                                activated=True)
-        network = Network.factory(ip_address=ip,
-            public_dns_name=ip, primary=True)
+                                activated=True,
+                                agent_port = agentPort
+                                )
+
+        localIp = hwData.getLocalIp(self.cfg.directMethod)
         networks = Networks.factory()
-        networks.add_network(network)
+        for ip in ips:
+            network = Network.factory(ip_address=ip,
+                public_dns_name=ip, primary=(ip == localIp))
+            networks.add_network(network)
         system.set_networks(networks)
         logger.info('Activating System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
