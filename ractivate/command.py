@@ -149,10 +149,12 @@ class ActivationCommand(rActivateCommand):
 
         localIp = hwData.getLocalIp(self.cfg.directMethod)
         networks = Networks.factory()
+        requiredIp = self.cfg.requiredNetwork or object()
         for ip in ips:
             network = Network.factory(ip_address=ip.ipv4,
                 netmask = ip.netmask,
-                public_dns_name=ip.ipv4, primary=(ip.ipv4 == localIp),
+                dns_name=ip.dns_name, active=(ip.ipv4 == localIp),
+                required = (requiredIp in [ ip.ipv4, ip.dns_name ] or None),
                 device_name=ip.device)
             networks.add_network(network)
         system.set_networks(networks)

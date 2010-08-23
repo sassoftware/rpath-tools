@@ -44,6 +44,7 @@ class rActivateConfiguration(cfg.ConfigFile):
     debugMode = (cfg.CfgBool, False)
     remoteCAFilePath = (cfg.CfgString, "/etc/conary/ractivate/remoteCA.cert")
     validateRemoteIdentity = (cfg.CfgBool, True)
+    requiredNetwork = cfg.CfgString
 
     def __init__(self, readConfigFiles=False, ignoreErrors=False, root=''):
         cfg.ConfigFile.__init__(self)

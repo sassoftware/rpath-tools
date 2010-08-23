@@ -59,7 +59,7 @@ class HardwareData(WBEMData):
     cimClasses = [cimNetworkClasses]
 
     class IP(object):
-        __slots__ = ['ipv4', 'ipv6', 'device', 'netmask']
+        __slots__ = ['ipv4', 'ipv6', 'device', 'netmask', 'dns_name']
         def __init__(self, *args, **kwargs):
             for k in self.__slots__:
                 setattr(self, k, kwargs.get(k, None))
@@ -80,10 +80,18 @@ class HardwareData(WBEMData):
                     deviceName = device[1]
                 else:
                     deviceName = device[0]
+                dnsName = self.resolve(ipv4) or ipv4
                 ip = self.IP(ipv4=ipv4, netmask=iface['SubnetMask'],
-                    device=deviceName)
+                    device=deviceName, dns_name=dnsName)
                 ips.append(ip)
         return ips
+
+    def resolve(self, ipaddr):
+        try:
+            info = socket.gethostbyaddr(ipaddr)
+            return info[0]
+        except (socket.herror, socket.gaierror):
+            return None
 
     def getHostname(self):
         hostnames = [i['SystemName'] for i \
