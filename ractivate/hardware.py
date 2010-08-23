@@ -50,10 +50,19 @@ class HardwareData(WBEMData):
                             'OSType', 'Version']}
     cimCpuClasses = {'Linux_Processor' : ['ElementName',
                             'NumberOfEnabledCores', 'MaxClockSpeed']}
-    cimNetworkClasses = {'Linux_IPProtocolEndpoint' : ['IPv4Address',
-                            'SubnetMask', 'ProtocolType', 'SystemName']}
+    cimNetworkClasses = {'Linux_IPProtocolEndpoint' : [
+                            'IPv4Address', 'IPv6Address',
+                            'SubnetMask', 'ProtocolType', 'SystemName',
+                            'Name', 'NameFormat',
+                            ]}
 
     cimClasses = [cimNetworkClasses]
+
+    class IP(object):
+        __slots__ = ['ipv4', 'ipv6', 'device', 'netmask']
+        def __init__(self, *args, **kwargs):
+            for k in self.__slots__:
+                setattr(self, k, kwargs.get(k, None))
 
     @property
     def hardware(self):
@@ -63,8 +72,16 @@ class HardwareData(WBEMData):
     def getIpAddresses(self):
         ips = []
         for iface in self.hardware['Linux_IPProtocolEndpoint'].values():
-            ip = iface['IPv4Address']
-            if ip is not None and ip not in ('NULL', '127.0.0.1'):
+            ipv4 = iface['IPv4Address']
+            if ipv4 is not None and  ipv4 not in ('NULL', '127.0.0.1'):
+                device = iface['Name']
+                device = device.split('_')
+                if len(device) > 1:
+                    deviceName = device[1]
+                else:
+                    deviceName = device[0]
+                ip = self.IP(ipv4=ipv4, netmask=iface['SubnetMask'],
+                    device=deviceName)
                 ips.append(ip)
         return ips
 

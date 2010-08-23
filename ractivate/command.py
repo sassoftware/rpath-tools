@@ -150,8 +150,10 @@ class ActivationCommand(rActivateCommand):
         localIp = hwData.getLocalIp(self.cfg.directMethod)
         networks = Networks.factory()
         for ip in ips:
-            network = Network.factory(ip_address=ip,
-                public_dns_name=ip, primary=(ip == localIp))
+            network = Network.factory(ip_address=ip.ipv4,
+                netmask = ip.netmask,
+                public_dns_name=ip.ipv4, primary=(ip.ipv4 == localIp),
+                device_name=ip.device)
             networks.add_network(network)
         system.set_networks(networks)
         logger.info('Activating System with local uuid %s and generated '
