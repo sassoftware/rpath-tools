@@ -168,10 +168,28 @@ class HardwareCommand(rActivateCommand):
     help = "get the system's hardware information via CIM."
     requireConfig = True
 
-    def runCommand(self, *args, **kw):
-        self.cfg = args[0]
-        hwData = hardware.main(self.cfg)
-        return hwData
+    def addParameters(self, argDef):
+        rActivateCommand.addParameters(self, argDef)
+        argDef['required-network'] = options.ONE_PARAM
+ 
+    def _writeRequiredNetworkCfg(self):
+        # Could we make this so it's not hard coded?
+        topDir = '/etc/conary/ractivate/config.d/'
+        path = os.path.join(topDir, 'required-network')
+        f = open(path, 'w')
+        f.write(self.required_network)
+        f.close()
+
+    def runCommand(self, cfg, argSet, args):
+        self.cfg = cfg
+        self.required_network = argSet.pop('required-network', None)
+
+        if self.required_network:
+            self._writeRequiredNetworkCfg()
+        else:
+            hwData = hardware.main(self.cfg)
+            return hwData
+
 
 class ConfigCommand(rActivateCommand):
     commands = ['config']
