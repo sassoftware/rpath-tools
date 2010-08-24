@@ -12,26 +12,15 @@
 # full details.
 #
 
-python_files =  $(wildcard *.py)
+SUBDIRS = client
 
-SUBDIRS = utils
-
-all: default-subdirs default-all constants.py
-
-constants.py: constants.py.in ../Makefile ../Make.defs Makefile
-	sed -e s,@version@,$(VERSION),g \
-	$< > $@
+all: default-subdirs default-all 
 
 install: all install-subdirs pyfiles-install default-install
-	install constants.py $(DESTDIR)$(ractivatedir)/constants.py
-	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(ractivatedir)', ddir='$(ractivatedir)', quiet=1)"
-	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(ractivatedir)', ddir='$(ractivatedir)', quiet=1)"
-
 
 dist: default-dist
 
 clean: clean-subdirs default-clean
-	rm -f constants.py
 
-include ../../Make.rules
-include ../../Make.defs
+include ../Make.rules
+include ../Make.defs
