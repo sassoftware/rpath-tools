@@ -24,9 +24,9 @@ from rpath_tools.client import config
 from rpath_tools.client import constants
 from rpath_tools.client import errors
 
-class rRegisterMain(mainhandler.MainHandler):
+class RpathToolsMain(mainhandler.MainHandler):
 
-    name = 'rregister'
+    name = 'rpath-tools'
     version = constants.version
 
     abstractCommand = command.rRegisterCommand
