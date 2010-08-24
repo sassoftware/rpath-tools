@@ -9,10 +9,10 @@
 all: default-all
 
 install: default-install
-	install -D -m0644 rregisterrc $(DESTDIR)/etc/conary/ractivate/ractivaterc
-	install -D -m0755 rregister.init $(DESTDIR)/etc/init.d/ractivate
-	mkdir $(DESTDIR)/etc/conary/rregister/config.d
-	chmod 755 $(DESTDIR)/etc/conary/rregister/config.d
+	install -D -m0644 registerrc $(DESTDIR)/etc/conary/rpath-tools/registerrc
+	install -D -m0755 rpath-tools.init $(DESTDIR)/etc/init.d/rpath-tools
+	mkdir $(DESTDIR)/etc/conary/rpath-tools/config.d
+	chmod 755 $(DESTDIR)/etc/conary/rpath-tools/config.d
 
 clean: clean-subdirs default-clean
 

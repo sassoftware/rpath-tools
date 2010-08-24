@@ -19,10 +19,10 @@ all-subdirs:
 
 export TOPDIR = $(shell pwd)
 export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
-export CFGDEVEL=ractivaterc
+export CFGDEVEL=registerrc
 
-SUBDIRS=ractivate distro commands
-MAKEALLSUBDIRS=ractivate distro commands
+SUBDIRS=rpath_tools distro commands
+MAKEALLSUBDIRS=rpath_tools distro commands
 
 extra_files = \
 	Make.rules 		\
@@ -62,10 +62,10 @@ archive:
 forcedist: archive
 
 forcetag:
-	hg tag -f ractivate-$(VERSION)
+	hg tag -f rpath-tools-$(VERSION)
 
 tag:
-	hg tag ractivate-$(VERSION)
+	hg tag rpath-tools-$(VERSION)
 
 devel:
 		mkdir -p devel/sfcb/clients
@@ -83,25 +83,25 @@ devel:
 		echo "credentialsDirectoryName credentials" >> $(CFGDEVEL)
 		echo "credentialsCertFileName credentials.cert" >> $(CFGDEVEL)
 		echo "credentialsKeyFileName credentials.key" >> $(CFGDEVEL)
-		echo "logFile $(TOPDIR)/devel/ractivate" >> $(CFGDEVEL)
+		echo "logFile $(TOPDIR)/devel/rpath-tools.log" >> $(CFGDEVEL)
 		echo "debugMode True" >> $(CFGDEVEL)
-		echo "activationMethod direct" >> $(CFGDEVEL)
+		echo "registrationMethod direct" >> $(CFGDEVEL)
 		echo "directMethod 127.0.0.1:8000" >> $(CFGDEVEL)
 		echo "retrySlotTime 3" >> $(CFGDEVEL)
 		echo "lastPollFileName $(TOPDIR)/devel/poll" >> $(CFGDEVEL)
-		echo "lastActivationFileName $(TOPDIR)/devel/activation" >> $(CFGDEVEL)
-		echo "activationRetryCount 3" >> $(CFGDEVEL)
+		echo "lastRegistrationFileName $(TOPDIR)/devel/registration" >> $(CFGDEVEL)
+		echo "registrationRetryCount 3" >> $(CFGDEVEL)
 		echo "includeConfigFile $(TOPDIR)/devel/config.d/*" >> $(CFGDEVEL)
 		echo "validateRemoteIdentity False" >> $(CFGDEVEL)
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
-		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/activation
-		echo 'sudo PYTHONPATH=$(TOPDIR):$(TOPDIR)/../../../rbuilder/bayonet/include commands/ractivate $$@' > ractivate-devel
-		chmod +x ractivate-devel
+		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/registration
+		echo 'sudo PYTHONPATH=$(TOPDIR):$(TOPDIR)/../../../rbuilder/bayonet/include commands/rpath $$@' > rpath-devel
+		chmod +x rpath-devel
         
 clean-devel:
 		sudo rm -rf devel
 		rm -f $(CFGDEVEL)
-		rm -f ractivate-devel
+		rm -f rpath-devel
 
 
 clean: clean-devel clean-subdirs default-clean 

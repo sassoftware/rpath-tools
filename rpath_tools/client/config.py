@@ -39,8 +39,8 @@ class rRegisterConfiguration(cfg.ConfigFile):
     sfcbConfigurationFile = (cfg.CfgString, "/etc/conary/sfcb/sfcb.cfg")
     logFile = (cfg.CfgString, '/var/log/rregister')
     lastPollFileName = (cfg.CfgString, 'lastPoll')
-    disableRegistrationFileName = (cfg.CfgString, 'disableActivation')
-    lastRegistrationFileName= (cfg.CfgString, 'lastActivation')
+    disableRegistrationFileName = (cfg.CfgString, 'disableRegistration')
+    lastRegistrationFileName= (cfg.CfgString, 'lastRegistration')
     debugMode = (cfg.CfgBool, False)
     remoteCAFilePath = (cfg.CfgString, "/etc/conary/rregister/remoteCA.cert")
     validateRemoteIdentity = (cfg.CfgBool, True)
@@ -58,7 +58,7 @@ class rRegisterConfiguration(cfg.ConfigFile):
         @param root: if specified, search for config file under the given
         root instead of on the base system.  Useful for testing.
         """
-        self.read(root + '/etc/conary/rregister/ractivaterc', exception=False)
+        self.read(root + '/etc/conary/rpath-tools/registerrc', exception=False)
         if os.environ.has_key("HOME"):
             self.read(root + os.environ["HOME"] + "/" + ".rregisterrc",
                       exception=False)
