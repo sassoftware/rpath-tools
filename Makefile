@@ -19,7 +19,7 @@ all-subdirs:
 
 export TOPDIR = $(shell pwd)
 export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
-export CFGDEVEL=registerrc
+export CFGDEVEL=rpathrc
 
 SUBDIRS=rpath_tools distro commands
 MAKEALLSUBDIRS=rpath_tools distro commands

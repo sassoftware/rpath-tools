@@ -17,7 +17,7 @@ import os
 
 from conary.lib import cfg
 
-class rRegisterConfiguration(cfg.ConfigFile):
+class RpathToolsConfiguration(cfg.ConfigFile):
     bootRegistration = (cfg.CfgBool, 1)
     shutdownDeRegistration = (cfg.CfgBool, 1)
     registrationInterval = (cfg.CfgInt, 1)
@@ -29,7 +29,7 @@ class rRegisterConfiguration(cfg.ConfigFile):
     registrationRetryCount = (cfg.CfgInt, 3)
     retrySlotTime = (cfg.CfgInt, 15)
     sfcbUrl = (cfg.CfgString, "/tmp/sfcbHttpSocket")
-    topDir = (cfg.CfgString, "/etc/conary/rregister")
+    topDir = (cfg.CfgString, "/etc/conary/rpath-tools")
     generatedUuidFile = (cfg.CfgString, "generated-uuid")
     localUuidFile = (cfg.CfgString, "local-uuid")
     localUuidBackupDirectoryName = (cfg.CfgString, "old-registrations")
@@ -37,12 +37,12 @@ class rRegisterConfiguration(cfg.ConfigFile):
     credentialsCertFileName = (cfg.CfgString, "credentials.cert")
     credentialsKeyFileName = (cfg.CfgString, "credentials.key")
     sfcbConfigurationFile = (cfg.CfgString, "/etc/conary/sfcb/sfcb.cfg")
-    logFile = (cfg.CfgString, '/var/log/rregister')
+    logFile = (cfg.CfgString, '/var/log/rpath-tools.log')
     lastPollFileName = (cfg.CfgString, 'lastPoll')
     disableRegistrationFileName = (cfg.CfgString, 'disableRegistration')
     lastRegistrationFileName= (cfg.CfgString, 'lastRegistration')
     debugMode = (cfg.CfgBool, False)
-    remoteCAFilePath = (cfg.CfgString, "/etc/conary/rregister/remoteCA.cert")
+    remoteCAFilePath = (cfg.CfgString, "/etc/conary/rpath-tools/remoteCA.cert")
     validateRemoteIdentity = (cfg.CfgBool, True)
     requiredNetwork = cfg.CfgString
 
@@ -58,11 +58,11 @@ class rRegisterConfiguration(cfg.ConfigFile):
         @param root: if specified, search for config file under the given
         root instead of on the base system.  Useful for testing.
         """
-        self.read(root + '/etc/conary/rpath-tools/registerrc', exception=False)
+        self.read(root + '/etc/conary/rpath-tools/rpathrc', exception=False)
         if os.environ.has_key("HOME"):
-            self.read(root + os.environ["HOME"] + "/" + ".rregisterrc",
+            self.read(root + os.environ["HOME"] + "/" + ".rpathrc",
                       exception=False)
-        self.read('rregisterrc', exception=False)
+        self.read('rpathrc', exception=False)
 
     @property
     def generatedUuidFilePath(self):
