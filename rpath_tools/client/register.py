@@ -221,10 +221,10 @@ class Registration(object):
                 logger.error(msg)
                 raise errors.rRegisterError(msg)
 
-            registerd = func(systemXml)
-            # If we registerd successfully, there is no need to try other
+            registered = func(systemXml)
+            # If we registered successfully, there is no need to try other
             # methods.
-            if registerd:
+            if registered:
                 self.updateRegistrationFile()
                 return True
 

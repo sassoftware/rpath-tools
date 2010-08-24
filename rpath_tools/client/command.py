@@ -146,7 +146,7 @@ class RegistrationCommand(RpathToolsCommand):
         if self.shutdown:
             state = 'shut_down'
         else:
-            state = 'registerd'
+            state = 'registered'
 
         system = System.factory(name=hostname, description=hostname,
                                 generated_uuid=registration.generatedUuid,
@@ -155,7 +155,7 @@ class RegistrationCommand(RpathToolsCommand):
                                 ssl_client_key=sslClientKey, 
                                 ssl_server_certificate=sslServerCert,
                                 state=state,
-                                registerd=True,
+                                registered=True,
                                 agent_port = agentPort
                                 )
 
