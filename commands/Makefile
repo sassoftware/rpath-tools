@@ -14,14 +14,14 @@
 
 TOPDIR=..
 
-bin_files = ractivate
+bin_files = rpath
 
 extra_dist = Makefile
 
 
 all: default-all 
 	mkdir -p $(TOPDIR)/bin
-	install -m755 ractivate $(TOPDIR)/bin/ractivate
+	install -m755 rpath $(TOPDIR)/bin/rpath
 
 install-mkdirs:
 	mkdir -p $(DESTDIR)$(bindir)

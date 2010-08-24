@@ -18,7 +18,7 @@ SUBDIRS = utils
 
 all: default-subdirs default-all constants.py
 
-constants.py: constants.py.in ../Makefile ../Make.defs Makefile
+constants.py: constants.py.in ../../Makefile ../../Make.defs Makefile
 	sed -e s,@version@,$(VERSION),g \
 	$< > $@
 
