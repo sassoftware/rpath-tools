@@ -109,7 +109,9 @@ class LocalUuid(Uuid):
         # XXX if dmidecode is not present, make something up
         cmd = [ dmidecode, "-s", "system-uuid" ]
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        pid, sts = os.waitpid(p.pid, 0)
+        sts = p.wait()
+        if sts != 0:
+            raise Exception("Unable to extract system-uuid from dmidecode")
         uuid = p.stdout.readline().strip()
         return uuid
 
