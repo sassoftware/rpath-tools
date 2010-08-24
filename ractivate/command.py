@@ -22,36 +22,36 @@ from conary.lib import command
 from conary.lib import options
 
 from rpath_models import System, Networks, Network
-from ractivate import hardware
-from ractivate import activate
-from ractivate.utils import client
+from rpath_tools.client import hardware
+from rpath_tools.client import register
+from rpath_tools.client.utils import client
 
-logger = logging.getLogger('activation')
+logger = logging.getLogger('client')
 
-class rActivateCommand(command.AbstractCommand):
+class RpathToolsCommand(command.AbstractCommand):
     def runCommand(self, *args, **kw):
         pass
 
-class ActivationCommand(rActivateCommand):
-    commands = ['activate']
-    help = 'activate the system with XX/rBA'
+class RegistrationCommand(RpathToolsCommand):
+    commands = ['register']
+    help = 'register the system with rBuilder'
     requireConfig = True
 
     def addParameters(self, argDef):
-        rActivateCommand.addParameters(self, argDef)
+        RpathToolsCommand.addParameters(self, argDef)
         argDef['check'] = options.NO_PARAM
         argDef['force'] = options.NO_PARAM
         argDef['boot'] = options.NO_PARAM
         argDef['shutdown'] = options.NO_PARAM
         
-    def checkActivationDisabled(self):
-        exists = os.path.exists(self.cfg.disableActivationFilePath)
+    def checkRegistrationDisabled(self):
+        exists = os.path.exists(self.cfg.disableRegistrationFilePath)
         if exists:
-            logger.info('Activation disable file exists (%s). Not activating.' \
-                % self.cfg.disableActivationFilePath)
+            logger.info('Registration disable file exists at (%s). Not registering.' \
+                % self.cfg.disableRegistrationFilePath)
         else:
-            logger.debug('Activation disable file does not exist (%s).' \
-                % self.cfg.disableActivationFilePath)
+            logger.debug('Registration disable file does not exist at (%s).' \
+                % self.cfg.disableRegistrationFilePath)
 
         return exists
 
@@ -65,41 +65,53 @@ class ActivationCommand(rActivateCommand):
             return True
         tStamp = f.read().strip()
         tStamp = int(float(tStamp))
+        logger.debug("Timestamp of %s read from %s." % (str(tStamp),
+            timeoutFile)
         if (time.time() - timeout) > tStamp:
+            logger.debug("Timeout exceeded.")
             return True
+        logger.debug("Timeout not exceeded.")
         return False
 
     def checkPollTimeout(self):
         timedOut = self._checkTimeout(self.cfg.lastPollFilePath,
                 self.cfg.contactTimeoutInterval * 60 * 60)
         if timedOut:
-            logger.info('Poll timeout exceeded, running activation.')
+            logger.info('Poll timeout exceeded, running registration.')
+            print 'Poll timeout exceeded, running registration.'
         else:
             logger.info('Poll timeout not exceeded.')
         return timedOut
 
-    def checkActivationTimeout(self):
-        timedOut = self._checkTimeout(self.cfg.lastActivationFilePath,
-                self.cfg.activationInterval * 60 * 60)
+    def checkRegistrationTimeout(self):
+        timedOut = self._checkTimeout(self.cfg.lastRegistrationFilePath,
+                self.cfg.registrationInterval * 60 * 60)
         if timedOut:
-            logger.info('Activation interval exceeded, running activation.')
+            logger.info('Registration interval exceeded, running registration.')
+            print 'Registration interval exceeded, running registration.'
         else:
-            logger.info('Activation interval not exceeded.')
+            logger.info('Registration interval not exceeded.')
         return timedOut
 
     def shouldRun(self):
-        activationDisabled = self.checkActivationDisabled()
+        registrationDisabled = self.checkRegistrationDisabled()
 
-        if activationDisabled:
+        if registrationDisabled:
             return False
 
-        if self.boot and self.cfg.bootActivation:
+        if self.boot and self.cfg.bootRegistration:
+            logger.info('--boot specified and bootRegistration is True, running registration')
             return True
 
-        if self.force or self.shutdown:
+        if self.force:
+            logger.info('--force specified, running registration')
             return True
 
-        return self.checkPollTimeout() or self.checkActivationTimeout()
+        if self.shutdown:
+            logger.info('--shutdown specified, running registration')
+            return True
+
+        return self.checkPollTimeout() or self.checkRegistrationTimeout()
 
     def runCommand(self, cfg, argSet, args):
         self.cfg = cfg
@@ -109,20 +121,20 @@ class ActivationCommand(rActivateCommand):
         self.shutdown = argSet.pop('shutdown', False)
 
         if not self.shouldRun():
-            print 'Activation not needed.'
-            logger.info('Activation Client will not run, exiting.')
+            print 'Registration not needed.'
+            logger.info('Registration Client will not run, exiting.')
             sys.exit(2)
         else:
-            print 'Activation needed...'
+            print 'Registration needed.'
 
-        activation = activate.Activation(self.cfg)
+        registration = register.Registration(self.cfg)
         hwData = hardware.HardwareData(self.cfg.sfcbUrl)
 
-        sslClientCertPath, sslClientKeyPath = activation.readCredentials()
+        sslClientCertPath, sslClientKeyPath = registration.readCredentials()
         sslClientCert = file(sslClientCertPath).read()
         sslClientKey = file(sslClientKeyPath).read()
-        sslServerCert = file(activation.sslCertificateFilePath).read()
-        agentPort = int(activation.sfcbConfig.get('httpsPort', 5989))
+        sslServerCert = file(registration.sslCertificateFilePath).read()
+        agentPort = int(registration.sfcbConfig.get('httpsPort', 5989))
 
         try:
             ips = hwData.getIpAddresses()
@@ -137,8 +149,8 @@ class ActivationCommand(rActivateCommand):
             state = 'activated'
 
         system = System.factory(name=hostname, description=hostname,
-                                generated_uuid=activation.generatedUuid,
-                                local_uuid=activation.localUuid, 
+                                generated_uuid=registration.generatedUuid,
+                                local_uuid=registration.localUuid, 
                                 ssl_client_certificate=sslClientCert,
                                 ssl_client_key=sslClientKey, 
                                 ssl_server_certificate=sslServerCert,
@@ -158,16 +170,17 @@ class ActivationCommand(rActivateCommand):
                 device_name=ip.device)
             networks.add_network(network)
         system.set_networks(networks)
-        logger.info('Activating System with local uuid %s and generated '
+        logger.info('Registering System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
-        success = activation.activateSystem(system)
+        print "Registering system...",
+        success = registration.registerSystem(system)
         if not success:
             print 'Failure'
             return 1
         print 'Complete.'
         return 0
 
-class HardwareCommand(rActivateCommand):
+class HardwareCommand(RpathToolsCommand):
     commands = ['hardware']
     help = "get the system's hardware information via CIM."
     requireConfig = True
@@ -177,7 +190,7 @@ class HardwareCommand(rActivateCommand):
         hwData = hardware.main(self.cfg)
         return hwData
 
-class ConfigCommand(rActivateCommand):
+class ConfigCommand(RpathToolsCommand):
     commands = ['config']
     help = 'Display the current configuration'
     
