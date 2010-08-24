@@ -3,9 +3,9 @@
 # Copyright, 2010, rPath, Inc.
 #
 # chkconfig: 345 23 16
-# description: Runs the rPath registration client (rregister).
+# description: Runs the rPath registration client (rpath).
 ### BEGIN INIT INFO
-# Provides: raa
+# Provides: rpath-tools
 # Required-Start: $local_fs
 # Should-Start: 
 # Required-Stop: 
@@ -17,27 +17,27 @@
 
 source /etc/init.d/functions
 
-RACTIVATE=/usr/bin/rregister
-RACTIVATEBOOTCFG=/etc/conary/rregister/config.d/boot_params
+RPATH=/usr/bin/rpath
+RPATHTOOSLBOOTCONFIG=/etc/conary/rpath-tools/config.d/boot_params
 
 setbootparams() {
-    rm -f $RACTIVATEBOOTCFG
-    BOOTPARAMS=`sed 's# #\n#g' /proc/cmdline | awk '{if($i~/RACTIVATE/){print $i}}'`
+    rm -f $RPATHTOOLSBOOTCONFIG
+    BOOTPARAMS=`sed 's# #\n#g' /proc/cmdline | awk '{if($i~/RPATHTOOLS/){print $i}}'`
     for param in $BOOTPARAMS
     do
         OPTION=`echo $param | cut -d '=' -f 2`
         VALUE=`echo $param | cut -d '=' -f 3`
-        echo $OPTION $VALUE >> $RACTIVATEBOOTCFG
+        echo $OPTION $VALUE >> $RPATHTOOLSBOOTCONFIG
     done
 }
 
 start() {
     setbootparams
-    $RACTIVATE register --boot && success || failure
+    $RPATH register --boot && success || failure
 }
 
 stop() {
-    $RACTIVATE register --shutdown && success || failure
+    $RPATH register --shutdown && success || failure
 }
 
 restart() {

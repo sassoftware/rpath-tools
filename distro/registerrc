@@ -10,8 +10,8 @@
 #   registration and polling of systems
 #
 # These values can also be overridden at boot time on the kernel command line
-# if specified in the form of RACTIVATE=OPTION=VALUE.  For example:
-# RACTIVATE=bootRegister=1
+# if specified in the form of RPATHTOOLS=OPTION=VALUE.  For example:
+# RPATHTOOLS=bootRegister=1
 #
 # For more details, see the rBuilder Administration Guide.
 
@@ -20,10 +20,10 @@
 # time parameters.
 includeConfigFile /etc/conary/rregister/config.d/*
 
-# *** PARAMETERS CONTROLLING WHEN ACTIVATION SHOULD OCCUR ***
+# *** PARAMETERS CONTROLLING WHEN REGISTRATION SHOULD OCCUR ***
 #
 # The following parameters define the situations under which the
-# registration (and deactivation) process should happen:
+# registration (and deregistration) process should happen:
 
 # Register at boot -- Attempt to register the system as the system goes
 # through its normal startup processing.  Disabling this feature means
@@ -36,16 +36,16 @@ includeConfigFile /etc/conary/rregister/config.d/*
 # Maximum value: 1 (enables boot-time registration)
 bootRegistration 1
 
-# Deregister at shutdown -- Attempt to deactivate the system as the
+# Deregister at shutdown -- Attempt to deregister the system as the
 # system goes through its normal shutdown processing.  Disabling this
 # feature means that the rBuilder will only be able to determine that the
 # system is no longer accessible as part of its normal "aging out"
 # process and, until that process takes place, the system inventory will
-# show the system as still being active.
+# show the system as still being registered.
 #
 # Minimum value: 0 (disables deregistration at shutdown)
 # Maximum value: 1 (enables deregistration at shutdown)
-shutdownDeRegistration 1
+shutdownDeregistration 1
 
 # Registration interval -- Attempt to register the system on a periodic
 # basis.  NOTE: Enabling this feature with a short interval on a large
@@ -68,7 +68,7 @@ registrationInterval 1
 # Maximum value: 30 (days)
 contactTimeoutInterval 3
 
-# *** PARAMETERS CONTROLLING THE ACTIVATION PROCESS ***
+# *** PARAMETERS CONTROLLING THE REGISTRATION PROCESS ***
 #
 # The following parameters define the way in which registration should be
 # attempted:
@@ -79,7 +79,7 @@ registrationPort 13579
 
 # Registration methods -- A white space seperated list of ways to attempt an
 # registration.  Each method listed is attempted, in sequence, until the
-# registration succeeds, or all activation methods have been attempted.
+# registration succeeds, or all registration methods have been attempted.
 #
 # The supported registration methods are:
 #
@@ -149,9 +149,9 @@ sfcbUrl /tmp/sfcbHttpSocket
 # logged to the logfile and to stdout.
 debugMode False
 
-# *** PARAMETERS FOR FILE LOCATIONS FOR THE ACTIVATION PROCESS ***
+# *** PARAMETERS FOR FILE LOCATIONS FOR THE REGISTRATION PROCESS ***
 # *** These do not need to be changed under normal circumstances ***
-# The following parameters tell the activaction client where to read/store
+# The following parameters tell the registration client where to read/store
 # files on the filesystem.
 
 # top directory -- Directory used as the base for all other file locations.
@@ -183,22 +183,22 @@ sfcbConfigurationFile /etc/sfcb/sfcb.cfg
 # last poll file -- File for the timestamp of when the last time that the system
 # was polled by the rBA/Sputnik.  If the timestamp in this file is older than
 # the current time - contactTimeoutInterval, the system will attempt an
-# registration when the activation client is run.  If the --force parameter is
+# registration when the registration client is run.  If the --force parameter is
 # specified, an registration will always be run.
 lastPollFileName lastPoll
 
 # log file -- File for logging all of the registration client's actions.
 logFile /var/log/rregister
 
-# disable registration file -- File for indicating if the activation client
+# disable registration file -- File for indicating if the registration client
 # should even attempt to register.  If the file exists (contents are ignored)
-# the registration client will exit and not attempt an activation, irregardless
+# the registration client will exit and not attempt an registration, irregardless
 # of any other options (including --force).
-disableRegistrationFileName disableActivation
+disableRegistrationFileName disableRegistration
 
 # last registration file -- File for storing the timestamp the last time that
 # the system was registerd.
-lastRegistrationFileName lastActivation
+lastRegistrationFileName lastRegistration
 
 # validate remote identity -- Boolean option to turn on or off validation of
 # the identity of the remote registration server.  Validation occurs by
