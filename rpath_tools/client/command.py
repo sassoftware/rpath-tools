@@ -66,7 +66,7 @@ class RegistrationCommand(RpathToolsCommand):
         tStamp = f.read().strip()
         tStamp = int(float(tStamp))
         logger.debug("Timestamp of %s read from %s." % (str(tStamp),
-            timeoutFile)
+            timeoutFile))
         if (time.time() - timeout) > tStamp:
             logger.debug("Timeout exceeded.")
             return True

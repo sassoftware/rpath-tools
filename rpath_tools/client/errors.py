@@ -20,10 +20,10 @@ from conary.lib import util
 
 logger = logging.getLogger('registration')
 
-class rRegisterError(Exception):
+class RpathToolsError(Exception):
     pass
 
-class rRegisterInternalError(rActivateError):
+class RpathToolsInternalError(RpathToolsError):
     pass
 
 _ERROR_MESSAGE = '''
@@ -67,7 +67,7 @@ def genExcepthook(*args, **kw):
         logger.error("An exception has occurred: %s" % e_value)
         logger.error(''.join(traceback.format_tb(e_traceback)))
         baseHook = util.genExcepthook(error=_ERROR_MESSAGE,
-            prefix='rregister-error-', *args, **kw)
+            prefix='rpath-tools-error-', *args, **kw)
 
         baseHook(e_type, e_value, e_traceback)
 

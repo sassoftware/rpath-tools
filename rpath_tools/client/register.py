@@ -27,10 +27,10 @@ from M2Crypto.SSL.Checker import SSLVerificationError
 
 from conary.lib import util
 
-from rregister import config
-from rregister import errors
-from rregister.utils import client
-from rregister.utils import x509
+from rpath_tools.client import config
+from rpath_tools.client import errors
+from rpath_tools.client.utils import client
+from rpath_tools.client.utils import x509
 
 logger = logging.getLogger('registration')
 

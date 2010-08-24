@@ -19,10 +19,10 @@ import sys
 
 from conary.lib import mainhandler
 
-from rregister import command
-from rregister import config
-from rregister import constants
-from rregister import errors
+from rpath_tools.client import command
+from rpath_tools.client import config
+from rpath_tools.client import constants
+from rpath_tools.client import errors
 
 class rRegisterMain(mainhandler.MainHandler):
 
