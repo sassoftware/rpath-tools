@@ -23,9 +23,9 @@ constants.py: constants.py.in ../../Makefile ../../Make.defs Makefile
 	$< > $@
 
 install: all install-subdirs pyfiles-install default-install
-	install constants.py $(DESTDIR)$(ractivatedir)/constants.py
-	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(ractivatedir)', ddir='$(ractivatedir)', quiet=1)"
-	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(ractivatedir)', ddir='$(ractivatedir)', quiet=1)"
+	install constants.py $(DESTDIR)$(rpathtoolsdir)/constants.py
+	$(PYTHON) -c "import compileall; compileall.compile_dir('$(DESTDIR)$(rpathtoolsdir)', ddir='$(rpathtoolsdir)', quiet=1)"
+	$(PYTHON) -OO -c "import compileall; compileall.compile_dir('$(DESTDIR)$(rpathtoolsdir)', ddir='$(rpathtoolsdir)', quiet=1)"
 
 
 dist: default-dist

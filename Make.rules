@@ -17,7 +17,7 @@ PYVERSION = $(shell $(PYTHON) -c 'import os, sys; print sys.version[:3]')
 PYINCLUDE = $(shell $(PYTHON) -c 'import os, sys; print os.sep.join((sys.prefix, "include", "python" + sys.version[:3]))')
 
 pyfiles-install:
-	mkdir -p $(DESTDIR)$(ractivatedir)
+	mkdir -p $(DESTDIR)$(rpathtoolsdir)
 	for f in $(python_files); do \
 		mkdir -p `dirname $(DESTDIR)/$(sitedir)/$(DIR)/$$f`; \
 		cp -a $$f $(DESTDIR)/$(sitedir)/$(DIR)/$$f; \
