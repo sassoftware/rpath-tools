@@ -15,7 +15,7 @@
 
 import socket
 from conary.lib import util
-from ractivate.utils import wbemlib
+from rregister.utils import wbemlib
 
 class WBEMData(object):
     

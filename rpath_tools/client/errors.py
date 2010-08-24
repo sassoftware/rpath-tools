@@ -18,16 +18,16 @@ import traceback
 
 from conary.lib import util
 
-logger = logging.getLogger('activation')
+logger = logging.getLogger('registration')
 
-class rActivateError(Exception):
+class rRegisterError(Exception):
     pass
 
-class rActivateInternalError(rActivateError):
+class rRegisterInternalError(rActivateError):
     pass
 
 _ERROR_MESSAGE = '''
-ERROR: An unexpected condition has occurred in rActivate.  This is
+ERROR: An unexpected condition has occurred in rRegister.  This is
 most likely due to insufficient handling of erroneous input, but
 may be some other bug.  In either case, please report the error at
 https://issues.rpath.com/ and attach to the issue the file
@@ -67,7 +67,7 @@ def genExcepthook(*args, **kw):
         logger.error("An exception has occurred: %s" % e_value)
         logger.error(''.join(traceback.format_tb(e_traceback)))
         baseHook = util.genExcepthook(error=_ERROR_MESSAGE,
-            prefix='ractivate-error-', *args, **kw)
+            prefix='rregister-error-', *args, **kw)
 
         baseHook(e_type, e_value, e_traceback)
 

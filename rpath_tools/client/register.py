@@ -27,17 +27,17 @@ from M2Crypto.SSL.Checker import SSLVerificationError
 
 from conary.lib import util
 
-from ractivate import config
-from ractivate import errors
-from ractivate.utils import client
-from ractivate.utils import x509
+from rregister import config
+from rregister import errors
+from rregister.utils import client
+from rregister.utils import x509
 
-logger = logging.getLogger('activation')
+logger = logging.getLogger('registration')
 
 def main():
-    cfg = config.rActivateConfiguration()
+    cfg = config.rRegisterConfiguration()
     cfg.topDir = '/etc/conary'
-    r = Activation(cfg)
+    r = Registration(cfg)
     r.readCredentials()
     return r.generatedUuid, r.localUuid
 
@@ -121,7 +121,7 @@ class LocalUuid(Uuid):
         self._writeFile(self.uuidFile, uuid)
 
 
-class Activation(object):
+class Registration(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
@@ -130,14 +130,14 @@ class Activation(object):
                                    self.cfg.localUuidOldDirectoryPath).uuid
         self._sfcbCfg = None
 
-        self.activationMethods = {'DIRECT' : self.activateDirect,
-                                  'SLP'    : self.activateSLP}
+        self.registrationMethods = {'DIRECT' : self.registerDirect,
+                                  'SLP'    : self.registerSLP}
 
     @classmethod
-    def activation(self, cfg=None):
+    def registration(self, cfg=None):
         if not cfg:
-            cfg = config.rActivateConfiguration()
-        return Activation(cfg)
+            cfg = config.RpathToolsConfiguration()
+        return Registration(cfg)
 
     def readCredentials(self):
         if os.path.exists(self.cfg.credentialsCertFilePath):
@@ -203,47 +203,47 @@ class Activation(object):
         except KeyError:
             return (0, 0)
 
-    def updateActivationFile(self):
+    def updateRegistrationFile(self):
         now = time.time()
-        logger.debug('Updating activation file timestamp to %s' % now)
-        f = open(self.cfg.lastActivationFilePath, 'w')
+        logger.debug('Updating registration file timestamp to %s' % now)
+        f = open(self.cfg.lastRegistrationFilePath, 'w')
         f.write(str(now))
 
-    def activateSystem(self, system):
+    def registerSystem(self, system):
         sio = StringIO.StringIO()
         system.export(sio, 0, namespace_='', name_='system')
         systemXml = sio.getvalue()
-        for method in self.cfg.activationMethod:
-            func = self.activationMethods.get(method.upper(), None)
+        for method in self.cfg.registrationMethod:
+            func = self.registrationMethods.get(method.upper(), None)
 
             if not func:
-                msg = 'Invalid activation method "%s". Check the activationMethod configuration parameter ' % method
+                msg = 'Invalid registration method "%s". Check the activationMethod configuration parameter ' % method
                 logger.error(msg)
-                raise errors.rActivateError(msg)
+                raise errors.rRegisterError(msg)
 
-            activated = func(systemXml)
-            # If we activated successfully, there is no need to try other
+            registerd = func(systemXml)
+            # If we registerd successfully, there is no need to try other
             # methods.
-            if activated:
-                self.updateActivationFile()
+            if registerd:
+                self.updateRegistrationFile()
                 return True
 
-        print '  Activation failed.  Check the log file at %s' % \
+        print '  Registration failed.  Check the log file at %s' % \
             self.cfg.logFile
         return False
                 
-    def activateDirect(self, systemXml):
-        logger.info("Using Direct activation.")
+    def registerDirect(self, systemXml):
+        logger.info("Using Direct registration.")
         actResp = None
         for remote in self.cfg.directMethod:
-            actResp = self._activate(remote, systemXml)
+            actResp = self._register(remote, systemXml)
             if actResp:
                 break
 
         return actResp
 
-    def activateSLP(self, systemXml):
-        logger.info("Using SLP activation.")
+    def registerSLP(self, systemXml):
+        logger.info("Using SLP registration.")
         import subprocess 
         actResp = None
         for service in self.cfg.slpMethod:
@@ -261,43 +261,43 @@ class Activation(object):
                 logger.info('No "%s" SLP service found.' % service)
                 continue
 
-            actResp = self._activate(remote, systemXml)
+            actResp = self._register(remote, systemXml)
 
             if actResp:
                 break
 
         return actResp
 
-    def _activate(self, remote, systemXml):
-        logger.info('Attempting activation with %s' % remote)
-        print '  Attempting activation with %s...' % remote,
+    def _register(self, remote, systemXml):
+        logger.info('Attempting registration with %s' % remote)
+        print '  Attempting registration with %s...' % remote,
 
         if self.cfg.validateRemoteIdentity and not self._validate(remote):
             return None
 
-        actClient = client.ActivationClient(remote)
+        actClient = client.RegistrationClient(remote)
         sleepTime = 0
         attempts = 0
 
-        while attempts < self.cfg.activationRetryCount:
+        while attempts < self.cfg.registrationRetryCount:
             if attempts > 0:
-                logger.info('Retrying activation attempt with %s' % remote)
+                logger.info('Retrying registration attempt with %s' % remote)
             if sleepTime > 0:
                 logger.info('Sleeping for %s seconds...' % sleepTime)
                 time.sleep(sleepTime)
 
-            logger.debug('Activation attempt %s with %s' % \
+            logger.debug('Registration attempt %s with %s' % \
                          (attempts, remote))
-            response = actClient.activate(systemXml)
+            response = actClient.register(systemXml)
 
             if response:
-                logger.info('Activation with %s succesful' % remote)
+                logger.info('Registration with %s succesful' % remote)
                 print "successful."
                 return response
                 break
             else:
                 print "failed."
-                logger.info('Activation with %s failed.' % remote)
+                logger.info('Registration with %s failed.' % remote)
                 sleepInc = (self.cfg.retrySlotTime * 2**attempts) - sleepTime
                 randSleepInc = random.random() * sleepInc
                 sleepTime = sleepTime + int(randSleepInc)

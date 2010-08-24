@@ -1,66 +1,66 @@
-# Configuration for rPath activation client
+# Configuration for rPath registration client
 #
 # Note: When setting the following configuration parameters, be sure to
 # take the following into account:
 # 
-# o The total number of systems that will be activating with a given
+# o The total number of systems that will be registering with a given
 #   rBuilder
 #
 # o The way in which the rBuilder has been configured to handle the
-#   activation and polling of systems
+#   registration and polling of systems
 #
 # These values can also be overridden at boot time on the kernel command line
 # if specified in the form of RACTIVATE=OPTION=VALUE.  For example:
-# RACTIVATE=bootActivate=1
+# RACTIVATE=bootRegister=1
 #
 # For more details, see the rBuilder Administration Guide.
 
 # Include all config files defined under this directory.  Allows for
 # overriding configuration options and setting configuration options from boot
 # time parameters.
-includeConfigFile /etc/conary/ractivate/config.d/*
+includeConfigFile /etc/conary/rregister/config.d/*
 
 # *** PARAMETERS CONTROLLING WHEN ACTIVATION SHOULD OCCUR ***
 #
 # The following parameters define the situations under which the
-# activation (and deactivation) process should happen:
+# registration (and deactivation) process should happen:
 
-# Activate at boot -- Attempt to activate the system as the system goes
+# Register at boot -- Attempt to register the system as the system goes
 # through its normal startup processing.  Disabling this feature means
-# that the system will only activate itself if either the activation
+# that the system will only register itself if either the registration
 # interval or the contact timeout interval is non-zero, or an rBuilder
 # administrator has manually entered the system's IP address into
 # rBuilder's system inventory.
 #
-# Minimum value: 0 (disables boot-time activation)
-# Maximum value: 1 (enables boot-time activation)
-bootActivation 1
+# Minimum value: 0 (disables boot-time registration)
+# Maximum value: 1 (enables boot-time registration)
+bootRegistration 1
 
-# Deactivate at shutdown -- Attempt to deactivate the system as the
+# Deregister at shutdown -- Attempt to deactivate the system as the
 # system goes through its normal shutdown processing.  Disabling this
 # feature means that the rBuilder will only be able to determine that the
 # system is no longer accessible as part of its normal "aging out"
 # process and, until that process takes place, the system inventory will
 # show the system as still being active.
 #
-# Minimum value: 0 (disables deactivation at shutdown)
-# Maximum value: 1 (enables deactivation at shutdown)
-shutdownDeActivation 1
+# Minimum value: 0 (disables deregistration at shutdown)
+# Maximum value: 1 (enables deregistration at shutdown)
+shutdownDeRegistration 1
 
-# Activation interval -- Attempt to activate the system on a periodic
+# Registration interval -- Attempt to register the system on a periodic
 # basis.  NOTE: Enabling this feature with a short interval on a large
 # number of systems can result in unpredictable loads on the rBuilder.
 # Specifies the interval in a number of days.
 #
-# Minimum value: 0 (disables periodic activation)
+# Minimum value: 0 (disables periodic registration)
 # Minimum interval: 1
 # Maximum interval: 30 (days)
-activationInterval 1
+registrationInterval 1
 
-# Contact timeout interval -- Attempt to activate the system if rBuilder
+# Contact timeout interval -- Attempt to register the system if rBuilder
 # has not contacted the system within this time period.  Disabling this
-# feature (without enabling activationInterval) means that there is no
-# way (short of restarting the system) to attempt to activate with
+# feature (without enabling registrationInterval) means that there is no
+# way (short of restarting the system) to attempt to register with
 # rBuilder should rBuilder lose contact with the system.
 # Specifies the interval in a number of days.
 #
@@ -70,65 +70,65 @@ contactTimeoutInterval 3
 
 # *** PARAMETERS CONTROLLING THE ACTIVATION PROCESS ***
 #
-# The following parameters define the way in which activation should be
+# The following parameters define the way in which registration should be
 # attempted:
 
-# Activation port -- the IP port number to be used during activation
+# Registration port -- the IP port number to be used during registration
 # attempts.
-activationPort 13579
+registrationPort 13579
 
-# Activation methods -- A white space seperated list of ways to attempt an
-# activation.  Each method listed is attempted, in sequence, until the
-# activation succeeds, or all activation methods have been attempted.
+# Registration methods -- A white space seperated list of ways to attempt an
+# registration.  Each method listed is attempted, in sequence, until the
+# registration succeeds, or all activation methods have been attempted.
 #
-# The supported activation methods are:
+# The supported registration methods are:
 #
-# "DIRECT" -- Attempt to activate using a list of IP addresses and/or
+# "DIRECT" -- Attempt to register using a list of IP addresses and/or
 # hostnames specifying the rBuilder and/or SPUTNIK(s)
 #
-# "SLP" -- Attempt to activate by first using the Service Location
+# "SLP" -- Attempt to register by first using the Service Location
 # Protocol to identify the IP address of an rBuilder or SPUTNIK,
-# and then attempting to activate with that IP address.
+# and then attempting to register with that IP address.
 #
-# Minimum value: "" (disables all activation activity)
+# Minimum value: "" (disables all registration activity)
 # Maximum value: N/A
-activationMethod DIRECT 
+registrationMethod DIRECT 
 
 # Direct method list -- A white space separated list of IP addresses and/or
 # hostnames indicating the rBuilder and/or SPUTNIK(s)
-# against which activation should be attempted.
+# against which registration should be attempted.
 # Hostnames can be specified with a port in the format of <hostname>:<port>.  If
 # no port is specified, 443 is used.
 #
-# Minimum value: "" (disables all direct activation attempts)
+# Minimum value: "" (disables all direct registration attempts)
 # Maximum value: N/A
 directMethod 
 
 # SLP method list -- A white space separated list of SLP resources that should
 # be queried to find the IP address of an rBuilder or SPUTNIK
-# against which activation should be attempted.
+# against which registration should be attempted.
 #
 # Note that the resource(s) listed here must agree with the resource(s)
 # configured to be used by the relevant rBuilder(s) and/or SPUTNIK(s).
 #
-# Minimum value: "" (disables all SLP activation attempts)
+# Minimum value: "" (disables all SLP registration attempts)
 # Maximum value: N/A
 slpMethod rpath-inventory
 
-# Activation retry count -- Once a specific entry is obtained from one
-# of the activation method lists (direct or SLP), the number of times
-# the activation client should attempt to activate against that entry.
-# Once this retry count has been reached, the activation client will
+# Registration retry count -- Once a specific entry is obtained from one
+# of the registration method lists (direct or SLP), the number of times
+# the registration client should attempt to register against that entry.
+# Once this retry count has been reached, the registration client will
 # move on the next entry (if one exists), the first entry in the next
 # method (if one exists), or fails (if this was the last/only entry for
-# the last/only activation method).
+# the last/only registration method).
 #
-# Minimum value: 0 (Makes one activation attempt only; no retries)
+# Minimum value: 0 (Makes one registration attempt only; no retries)
 # Maximum value: 10
-activationRetryCount 3
+registrationRetryCount 3
 
 # Retry slot time -- The time (in seconds) used as part of the calculation
-# to determine a randomized delay between activation attempts.  The
+# to determine a randomized delay between registration attempts.  The
 # maximum potential delay for retry #N is:
 #
 # MaxDelay = retrySlotTime * 2**N
@@ -155,7 +155,7 @@ debugMode False
 # files on the filesystem.
 
 # top directory -- Directory used as the base for all other file locations.
-topDir /etc/conary/ractivate
+topDir /etc/conary/rregister
 
 # generated uuid file -- File for the value of the generated uuid.
 generatedUuidFile generated-uuid
@@ -183,30 +183,30 @@ sfcbConfigurationFile /etc/sfcb/sfcb.cfg
 # last poll file -- File for the timestamp of when the last time that the system
 # was polled by the rBA/Sputnik.  If the timestamp in this file is older than
 # the current time - contactTimeoutInterval, the system will attempt an
-# activation when the activation client is run.  If the --force parameter is
-# specified, an activation will always be run.
+# registration when the activation client is run.  If the --force parameter is
+# specified, an registration will always be run.
 lastPollFileName lastPoll
 
-# log file -- File for logging all of the activation client's actions.
-logFile /var/log/ractivate
+# log file -- File for logging all of the registration client's actions.
+logFile /var/log/rregister
 
-# disable activation file -- File for indicating if the activation client
-# should even attempt to activate.  If the file exists (contents are ignored)
-# the activation client will exit and not attempt an activation, irregardless
+# disable registration file -- File for indicating if the activation client
+# should even attempt to register.  If the file exists (contents are ignored)
+# the registration client will exit and not attempt an activation, irregardless
 # of any other options (including --force).
-disableActivationFileName disableActivation
+disableRegistrationFileName disableActivation
 
-# last activation file -- File for storing the timestamp the last time that
-# the system was activated.
-lastActivationFileName lastActivation
+# last registration file -- File for storing the timestamp the last time that
+# the system was registerd.
+lastRegistrationFileName lastActivation
 
 # validate remote identity -- Boolean option to turn on or off validation of
-# the identity of the remote activation server.  Validation occurs by
-# verifying the SSL certificate offered by the activation server is signed by
+# the identity of the remote registration server.  Validation occurs by
+# verifying the SSL certificate offered by the registration server is signed by
 # the CA certificate found at remoteCAFilePath.
 validateRemoteIdentity True
 
-# remote CA file path -- File for the CA cert of the remote activation server.
-# The SSL cert offered by the remote server during activation will be verified
+# remote CA file path -- File for the CA cert of the remote registration server.
+# The SSL cert offered by the remote server during registration will be verified
 # that it is signed by this CA.
-remoteCAFilePath /etc/conary/ractivate/remoteCA.cert
+remoteCAFilePath /etc/conary/rregister/remoteCA.cert

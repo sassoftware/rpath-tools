@@ -17,19 +17,19 @@ import os
 
 from conary.lib import cfg
 
-class rActivateConfiguration(cfg.ConfigFile):
-    bootActivation = (cfg.CfgBool, 1)
-    shutdownDeActivation = (cfg.CfgBool, 1)
-    activationInterval = (cfg.CfgInt, 1)
+class rRegisterConfiguration(cfg.ConfigFile):
+    bootRegistration = (cfg.CfgBool, 1)
+    shutdownDeRegistration = (cfg.CfgBool, 1)
+    registrationInterval = (cfg.CfgInt, 1)
     contactTimeoutInterval = (cfg.CfgInt, 3)
-    activationPort = (cfg.CfgInt, 13579)
-    activationMethod = (cfg.CfgList(cfg.CfgString), ["DIRECT",])
+    registrationPort = (cfg.CfgInt, 13579)
+    registrationMethod = (cfg.CfgList(cfg.CfgString), ["DIRECT",])
     directMethod = (cfg.CfgList(cfg.CfgString), "")
     slpMethod = (cfg.CfgList(cfg.CfgString), ["rpath-inventory",])
-    activationRetryCount = (cfg.CfgInt, 3)
+    registrationRetryCount = (cfg.CfgInt, 3)
     retrySlotTime = (cfg.CfgInt, 15)
     sfcbUrl = (cfg.CfgString, "/tmp/sfcbHttpSocket")
-    topDir = (cfg.CfgString, "/etc/conary/ractivate")
+    topDir = (cfg.CfgString, "/etc/conary/rregister")
     generatedUuidFile = (cfg.CfgString, "generated-uuid")
     localUuidFile = (cfg.CfgString, "local-uuid")
     localUuidBackupDirectoryName = (cfg.CfgString, "old-registrations")
@@ -37,12 +37,12 @@ class rActivateConfiguration(cfg.ConfigFile):
     credentialsCertFileName = (cfg.CfgString, "credentials.cert")
     credentialsKeyFileName = (cfg.CfgString, "credentials.key")
     sfcbConfigurationFile = (cfg.CfgString, "/etc/conary/sfcb/sfcb.cfg")
-    logFile = (cfg.CfgString, '/var/log/ractivate')
+    logFile = (cfg.CfgString, '/var/log/rregister')
     lastPollFileName = (cfg.CfgString, 'lastPoll')
-    disableActivationFileName = (cfg.CfgString, 'disableActivation')
-    lastActivationFileName= (cfg.CfgString, 'lastActivation')
+    disableRegistrationFileName = (cfg.CfgString, 'disableActivation')
+    lastRegistrationFileName= (cfg.CfgString, 'lastActivation')
     debugMode = (cfg.CfgBool, False)
-    remoteCAFilePath = (cfg.CfgString, "/etc/conary/ractivate/remoteCA.cert")
+    remoteCAFilePath = (cfg.CfgString, "/etc/conary/rregister/remoteCA.cert")
     validateRemoteIdentity = (cfg.CfgBool, True)
     requiredNetwork = cfg.CfgString
 
@@ -58,11 +58,11 @@ class rActivateConfiguration(cfg.ConfigFile):
         @param root: if specified, search for config file under the given
         root instead of on the base system.  Useful for testing.
         """
-        self.read(root + '/etc/conary/ractivate/ractivaterc', exception=False)
+        self.read(root + '/etc/conary/rregister/ractivaterc', exception=False)
         if os.environ.has_key("HOME"):
-            self.read(root + os.environ["HOME"] + "/" + ".ractivaterc",
+            self.read(root + os.environ["HOME"] + "/" + ".rregisterrc",
                       exception=False)
-        self.read('ractivaterc', exception=False)
+        self.read('rregisterrc', exception=False)
 
     @property
     def generatedUuidFilePath(self):
@@ -95,9 +95,9 @@ class rActivateConfiguration(cfg.ConfigFile):
         return os.path.join(self.topDir, self.lastPollFileName)
 
     @property
-    def disableActivationFilePath(self):
-        return os.path.join(self.topDir, self.disableActivationFileName)
+    def disableRegistrationFilePath(self):
+        return os.path.join(self.topDir, self.disableRegistrationFileName)
 
     @property
-    def lastActivationFilePath(self):
-        return os.path.join(self.topDir, self.lastActivationFileName)
+    def lastRegistrationFilePath(self):
+        return os.path.join(self.topDir, self.lastRegistrationFileName)
