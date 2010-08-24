@@ -38,7 +38,7 @@ class rRegisterMain(mainhandler.MainHandler):
 
     def configureLogging(self, logFile, debug):
         global logger
-        logger = logging.getLogger('registration')
+        logger = logging.getLogger('client')
         logger.setLevel(logging.INFO)
         handler = logging.FileHandler(logFile)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
@@ -51,14 +51,14 @@ class rRegisterMain(mainhandler.MainHandler):
             streamHandler.setFormatter(formatter)
             logger.addHandler(streamHandler)
 
-        logger.info("Starting run of registration client...")
+        logger.info("Starting run of rPath tools registration...")
 
     def runCommand(self, command, *args, **kw):
         cfg = args[0]
         self.configureLogging(cfg.logFile, cfg.debugMode)
         logger.info("Running command: %s" % command.commands[0])
         response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
-        logger.info('Registration client exiting.')
+        logger.info('rPath Tools registration exiting.')
         return response
 
 def _main(argv, MainClass):
@@ -99,7 +99,7 @@ def _main(argv, MainClass):
 
 def main(argv=None):
     """
-    Python hook for starting rregister from the command line.
+    Python hook for starting rpath from the command line.
     @param argv: standard argument vector
     """
     return _main(argv, rRegisterMain)

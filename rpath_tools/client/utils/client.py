@@ -16,7 +16,7 @@ import logging
 import urllib2
 import urlparse
 
-logger = logging.getLogger('activation')
+logger = logging.getLogger('client')
 
 class Client(object):
     def __init__(self, url):

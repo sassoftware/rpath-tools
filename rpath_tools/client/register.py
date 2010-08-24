@@ -32,7 +32,7 @@ from rpath_tools.client import errors
 from rpath_tools.client.utils import client
 from rpath_tools.client.utils import x509
 
-logger = logging.getLogger('registration')
+logger = logging.getLogger('client')
 
 def main():
     cfg = config.rRegisterConfiguration()

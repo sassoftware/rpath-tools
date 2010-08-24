@@ -18,7 +18,7 @@ import traceback
 
 from conary.lib import util
 
-logger = logging.getLogger('registration')
+logger = logging.getLogger('client')
 
 class RpathToolsError(Exception):
     pass
