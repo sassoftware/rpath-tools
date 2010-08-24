@@ -3,5 +3,5 @@
 import sys
 
 if __name__ == '__main__':
-    from ractivate import main
+    from rpath_tools.client import main
     sys.exit(main.main(sys.argv))

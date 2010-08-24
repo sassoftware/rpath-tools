@@ -3,7 +3,7 @@
 # Copyright, 2010, rPath, Inc.
 #
 # chkconfig: 345 23 16
-# description: Runs the rPath activation client (ractivate).
+# description: Runs the rPath registration client (rregister).
 ### BEGIN INIT INFO
 # Provides: raa
 # Required-Start: $local_fs
@@ -11,14 +11,14 @@
 # Required-Stop: 
 # Default-Start: 3 4 5
 # Default-Stop: 0 1 2 6
-# Short-Description: Runs the rPath activation client.
-# Description: rPath Activation Client
+# Short-Description: Runs the rPath registration client.
+# Description: rPath Registration Client
 ### END INIT INFO
 
 source /etc/init.d/functions
 
-RACTIVATE=/usr/bin/ractivate
-RACTIVATEBOOTCFG=/etc/conary/ractivate/config.d/boot_params
+RACTIVATE=/usr/bin/rregister
+RACTIVATEBOOTCFG=/etc/conary/rregister/config.d/boot_params
 
 setbootparams() {
     rm -f $RACTIVATEBOOTCFG
@@ -33,11 +33,11 @@ setbootparams() {
 
 start() {
     setbootparams
-    $RACTIVATE activate --boot && success || failure
+    $RACTIVATE register --boot && success || failure
 }
 
 stop() {
-    $RACTIVATE activate --shutdown && success || failure
+    $RACTIVATE register --shutdown && success || failure
 }
 
 restart() {

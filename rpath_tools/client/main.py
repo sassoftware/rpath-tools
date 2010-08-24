@@ -19,26 +19,26 @@ import sys
 
 from conary.lib import mainhandler
 
-from ractivate import command
-from ractivate import config
-from ractivate import constants
-from ractivate import errors
+from rregister import command
+from rregister import config
+from rregister import constants
+from rregister import errors
 
-class rActivateMain(mainhandler.MainHandler):
+class rRegisterMain(mainhandler.MainHandler):
 
-    name = 'ractivate'
+    name = 'rregister'
     version = constants.version
 
-    abstractCommand = command.rActivateCommand
-    configClass = config.rActivateConfiguration
-    commandList = [command.ActivationCommand, command.HardwareCommand,
+    abstractCommand = command.rRegisterCommand
+    configClass = config.rRegisterConfiguration
+    commandList = [command.RegistrationCommand, command.HardwareCommand,
                    command.ConfigCommand]
 
     setSysExcepthook = False
 
     def configureLogging(self, logFile, debug):
         global logger
-        logger = logging.getLogger('activation')
+        logger = logging.getLogger('registration')
         logger.setLevel(logging.INFO)
         handler = logging.FileHandler(logFile)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
@@ -51,20 +51,20 @@ class rActivateMain(mainhandler.MainHandler):
             streamHandler.setFormatter(formatter)
             logger.addHandler(streamHandler)
 
-        logger.info("Starting run of activation client...")
+        logger.info("Starting run of registration client...")
 
     def runCommand(self, command, *args, **kw):
         cfg = args[0]
         self.configureLogging(cfg.logFile, cfg.debugMode)
         logger.info("Running command: %s" % command.commands[0])
         response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
-        logger.info('Activation client exiting.')
+        logger.info('Registration client exiting.')
         return response
 
 def _main(argv, MainClass):
     """
     Wrapper method that handles all remaining uncaught exceptions from
-    ractivate..
+    rregister..
     @param argv: standard argument vector
     @param MainClass: class object that implements a main() method.
     """
@@ -80,7 +80,7 @@ def _main(argv, MainClass):
         if debugAll:
             argv.remove('--debug-all')
         else:
-            debuggerException = errors.rActivateInternalError
+            debuggerException = errors.rRegisterInternalError
         sys.excepthook = errors.genExcepthook(debug=debugAll,
                                               debugCtrlC=debugAll)
         rc = MainClass().main(argv, debuggerException=debuggerException)
@@ -99,7 +99,7 @@ def _main(argv, MainClass):
 
 def main(argv=None):
     """
-    Python hook for starting ractivate from the command line.
+    Python hook for starting rregister from the command line.
     @param argv: standard argument vector
     """
-    return _main(argv, rActivateMain)
+    return _main(argv, rRegisterMain)

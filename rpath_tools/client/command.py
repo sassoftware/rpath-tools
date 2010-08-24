@@ -60,7 +60,7 @@ class RegistrationCommand(RpathToolsCommand):
             f = open(timeoutFile)
         except IOError, e:
             # If the file was not found, be safe and assume we need to
-            # activate
+            # register
             logger.error("Could not open file %s for reading." % timeoutFile)
             return True
         tStamp = f.read().strip()
@@ -146,7 +146,7 @@ class RegistrationCommand(RpathToolsCommand):
         if self.shutdown:
             state = 'shut_down'
         else:
-            state = 'activated'
+            state = 'registerd'
 
         system = System.factory(name=hostname, description=hostname,
                                 generated_uuid=registration.generatedUuid,
@@ -155,7 +155,7 @@ class RegistrationCommand(RpathToolsCommand):
                                 ssl_client_key=sslClientKey, 
                                 ssl_server_certificate=sslServerCert,
                                 state=state,
-                                activated=True,
+                                registerd=True,
                                 agent_port = agentPort
                                 )
 
