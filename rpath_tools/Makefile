@@ -12,9 +12,9 @@
 # full details.
 #
 
-python_files =  $(wildcard *.py)
+python_files =	$(wildcard *.py)
 
-SUBDIRS = client
+SUBDIRS	=	client
 
 all: default-subdirs default-all 
 
