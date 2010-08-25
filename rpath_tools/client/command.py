@@ -218,4 +218,5 @@ class HelpCommand(RpathToolsCommand):
     help = 'Display help information'
 
     def runCommand(self, cfg, argSet, args, **kwargs):
+        import epdb; epdb.st()  
         print self.mainHandler.usage()
