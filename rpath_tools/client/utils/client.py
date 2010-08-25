@@ -31,7 +31,7 @@ class Client(object):
         else:
             return False
 
-class ActivationClient(Client):
+class RegistrationClient(Client):
 
     SUCCESS_CODES = [200, 201]
     PATH = '/api/inventory/systems/'
@@ -40,11 +40,11 @@ class ActivationClient(Client):
     def __init__(self, url):
         self.url = urlparse.urlunsplit([self.SCHEME, url, self.PATH, None, None])
 
-    def activate(self, data):
+    def register(self, data):
         activated = self.request(data)
 
         if not activated:
-            logger.error("Failed activation with %s." % self.url)
+            logger.error("Failed registration with %s." % self.url)
             logger.error("Response code: %s" % self.response.code)
             logger.error("Response: %s" % self.responseBody)
 
