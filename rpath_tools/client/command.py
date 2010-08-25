@@ -148,7 +148,7 @@ class RegistrationCommand(RpathToolsCommand):
         else:
             state = 'registered'
 
-        system = System.factory(name=hostname, description=hostname,
+        system = System.factory(hostname=hostname, description=hostname,
                                 generated_uuid=registration.generatedUuid,
                                 local_uuid=registration.localUuid, 
                                 ssl_client_certificate=sslClientCert,
