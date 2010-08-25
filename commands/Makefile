@@ -14,7 +14,7 @@
 
 TOPDIR=..
 
-bin_files = rpath
+bin_files = rpath rpath-register rpath-hardware rpath-config
 
 extra_dist = Makefile
 
@@ -22,6 +22,9 @@ extra_dist = Makefile
 all: default-all 
 	mkdir -p $(TOPDIR)/bin
 	install -m755 rpath $(TOPDIR)/bin/rpath
+	install -m755 rpath-register $(TOPDIR)/bin/rpath-register
+	install -m755 rpath-hardware $(TOPDIR)/bin/rpath-hardware
+	install -m755 rpath-config $(TOPDIR)/bin/rpath-config
 
 install-mkdirs:
 	mkdir -p $(DESTDIR)$(bindir)

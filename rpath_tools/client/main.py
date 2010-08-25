@@ -29,8 +29,8 @@ class RpathToolsMain(mainhandler.MainHandler):
     name = 'rpath-tools'
     version = constants.version
 
-    abstractCommand = command.rRegisterCommand
-    configClass = config.rRegisterConfiguration
+    abstractCommand = command.RpathToolsCommand
+    configClass = config.RpathToolsConfiguration
     commandList = [command.RegistrationCommand, command.HardwareCommand,
                    command.ConfigCommand]
 
@@ -102,4 +102,4 @@ def main(argv=None):
     Python hook for starting rpath from the command line.
     @param argv: standard argument vector
     """
-    return _main(argv, rRegisterMain)
+    return _main(argv, RpathToolsMain)
