@@ -218,5 +218,14 @@ class HelpCommand(RpathToolsCommand):
     help = 'Display help information'
 
     def runCommand(self, cfg, argSet, args, **kwargs):
-        import epdb; epdb.st()  
-        print self.mainHandler.usage()
+        command, subCommands = self.requireParameters(args, allowExtra=True)
+        if subCommands:
+            command = subCommands[0]
+            commands = self.mainHandler._supportedCommands
+            if not command in commands:
+                print "%s: no such command: '%s'" % (self.mainHandler.name,
+                                                     command)
+                sys.exit(1)
+            print commands[command].usage()
+        else:
+            print self.mainHandler.usage()
