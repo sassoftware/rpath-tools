@@ -7,6 +7,9 @@ import os
 import tempfile
 import gencert
 
+from M2Crypto.SSL.Checker import SSLVerificationError  # pyflakes: ignore
+from M2Crypto.SSL import SSLError  # pyflakes: ignore
+
 class X509(object):
 
     class Options(object):

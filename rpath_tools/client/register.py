@@ -23,8 +23,6 @@ import sys
 import tempfile
 import time
 
-from M2Crypto.SSL.Checker import SSLVerificationError
-
 from conary.lib import util
 
 from rpath_tools.client import config
@@ -236,6 +234,10 @@ class Registration(object):
         logger.info("Using Direct registration.")
         actResp = None
         for remote in self.cfg.directMethod:
+            remote = remote.strip()
+            if not remote:
+                # Simetimes we see the empty string being passed in. Ignore it
+                continue
             actResp = self._register(remote, systemXml)
             if actResp:
                 break
@@ -307,7 +309,7 @@ class Registration(object):
         logger.info("Validating identity of %s..." % remote)
         try:
             x509.X509.verify(self.cfg.remoteCAFilePath, remote) 
-        except SSLVerificationError, e:
+        except (x509.SSLVerificationError, x509.SSLError), e:
             logger.error("%s failed identity validation!" % remote)
             logger.error(str(e))
             return False
