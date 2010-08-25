@@ -94,14 +94,7 @@ class HardwareData(WBEMData):
             return None
 
     def getHostname(self):
-        hostname = "/bin/hostname"
-        cmd = [ hostname ]
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        sts = p.wait()
-        if sts != 0:
-            raise Exception("Unable to read hostname")
-        hostname = p.stdout.readline().strip()
-        return hostname
+        return socket.gethostname()
 
     def getLocalIp(self, ipList):
         if ipList:
