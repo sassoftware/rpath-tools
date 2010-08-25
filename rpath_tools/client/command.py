@@ -140,7 +140,9 @@ class RegistrationCommand(RpathToolsCommand):
             ips = hwData.getIpAddresses()
             hostname = hwData.getHostname()
         except Exception, e:
-            logger.error("Error fetching network information of system")
+            logger.error("Error fetching hardware information of system")
+            print "Error fetching hardware information of system"
+            logger.error(e)
             raise e
 
         if self.shutdown:
@@ -208,7 +210,6 @@ class ConfigCommand(RpathToolsCommand):
             return self.usage()
         else:
             cfg.display()
-
 
 class HelpCommand(RpathToolsCommand):
     """

@@ -29,7 +29,7 @@ from conary.lib import util
 
 from rpath_tools.client import config
 from rpath_tools.client import errors
-from rpath_tools.client.utils import client
+from rpath_tools.client import utils
 from rpath_tools.client.utils import x509
 
 logger = logging.getLogger('client')
@@ -275,7 +275,7 @@ class Registration(object):
         if self.cfg.validateRemoteIdentity and not self._validate(remote):
             return None
 
-        actClient = client.RegistrationClient(remote)
+        regClient = utils.client.RegistrationClient(remote)
         sleepTime = 0
         attempts = 0
 
@@ -288,7 +288,7 @@ class Registration(object):
 
             logger.debug('Registration attempt %s with %s' % \
                          (attempts, remote))
-            response = actClient.register(systemXml)
+            response = regClient.register(systemXml)
 
             if response:
                 logger.info('Registration with %s succesful' % remote)

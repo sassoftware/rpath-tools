@@ -35,17 +35,17 @@ class RegistrationClient(Client):
 
     SUCCESS_CODES = [200, 201]
     PATH = '/api/inventory/systems/'
-    SCHEME = 'https'
+    SCHEME = 'http'
 
     def __init__(self, url):
         self.url = urlparse.urlunsplit([self.SCHEME, url, self.PATH, None, None])
 
     def register(self, data):
-        activated = self.request(data)
+        registered = self.request(data)
 
-        if not activated:
+        if not registered:
             logger.error("Failed registration with %s." % self.url)
             logger.error("Response code: %s" % self.response.code)
             logger.error("Response: %s" % self.responseBody)
 
-        return activated
+        return registered
