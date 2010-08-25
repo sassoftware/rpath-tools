@@ -125,7 +125,7 @@ class RegistrationCommand(RpathToolsCommand):
             logger.info('Registration Client will not run, exiting.')
             sys.exit(2)
         else:
-            print 'Registration needed.'
+            print 'Registration needed'
 
         registration = register.Registration(self.cfg)
         hwData = hardware.HardwareData(self.cfg.sfcbUrl)
@@ -174,7 +174,7 @@ class RegistrationCommand(RpathToolsCommand):
         system.set_networks(networks)
         logger.info('Registering System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
-        print "Registering system...",
+        print "  Registering system..."
         success = registration.registerSystem(system)
         if not success:
             print 'Failure'
