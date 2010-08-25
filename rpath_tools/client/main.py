@@ -64,7 +64,8 @@ class RpathToolsMain(mainhandler.MainHandler):
 def _main(argv, MainClass):
     """
     Wrapper method that handles all remaining uncaught exceptions from
-    rregister..
+    rpath-tools.
+
     @param argv: standard argument vector
     @param MainClass: class object that implements a main() method.
     """
@@ -80,7 +81,7 @@ def _main(argv, MainClass):
         if debugAll:
             argv.remove('--debug-all')
         else:
-            debuggerException = errors.rRegisterInternalError
+            debuggerException = errors.RpathToolsError
         sys.excepthook = errors.genExcepthook(debug=debugAll,
                                               debugCtrlC=debugAll)
         rc = MainClass().main(argv, debuggerException=debuggerException)

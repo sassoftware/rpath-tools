@@ -27,7 +27,7 @@ class RpathToolsInternalError(RpathToolsError):
     pass
 
 _ERROR_MESSAGE = '''
-ERROR: An unexpected condition has occurred in rRegister.  This is
+ERROR: An unexpected condition has occurred in rpath-tools.  This is
 most likely due to insufficient handling of erroneous input, but
 may be some other bug.  In either case, please report the error at
 https://issues.rpath.com/ and attach to the issue the file

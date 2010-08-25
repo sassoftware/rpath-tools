@@ -18,7 +18,7 @@
 # Include all config files defined under this directory.  Allows for
 # overriding configuration options and setting configuration options from boot
 # time parameters.
-includeConfigFile /etc/conary/rregister/config.d/*
+includeConfigFile /etc/conary/rpath-tools/config.d/*
 
 # *** PARAMETERS CONTROLLING WHEN REGISTRATION SHOULD OCCUR ***
 #
@@ -155,7 +155,7 @@ debugMode False
 # files on the filesystem.
 
 # top directory -- Directory used as the base for all other file locations.
-topDir /etc/conary/rregister
+topDir /etc/conary/rpath-tools
 
 # generated uuid file -- File for the value of the generated uuid.
 generatedUuidFile generated-uuid
@@ -188,7 +188,7 @@ sfcbConfigurationFile /etc/sfcb/sfcb.cfg
 lastPollFileName lastPoll
 
 # log file -- File for logging all of the registration client's actions.
-logFile /var/log/rregister
+logFile /var/log/rpath-tools.log
 
 # disable registration file -- File for indicating if the registration client
 # should even attempt to register.  If the file exists (contents are ignored)
@@ -209,4 +209,4 @@ validateRemoteIdentity True
 # remote CA file path -- File for the CA cert of the remote registration server.
 # The SSL cert offered by the remote server during registration will be verified
 # that it is signed by this CA.
-remoteCAFilePath /etc/conary/rregister/remoteCA.cert
+remoteCAFilePath /etc/conary/rpath-tools/remoteCA.cert

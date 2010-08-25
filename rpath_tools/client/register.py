@@ -35,7 +35,7 @@ from rpath_tools.client.utils import x509
 logger = logging.getLogger('client')
 
 def main():
-    cfg = config.rRegisterConfiguration()
+    cfg = config.RpathToolsConfiguration()
     cfg.topDir = '/etc/conary'
     r = Registration(cfg)
     r.readCredentials()
@@ -219,7 +219,7 @@ class Registration(object):
             if not func:
                 msg = 'Invalid registration method "%s". Check the activationMethod configuration parameter ' % method
                 logger.error(msg)
-                raise errors.rRegisterError(msg)
+                raise errors.RpathToolsError(msg)
 
             registered = func(systemXml)
             # If we registered successfully, there is no need to try other
