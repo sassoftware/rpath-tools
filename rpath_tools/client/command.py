@@ -208,3 +208,14 @@ class ConfigCommand(RpathToolsCommand):
             return self.usage()
         else:
             cfg.display()
+
+
+class HelpCommand(RpathToolsCommand):
+    """
+    Displays help about this program or commands within the program.
+    """
+    commands = ['help']
+    help = 'Display help information'
+
+    def runCommand(self, cfg, argSet, args, **kwargs):
+        print self.mainHandler.usage()

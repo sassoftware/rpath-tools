@@ -32,7 +32,7 @@ class RpathToolsMain(mainhandler.MainHandler):
     abstractCommand = command.RpathToolsCommand
     configClass = config.RpathToolsConfiguration
     commandList = [command.RegistrationCommand, command.HardwareCommand,
-                   command.ConfigCommand]
+                   command.ConfigCommand, command.HelpCommand]
 
     setSysExcepthook = False
 
@@ -51,11 +51,11 @@ class RpathToolsMain(mainhandler.MainHandler):
             streamHandler.setFormatter(formatter)
             logger.addHandler(streamHandler)
 
-        logger.info("Starting run of rPath tools registration...")
 
     def runCommand(self, command, *args, **kw):
         cfg = args[0]
         self.configureLogging(cfg.logFile, cfg.debugMode)
+        logger.info("Starting run of rPath Tools registration...")
         logger.info("Running command: %s" % command.commands[0])
         response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
         logger.info('rPath Tools registration exiting.')
