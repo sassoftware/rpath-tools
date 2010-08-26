@@ -43,7 +43,8 @@ class RegistrationCommand(RpathToolsCommand):
         argDef['force'] = options.NO_PARAM
         argDef['boot'] = options.NO_PARAM
         argDef['shutdown'] = options.NO_PARAM
-        
+        argDef['event-uuid'] = options.ONE_PARAM
+
     def checkRegistrationDisabled(self):
         exists = os.path.exists(self.cfg.disableRegistrationFilePath)
         if exists:
@@ -119,6 +120,7 @@ class RegistrationCommand(RpathToolsCommand):
         self.force = argSet.pop('force', False)
         self.boot = argSet.pop('boot', False)
         self.shutdown = argSet.pop('shutdown', False)
+        self.event_uuid = argSet.pop('event-uuid', None)
 
         if not self.shouldRun():
             print 'Registration not needed.'
@@ -158,7 +160,8 @@ class RegistrationCommand(RpathToolsCommand):
                                 ssl_server_certificate=sslServerCert,
                                 state=state,
                                 registered=True,
-                                agent_port = agentPort
+                                agent_port = agentPort,
+                                event_uuid = self.event_uuid,
                                 )
 
         localIp = hwData.getLocalIp(self.cfg.directMethod)
