@@ -64,6 +64,10 @@ class HardwareData(WBEMData):
             for k in self.__slots__:
                 setattr(self, k, kwargs.get(k, None))
 
+    def __init__(self, cfg):
+        self.cfg = cfg
+        WBEMData.__init__(self, cfg.sfcbUrl)
+
     @property
     def hardware(self):
         self.populate()
