@@ -118,8 +118,8 @@ class HardwareData(WBEMData):
         s.close()
         return ret
 
-def main(url=None):
-    h = HardwareData(url)
+def main(cfg=None):
+    h = HardwareData(cfg)
     return h.hardware
 
 if __name__ == '__main__':

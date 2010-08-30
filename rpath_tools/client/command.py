@@ -130,7 +130,7 @@ class RegistrationCommand(RpathToolsCommand):
             print 'Registration needed'
 
         registration = register.Registration(self.cfg)
-        hwData = hardware.HardwareData(self.cfg.sfcbUrl)
+        hwData = hardware.HardwareData(self.cfg)
 
         sslClientCertPath, sslClientKeyPath = registration.readCredentials()
         sslClientCert = file(sslClientCertPath).read()
