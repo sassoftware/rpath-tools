@@ -21,7 +21,17 @@ from conary.lib import util
 logger = logging.getLogger('client')
 
 class RpathToolsError(Exception):
-    pass
+    msg_prefix = '\n'
+    msg = "ERROR: An error has occurred in rpath-tools: %s."
+
+    def __init__(self, exception):
+        self.exception = exception
+    
+    def __str__(self):
+        return self.msg_prefix + self.msg % str(self.exception)
+
+class RpathToolsRegistrationError(RpathToolsError):
+    msg = "ERROR: An error has occurred in rpath-tools during registration: %s."
 
 class RpathToolsInternalError(RpathToolsError):
     pass

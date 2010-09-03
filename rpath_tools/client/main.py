@@ -88,6 +88,9 @@ def _main(argv, MainClass):
         if rc is None:
             return 0
         return rc
+    except errors.RpathToolsError, e:
+        print e
+        return 1
     except debuggerException, err:
         raise
     except IOError, e:

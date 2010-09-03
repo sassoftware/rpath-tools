@@ -16,6 +16,8 @@ import logging
 import urllib2
 import urlparse
 
+from rpath_tools.client.errors import RpathToolsRegistrationError
+
 logger = logging.getLogger('client')
 
 class Client(object):
@@ -24,8 +26,11 @@ class Client(object):
 
     def request(self, data=None):
         logger.debug("Sending XML data as POST:\n%s" % data)
-        self.response = urllib2.urlopen(self.url, data=data)
-        self.responseBody = self.response.read()
+        try:
+            self.response = urllib2.urlopen(self.url, data=data)
+            self.responseBody = self.response.read()
+        except urllib2.URLError, e:
+            raise RpathToolsRegistrationError(e.reason)
         if self.response.code in self.SUCCESS_CODES:
             return True
         else:
