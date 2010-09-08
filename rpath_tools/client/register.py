@@ -36,7 +36,6 @@ def main():
     cfg = config.RpathToolsConfiguration()
     cfg.topDir = '/etc/conary'
     r = Registration(cfg)
-    r.readCredentials()
     return r.generatedUuid, r.localUuid
 
 
@@ -169,6 +168,64 @@ class Registration(object):
         return (self.cfg.credentialsCertFilePath,
             self.cfg.credentialsKeyFilePath)
 
+    def writeCertificate(self, crt):
+        sfcbClientTrustStore = self.sfcbConfig.get('sslClientTrustStore',
+            '/etc/conary/sfcb/clients')
+        if self.sfcbConfig.get('httpUserSFCB', 'true'):
+            sfcbHttpUser = self.sfcbConfig.get('httpUser', 'root')
+        else:
+            sfcbHttpUser = 'root'
+        if sfcbHttpUser != 'root':
+            uid, gid = self._getUserIds(sfcbHttpUser)
+        else:
+            uid, gid = None, None
+        self.writeCertificateToStore(crt, sfcbClientTrustStore, uid=uid,
+            gid=gid)
+        # Remove this cert's issuer from the store
+        self.removeIssuerFromStore(crt, sfcbClientTrustStore)
+
+    def writeCertificateToStore(self, crt, store, uid=None, gid=None):
+        """
+        Write the certifcate to the store, using the supplied uid and gid
+        """
+        certHash = crt.hash
+        x509Pem = crt.x509.as_pem()
+        certPath = self._getPathInCertificateStore(store, certHash, x509Pem)
+
+        if certPath is None:
+            # Already written
+            return None
+        logger.info("Writing certificate as %s" % certPath)
+        util.mkdirChain(os.path.dirname(certPath))
+        f = util.AtomicFile(certPath, chmod=0600)
+        f.write(x509Pem)
+        f.commit()
+        if uid or gid:
+            os.chown(certPath, uid, gid)
+        return certPath
+
+    def removeIssuerFromStore(self, crt, store):
+        certHash = crt.hash
+        issuerHash = crt.hash_issuer
+        if certHash == issuerHash:
+            # Self-signed cert
+            return False
+        destPath = os.path.join(store, "%s.%d" % (issuerHash, 0))
+        util.removeIfExists(destPath)
+        return True
+
+    def _getPathInCertificateStore(self, store, certHash, x509Pem):
+        for i in range(5):
+            destPath = os.path.join(store, "%s.%d" % (certHash, i))
+            if not os.path.exists(destPath):
+                return destPath
+            # Same contents?
+            if file(destPath).read().strip() == x509Pem.strip():
+                return None
+            # Different cert, save it as a different file
+        # We really shouldn't hit this
+        raise Exception("Unable to write certificate to store")
+
     @property
     def sslCertificateFilePath(self):
         return self.sfcbConfig.get('sslCertificateFilePath',
@@ -209,7 +266,7 @@ class Registration(object):
 
     def registerSystem(self, system):
         sio = StringIO.StringIO()
-        system.export(sio, 0, namespace_='', name_='system')
+        system.serialize(sio)
         systemXml = sio.getvalue()
         for method in self.cfg.registrationMethod:
             func = self.registrationMethods.get(method.upper(), None)
@@ -271,13 +328,34 @@ class Registration(object):
         return actResp
 
     def _register(self, remote, systemXml):
+        system = self._register_system(remote, systemXml)
+        if system is None:
+            return system
+        # If the server returned something back, save the client cert
+        if not system.ssl_client_certificate:
+            return system
+        crt = x509.X509(None, None)
+        crt.load_x509(system.ssl_client_certificate)
+        self.writeCertificate(crt)
+        return system
+
+    def _getRegistrationClient(self, remote):
+        SSL = utils.client.SSL
+        ssl_context = SSL.Context()
+        if self.cfg.validateRemoteIdentity:
+            ssl_context.load_verify_locations(self.cfg.remoteCAFilePath)
+            ssl_context.set_allow_unknown_ca(False)
+            ssl_context.set_verify(SSL.verify_peer, True)
+
+        regClient = utils.client.RegistrationClient(remote,
+            ssl_context=ssl_context)
+        return regClient
+
+    def _register_system(self, remote, systemXml):
         logger.info('Attempting registration with %s' % remote)
         print '  Attempting registration with %s...' % remote,
 
-        if self.cfg.validateRemoteIdentity and not self._validate(remote):
-            return None
-
-        regClient = utils.client.RegistrationClient(remote)
+        regClient = self._getRegistrationClient(remote)
         sleepTime = 0
         attempts = 0
 
@@ -290,20 +368,19 @@ class Registration(object):
 
             logger.debug('Registration attempt %s with %s' % \
                          (attempts, remote))
-            response = regClient.register(systemXml)
+            registered = regClient.register(systemXml)
 
-            if response:
+            if registered:
                 logger.info('Registration with %s succesful' % remote)
                 print "successful."
-                return response
-                break
-            else:
-                print "failed."
-                logger.info('Registration with %s failed.' % remote)
-                sleepInc = (self.cfg.retrySlotTime * 2**attempts) - sleepTime
-                randSleepInc = random.random() * sleepInc
-                sleepTime = sleepTime + int(randSleepInc)
-                attempts += 1
+                return regClient.system
+            print "failed."
+            logger.info('Registration with %s failed.' % remote)
+            sleepInc = (self.cfg.retrySlotTime * 2**attempts) - sleepTime
+            randSleepInc = random.random() * sleepInc
+            sleepTime = sleepTime + int(randSleepInc)
+            attempts += 1
+        return None
 
     def _validate(self, remote):
         logger.info("Validating identity of %s..." % remote)

@@ -13,28 +13,33 @@
 #
 
 import logging
-import urllib2
+from M2Crypto import m2urllib2, SSL
 import urlparse
 
+import rpath_models
 from rpath_tools.client.errors import RpathToolsRegistrationError
 
 logger = logging.getLogger('client')
 
 class Client(object):
-    def __init__(self, url):
+    def __init__(self, url, ssl_context=None):
         self.url = url
+        self.opener = m2urllib2.OpenerDirector()
+        if ssl_context is None:
+            ssl_context = SSL.Context()
+        self.opener.add_handler(m2urllib2.HTTPSHandler(ssl_context))
+        self.opener.add_handler(m2urllib2.HTTPHandler())
 
     def request(self, data=None):
         logger.debug("Sending XML data as POST:\n%s" % data)
         try:
-            self.response = urllib2.urlopen(self.url, data=data)
-            self.responseBody = self.response.read()
-        except urllib2.URLError, e:
+            self.response = self.opener.open(self.url, data=data)
+        except m2urllib2.URLError, e:
             raise RpathToolsRegistrationError(e.reason)
-        if self.response.code in self.SUCCESS_CODES:
-            return True
-        else:
-            return False
+        except SSL.SSLError, e:
+            raise RpathToolsRegistrationError(
+                "SSL error while connecting to %s: %s" % (self.url, str(e)))
+        return self.response.code in self.SUCCESS_CODES
 
 class RegistrationClient(Client):
 
@@ -42,8 +47,9 @@ class RegistrationClient(Client):
     PATH = '/api/inventory/systems/'
     SCHEME = 'https'
 
-    def __init__(self, url):
-        self.url = urlparse.urlunsplit([self.SCHEME, url, self.PATH, None, None])
+    def __init__(self, url, ssl_context=None):
+        url = urlparse.urlunsplit([self.SCHEME, url, self.PATH, None, None])
+        Client.__init__(self, url, ssl_context=ssl_context)
 
     def register(self, data):
         registered = self.request(data)
@@ -51,6 +57,10 @@ class RegistrationClient(Client):
         if not registered:
             logger.error("Failed registration with %s." % self.url)
             logger.error("Response code: %s" % self.response.code)
-            logger.error("Response: %s" % self.responseBody)
+            logger.error("Response: %s" % self.response.read())
+            self.system = None
+        else:
+            self.system = rpath_models.System()
+            self.system.parseStream(self.response)
 
         return registered

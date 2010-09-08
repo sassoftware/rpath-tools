@@ -152,7 +152,7 @@ class RegistrationCommand(RpathToolsCommand):
         else:
             state = 'registered'
 
-        system = System.factory(hostname=hostname,
+        system = System(hostname=hostname,
                                 generated_uuid=registration.generatedUuid,
                                 local_uuid=registration.localUuid, 
                                 ssl_client_certificate=sslClientCert,
