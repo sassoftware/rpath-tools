@@ -1,67 +1,85 @@
 #
-# Copyright (c) 2008-2009 rPath, Inc.  All Rights Reserved.
+# Copyright (c) 2008-2010 rPath, Inc.  All Rights Reserved.
 #
 "Simple module for generating x509 certificates"
 
-import os
-import tempfile
-import gencert
-
-from M2Crypto.SSL.Checker import SSLVerificationError  # pyflakes: ignore
-from M2Crypto.SSL import SSLError  # pyflakes: ignore
+from conary.lib import digestlib
+from rmake.lib import gencert
 
 class X509(object):
-
-    class Options(object):
-        __slots__ = ['C', 'ST', 'L', 'O', 'OU', 'CN', 'site_user',
-                     'key_length', 'expiry', 'output', 'output_key']
-        _defaults = dict(key_length = 2048, expiry = 3 * 365)
+    class Subject(gencert.X509.X509_Name):
+        __slots__ = ['C', 'ST', 'L', 'O', 'OU', 'CN', 'emailAddress']
         def __init__(self, **kwargs):
-            params = self._defaults.copy()
-            params.update(kwargs)
-            # Initialize from slots
+            gencert.X509.X509_Name.__init__(self)
             for slot in self.__slots__:
-                val = params.get(slot, None)
-                setattr(self, slot, val)
+                val = kwargs.get(slot, None)
+                if val is not None:
+                    setattr(self, slot, val)
+
+    KEY_LENGTH = 2048
+    # Expire after 10 years
+    EXPIRY = 3653
+    TIMESTAMP_OFFSET = 0
+
+    def __init__(self, x509, pkey):
+        self.x509 = x509
+        self.pkey = pkey
 
     @classmethod
-    def new(cls, commonName, certDir):
-        """
-        Generate X509 certificate with the specified commonName
-        Returns absolute paths to cert file and key file
-        """
+    def new(cls, subject=None, keyLength=None, serial=None, expiry=None,
+            timestampOffset=None, issuer_x509=None, issuer_pkey=None,
+            isCA=False):
+        keyLength = (keyLength is not None and keyLength) or cls.KEY_LENGTH
+        expiry = (expiry is not None and expiry) or cls.EXPIRY
+        timestampOffset = (timestampOffset is not None and timestampOffset) \
+            or cls.TIMESTAMP_OFFSET
 
-        fd, tempFile = tempfile.mkstemp(dir = certDir, prefix = 'new-cert-')
-        os.close(fd)
-        certFile = tempFile
-        keyFile = certFile + '.key'
+        if subject is None:
+            subject = cls.Subject(CN="Test Certificate")
 
-        o = cls.Options(CN = commonName, output = certFile,
-            output_key = keyFile)
-        gencert.new_ca(o, isCA = False)
+        issuer_subject = None
+        if issuer_x509 is not None:
+            issuer_subject = issuer_x509.get_subject()
 
-        hash = cls.computeHash(certFile)
-        newCertFile = os.path.join(certDir, hash + '.0')
-        newKeyFile = os.path.join(certDir, hash + '.0.key')
-        os.rename(certFile, newCertFile)
-        os.rename(keyFile, newKeyFile)
-        return newCertFile, newKeyFile
+        rsa, x509 = gencert.new_cert(keyLength, subject, expiry,
+                issuer=issuer_subject, issuer_evp=issuer_pkey, isCA=isCA,
+                serial=serial, timestamp_offset=timestampOffset)
 
-    @classmethod
-    def load(cls, certFile):
-        x509 = gencert.X509.load_cert(certFile)
-        return x509
+        return cls(x509, rsa)
 
-    @classmethod
-    def computeHash(cls, certFile):
-        x509 = cls.load(certFile)
-        certHash = "%08x" % x509.get_issuer().as_hash()
+    def load_x509_file(self, certFile):
+        self.x509 = gencert.X509.load_cert(certFile)
+
+    def load_x509(self, pem):
+        self.x509 = gencert.X509.load_cert_string(pem.encode('ascii'))
+
+    def load_pkey_file(self, keyFile, callback=None):
+        kwargs = {}
+        if callback is not None:
+            kwargs['callback'] = callback
+        self.pkey = gencert.EVP.load_key(keyFile, **kwargs)
+
+    def load_pkey(self, pem, callback=None):
+        kwargs = {}
+        if callback is not None:
+            kwargs['callback'] = callback
+        self.pkey = gencert.EVP.load_key_string(pem.encode('ascii'), **kwargs)
+
+    def load_from_strings(self, pemX509, pemPkey=None, callback=None):
+        self.load_x509(pemX509)
+        if pemPkey:
+            self.load_pkey(pemPkey, callback=callback)
+
+    @property
+    def hash_issuer(self):
+        certHash = "%08x" % self.x509.get_issuer().as_hash()
         return certHash
 
-    @classmethod
-    def verify(cls, caFile, remote):
-        host, port = remote.split(':')
-        if not port:
-            port = 443
-        return gencert.verifyCert(caFile, host, port)
-        
+    @property
+    def hash(self):
+        certHash = "%08x" % self.x509.get_subject().as_hash()
+        return certHash
+
+    @property
+    def fingerprint(self):
+        return digestlib.sha1(self.x509.as_der()).hexdigest()
