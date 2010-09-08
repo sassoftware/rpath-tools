@@ -4,7 +4,7 @@
 "Simple module for generating x509 certificates"
 
 from conary.lib import digestlib
-from rmake.lib import gencert
+import gencert
 
 class X509(object):
     class Subject(gencert.X509.X509_Name):
