@@ -159,7 +159,6 @@ class RegistrationCommand(RpathToolsCommand):
                                 ssl_client_key=sslClientKey, 
                                 ssl_server_certificate=sslServerCert,
                                 state=state,
-                                registered=True,
                                 agent_port = agentPort,
                                 event_uuid = self.event_uuid,
                                 )
