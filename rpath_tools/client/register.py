@@ -82,9 +82,42 @@ class LocalUuid(Uuid):
         self.oldDirPath = os.path.join(os.path.dirname(uuidFile), oldDir)
         Uuid.__init__(self, uuidFile)
 
+    def _runningInEC2(self):
+        try:
+            from amiconfig import instancedata
+        except ImportError:
+            return False
+
+        grep = '/usr/bin/grep'
+        
+        cmd = [grep, 'amazon', '/proc/version']
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+        sts = p.wait()
+        if sts == 0:
+            return True
+
+        cmd = [grep, 'aes', '/proc/version']
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+        sts = p.wait()
+        if sts != 0:
+            return False
+
+        cmd = [grep, 'SAST', '/proc/version']
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+        sts = p.wait()
+        if sts == 0:
+            return True
+
     def read(self):
-        dmidecodeUuid = self._getDmidecodeUuid().lower()
-        self._uuid = dmidecodeUuid
+        if self._runningInEC2():
+            id = instancedata.InstanceData()
+            instanceId = id.getInstanceId()
+            # TODO: take a hash of the instanceId and make a uuid out of the
+            # hash.
+            self._uuid = instanceId
+        else:
+            dmidecodeUuid = self._getDmidecodeUuid().lower()
+            self._uuid = dmidecodeUuid
 
         if os.path.exists(self.uuidFile):
             persistedUuid = self._readFile(self.uuidFile)
