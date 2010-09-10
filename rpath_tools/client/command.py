@@ -132,9 +132,6 @@ class RegistrationCommand(RpathToolsCommand):
         registration = register.Registration(self.cfg)
         hwData = hardware.HardwareData(self.cfg)
 
-        sslClientCertPath, sslClientKeyPath = registration.readCredentials()
-        sslClientCert = file(sslClientCertPath).read()
-        sslClientKey = file(sslClientKeyPath).read()
         sslServerCert = file(registration.sslCertificateFilePath).read()
         agentPort = int(registration.sfcbConfig.get('httpsPort', 5989))
 
@@ -154,9 +151,7 @@ class RegistrationCommand(RpathToolsCommand):
 
         system = System(hostname=hostname,
                                 generated_uuid=registration.generatedUuid,
-                                local_uuid=registration.localUuid, 
-                                ssl_client_certificate=sslClientCert,
-                                ssl_client_key=sslClientKey, 
+                                local_uuid=registration.localUuid,
                                 ssl_server_certificate=sslServerCert,
                                 state=state,
                                 agent_port = agentPort,
