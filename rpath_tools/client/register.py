@@ -136,38 +136,6 @@ class Registration(object):
             cfg = config.RpathToolsConfiguration()
         return Registration(cfg)
 
-    def readCredentials(self):
-        if os.path.exists(self.cfg.credentialsCertFilePath):
-            return (self.cfg.credentialsCertFilePath,
-                self.cfg.credentialsKeyFilePath)
-        # Generate credentials
-        cn = "Common name for %s" % self.generatedUuid
-        certDir = os.path.dirname(self.cfg.credentialsCertFilePath)
-        util.mkdirChain(certDir)
-        certFile, keyFile = x509.X509.new(cn, certDir)
-
-        sfcbClientTrustStore = self.sfcbConfig.get('sslClientTrustStore',
-            '/etc/conary/sfcb/clients')
-        # Copy the public key to sfcb's directory
-        util.copyfile([ certFile ], sfcbClientTrustStore)
-
-        if self.sfcbConfig.get('httpUserSFCB', 'true'):
-            sfcbHttpUser = self.sfcbConfig.get('httpUser', 'root')
-        else:
-            sfcbHttpUser = 'root'
-        if sfcbHttpUser != 'root':
-            uid, gid = self._getUserIds(sfcbHttpUser)
-            path = os.path.join(sfcbClientTrustStore,
-                                os.path.basename(certFile))
-            os.chown(path, uid, gid)
-
-        os.symlink(os.path.basename(certFile),
-            self.cfg.credentialsCertFilePath)
-        os.symlink(os.path.basename(keyFile), self.cfg.credentialsKeyFilePath)
-
-        return (self.cfg.credentialsCertFilePath,
-            self.cfg.credentialsKeyFilePath)
-
     def writeCertificate(self, crt):
         sfcbClientTrustStore = self.sfcbConfig.get('sslClientTrustStore',
             '/etc/conary/sfcb/clients')
