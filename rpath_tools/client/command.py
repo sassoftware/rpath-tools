@@ -21,7 +21,7 @@ import StringIO
 from conary.lib import command
 from conary.lib import options
 
-from rpath_models import System, Networks, Network
+from rpath_models import System, Networks, Network, CurrentState
 from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client.utils import client
@@ -145,15 +145,16 @@ class RegistrationCommand(RpathToolsCommand):
             raise e
 
         if self.shutdown:
-            state = 'shut_down'
+            state = 'non-responsive-shutdown'
         else:
             state = 'registered'
 
+        current_state = CurrentState(name=state)
         system = System(hostname=hostname,
                                 generated_uuid=registration.generatedUuid,
                                 local_uuid=registration.localUuid,
                                 ssl_server_certificate=sslServerCert,
-                                state=state,
+                                current_state=current_state,
                                 agent_port = agentPort,
                                 event_uuid = self.event_uuid,
                                 )
