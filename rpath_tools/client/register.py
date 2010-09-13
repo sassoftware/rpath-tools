@@ -23,6 +23,7 @@ import sys
 import tempfile
 import time
 
+from conary.lib import digestlib
 from conary.lib import util
 
 from rpath_tools.client import config
@@ -60,6 +61,13 @@ class Uuid(object):
         util.mkdirChain(os.path.dirname(path))
         file(path, "w").write(contents)
 
+    @classmethod
+    def asString(cls, data):
+        """Generate a UUID out of the data"""
+        assert len(data) == 16
+        h = "%02x"
+        fmt = '-'.join([h * 4, h * 2, h * 2, h * 2, h * 6])
+        return fmt % tuple(ord(x) for x in data)
 
 class GeneratedUuid(Uuid):
     def read(self):
@@ -70,61 +78,60 @@ class GeneratedUuid(Uuid):
             uuid = self._readFile(self.uuidFile)
         self._uuid = uuid
 
+    @classmethod
     def _generateUuid(cls):
         data = file("/dev/urandom").read(16)
-        h = "%02x"
-        fmt = '-'.join([h * 4, h * 2, h * 2, h * 2, h * 6])
-        return fmt % tuple(ord(x) for x in data)
-
+        return cls.asString(data)
 
 class LocalUuid(Uuid):
     def __init__(self, uuidFile, oldDir):
         self.oldDirPath = os.path.join(os.path.dirname(uuidFile), oldDir)
         Uuid.__init__(self, uuidFile)
 
-    def _runningInEC2(self):
+    @classmethod
+    def _readProcVersion(cls):
+        try:
+            version = file("/proc/version").read()
+        except IOError:
+            return None
+        return version
+
+    @classmethod
+    def _readInstanceIdFromEC2(cls):
         try:
             from amiconfig import instancedata
         except ImportError:
-            return False
+            return None
+        return instancedata.InstanceData().getInstanceId()
 
-        grep = '/usr/bin/grep'
-        
-        cmd = [grep, 'amazon', '/proc/version']
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        sts = p.wait()
-        if sts == 0:
-            return True
-
-        cmd = [grep, 'aes', '/proc/version']
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        sts = p.wait()
-        if sts != 0:
-            return False
-
-        cmd = [grep, 'SAST', '/proc/version']
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        sts = p.wait()
-        if sts == 0:
-            return True
+    @classmethod
+    def _getEC2InstanceId(cls):
+        """
+        Return the EC2 instance ID if the system is running in EC2
+        Return None otherwise.
+        """
+        version = cls._readProcVersion()
+        if version is None:
+            return None
+        if not ('amazon' in version or 'aes' in version or 'SAST' in version):
+            return None
+        return cls._readInstanceIdFromEC2()
 
     def read(self):
-        if self._runningInEC2():
-            id = instancedata.InstanceData()
-            instanceId = id.getInstanceId()
-            # TODO: take a hash of the instanceId and make a uuid out of the
-            # hash.
-            self._uuid = instanceId
+        instanceId = self._getEC2InstanceId()
+        if instanceId is not None:
+            sha = digestlib.sha1(instanceId)
+            self._uuid = GeneratedUuid.asString(sha.digest()[:16])
         else:
             dmidecodeUuid = self._getDmidecodeUuid().lower()
             self._uuid = dmidecodeUuid
 
         if os.path.exists(self.uuidFile):
             persistedUuid = self._readFile(self.uuidFile)
-            if persistedUuid.lower() != dmidecodeUuid:
-                self._writeDmidecodeUuid(dmidecodeUuid)
+            if persistedUuid.lower() != self._uuid:
+                self._writeDmidecodeUuid(self._uuid)
         else:
-            self._writeDmidecodeUuid(dmidecodeUuid)
+            self._writeDmidecodeUuid(self._uuid)
 
     def _getDmidecodeUuid(cls):
         if not os.access("/dev/mem", os.R_OK):
