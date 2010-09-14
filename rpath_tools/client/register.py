@@ -190,7 +190,7 @@ class Registration(object):
         self.writeCertificateToStore(crt, sfcbClientTrustStore, uid=uid,
             gid=gid)
         # Remove this cert's issuer from the store
-        self.removeIssuerFromStore(crt, sfcbClientTrustStore)
+        #self.removeIssuerFromStore(crt, sfcbClientTrustStore)
 
     def writeCertificateToStore(self, crt, store, uid=None, gid=None):
         """
