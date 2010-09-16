@@ -351,7 +351,8 @@ class Registration(object):
         SSL = utils.client.SSL
         ssl_context = SSL.Context()
         if self.cfg.validateRemoteIdentity:
-            ssl_context.load_verify_locations(self.cfg.remoteCAFilePath)
+            ssl_context.load_verify_locations(
+                capath=self.cfg.remoteCertificateAuthorityStore)
             ssl_context.set_allow_unknown_ca(False)
             ssl_context.set_verify(SSL.verify_peer, True)
 
@@ -389,22 +390,6 @@ class Registration(object):
             sleepTime = sleepTime + int(randSleepInc)
             attempts += 1
         return None
-
-    def _validate(self, remote):
-        logger.info("Validating identity of %s..." % remote)
-        try:
-            x509.X509.verify(self.cfg.remoteCAFilePath, remote) 
-        except (x509.SSLVerificationError, x509.SSLError), e:
-            logger.error("%s failed identity validation!" % remote)
-            logger.error(str(e))
-            return False
-        except Exception, e:
-            logger.error("Unknown error ocurred during identity validation "
-                         "of %s" % remote)
-            logger.error(str(e))
-            return False
-
-        return True
 
 if __name__ == '__main__':
     sys.exit(main())

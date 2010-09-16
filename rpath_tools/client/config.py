@@ -42,7 +42,7 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     disableRegistrationFileName = (cfg.CfgString, 'disableRegistration')
     lastRegistrationFileName= (cfg.CfgString, 'lastRegistration')
     debugMode = (cfg.CfgBool, False)
-    remoteCAFilePath = (cfg.CfgString, "/etc/conary/rpath-tools/remoteCA.cert")
+    remoteCertificateAuthorityStore = (cfg.CfgString, "/etc/conary/rpath-tools/certs")
     validateRemoteIdentity = (cfg.CfgBool, True)
     requiredNetwork = cfg.CfgString
 
