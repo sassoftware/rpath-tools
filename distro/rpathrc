@@ -203,10 +203,10 @@ lastRegistrationFileName lastRegistration
 # validate remote identity -- Boolean option to turn on or off validation of
 # the identity of the remote registration server.  Validation occurs by
 # verifying the SSL certificate offered by the registration server is signed by
-# the CA certificate found at remoteCAFilePath.
+# the CA certificate found under remoteCertificateAuthorityStore
 validateRemoteIdentity True
 
-# remote CA file path -- File for the CA cert of the remote registration server.
+# remote CA file path -- Directory for the CA cert of the remote registration server.
 # The SSL cert offered by the remote server during registration will be verified
 # that it is signed by this CA.
-remoteCAFilePath /etc/conary/rpath-tools/remoteCA.cert
+remoteCertificateAuthorityStore /etc/conary/rpath-tools/certs
