@@ -340,10 +340,10 @@ class Registration(object):
         if system is None:
             return system
         # If the server returned something back, save the client cert
-        if not system.sslClientCertificate:
+        if not system.ssl_client_certificate:
             return system
         crt = x509.X509(None, None)
-        crt.load_x509(system.sslClientCertificate)
+        crt.load_x509(system.ssl_client_certificate)
         self.writeCertificate(crt)
         return system
 

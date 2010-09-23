@@ -151,27 +151,27 @@ class RegistrationCommand(RpathToolsCommand):
 
         current_state = CurrentState(name=state)
         system = System(hostname=hostname,
-                        generatedUuid=registration.generatedUuid,
-                        localUuid=registration.localUuid,
-                        sslServerCertificate=sslServerCert,
-                        currentState=current_state,
-                        agentPort = agentPort,
-                        eventUuid = self.event_uuid,
-                        )
+                                generated_uuid=registration.generatedUuid,
+                                local_uuid=registration.localUuid,
+                                ssl_server_certificate=sslServerCert,
+                                current_state=current_state,
+                                agent_port = agentPort,
+                                event_uuid = self.event_uuid,
+                                )
 
         localIp = hwData.getLocalIp(self.cfg.directMethod)
         networks = Networks.factory()
         requiredIp = self.cfg.requiredNetwork or object()
         for ip in ips:
-            network = Network.factory(ipAddress=ip.ipv4,
+            network = Network.factory(ip_address=ip.ipv4,
                 netmask = ip.netmask,
-                dnsName=ip.dns_name, active=(ip.ipv4 == localIp),
+                dns_name=ip.dns_name, active=(ip.ipv4 == localIp),
                 required = (requiredIp in [ ip.ipv4, ip.dns_name ] or None),
-                deviceName=ip.device)
+                device_name=ip.device)
             networks.add_network(network)
         system.set_networks(networks)
         logger.info('Registering System with local uuid %s and generated '
-                    'uuid %s' % (system.localUuid, system.generatedUuid))
+                    'uuid %s' % (system.local_uuid, system.generated_uuid))
         print "  Registering system..."
         success = registration.registerSystem(system)
         if not success:
