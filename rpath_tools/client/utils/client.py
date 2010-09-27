@@ -13,28 +13,30 @@
 #
 
 import logging
-from M2Crypto import m2urllib2, SSL
+from M2Crypto import SSL
+import urllib2
 import urlparse
 
 import rpath_models
 from rpath_tools.client.errors import RpathToolsRegistrationError
+from rpath_tools.client.utils import httpslib
 
 logger = logging.getLogger('client')
 
 class Client(object):
     def __init__(self, url, ssl_context=None):
         self.url = url
-        self.opener = m2urllib2.OpenerDirector()
+        self.opener = urllib2.OpenerDirector()
         if ssl_context is None:
             ssl_context = SSL.Context()
-        self.opener.add_handler(m2urllib2.HTTPSHandler(ssl_context))
-        self.opener.add_handler(m2urllib2.HTTPHandler())
+        self.opener.add_handler(httpslib.HTTPSHandler(ssl_context))
+        self.opener.add_handler(urllib2.HTTPHandler())
 
     def request(self, data=None):
         logger.debug("Sending XML data as POST:\n%s" % data)
         try:
             self.response = self.opener.open(self.url, data=data)
-        except m2urllib2.URLError, e:
+        except urllib2.URLError, e:
             raise RpathToolsRegistrationError(e.reason)
         except SSL.SSLError, e:
             raise RpathToolsRegistrationError(
