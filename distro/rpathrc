@@ -178,7 +178,7 @@ credentialsCertFileName credentials.cert
 credentialsKeyFileName credentials.key
 
 # sfcb configuration file -- File for the configuration file for sfcb
-sfcbConfigurationFile /etc/sfcb/sfcb.cfg
+sfcbConfigurationFile /etc/conary/sfcb/sfcb.cfg
 
 # last poll file -- File for the timestamp of when the last time that the system
 # was polled by the rBA/Sputnik.  If the timestamp in this file is older than
