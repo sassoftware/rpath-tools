@@ -37,6 +37,8 @@ class RegistrationCommand(RpathToolsCommand):
     help = 'register the system with rBuilder'
     requireConfig = True
 
+    BOOT_UUID_FILE = "/etc/conary/rpath-tools/boot-uuid"
+
     def addParameters(self, argDef):
         RpathToolsCommand.addParameters(self, argDef)
         argDef['check'] = options.NO_PARAM
@@ -158,6 +160,9 @@ class RegistrationCommand(RpathToolsCommand):
                                 agent_port = agentPort,
                                 event_uuid = self.event_uuid,
                                 )
+        if self.boot and os.path.exists(self.BOOT_UUID_FILE):
+            bootUuid = file(self.BOOT_UUID_FILE).read().strip()
+            system.set_boot_uuid(bootUuid)
 
         localIp = hwData.getLocalIp(self.cfg.directMethod)
         networks = Networks.factory()
@@ -177,8 +182,13 @@ class RegistrationCommand(RpathToolsCommand):
         if not success:
             print 'Failure'
             return 1
+        self._cleanup()
         print 'Complete.'
         return 0
+
+    def _cleanup(self):
+        if self.boot and os.path.exists(self.BOOT_UUID_FILE):
+            os.unlink(self.BOOT_UUID_FILE)
 
 class HardwareCommand(RpathToolsCommand):
     commands = ['hardware']
