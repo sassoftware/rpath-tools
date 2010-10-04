@@ -87,6 +87,7 @@ class LocalUuid(Uuid):
     def __init__(self, uuidFile, oldDir):
         self.oldDirPath = os.path.join(os.path.dirname(uuidFile), oldDir)
         Uuid.__init__(self, uuidFile)
+        self._targetSystemId = None
 
     @classmethod
     def _readProcVersion(cls):
@@ -117,8 +118,18 @@ class LocalUuid(Uuid):
             return None
         return cls._readInstanceIdFromEC2()
 
+    @property
+    def ec2InstanceId(self):
+        if self._targetSystemId is None:
+            self._targetSystemId = self._getEC2InstanceId()
+        return self._targetSystemId
+
+    @property
+    def targetSystemId(self):
+        return self.ec2InstanceId
+
     def read(self):
-        instanceId = self._getEC2InstanceId()
+        instanceId = self.ec2InstanceId
         if instanceId is not None:
             sha = digestlib.sha1(instanceId)
             self._uuid = GeneratedUuid.asString(sha.digest()[:16])
@@ -163,8 +174,10 @@ class Registration(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.generatedUuid = GeneratedUuid(self.cfg.generatedUuidFilePath).uuid
-        self.localUuid = LocalUuid(self.cfg.localUuidFilePath, 
-                                   self.cfg.localUuidOldDirectoryPath).uuid
+        localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
+                                   self.cfg.localUuidOldDirectoryPath)
+        self.localUuid = localUuidObj.uuid
+        self.targetSystemId = localUuidObj.targetSystemId
         self._sfcbCfg = None
 
         self.registrationMethods = {'DIRECT' : self.registerDirect,

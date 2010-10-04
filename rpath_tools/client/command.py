@@ -163,6 +163,8 @@ class RegistrationCommand(RpathToolsCommand):
         if self.boot and os.path.exists(self.BOOT_UUID_FILE):
             bootUuid = file(self.BOOT_UUID_FILE).read().strip()
             system.set_boot_uuid(bootUuid)
+        if registration.targetSystemId:
+            system.set_target_system_id(registration.targetSystemId)
 
         localIp = hwData.getLocalIp(self.cfg.directMethod)
         networks = Networks.factory()
