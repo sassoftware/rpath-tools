@@ -45,6 +45,9 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     remoteCertificateAuthorityStore = (cfg.CfgString, "/etc/conary/rpath-tools/certs")
     validateRemoteIdentity = (cfg.CfgBool, True)
     requiredNetwork = cfg.CfgString
+    randomWaitFileName = (cfg.CfgString, 'randomWait')
+    randomWait = cfg.CfgInt
+    randomWaitMax = (cfg.CfgInt, 14400)
 
     def __init__(self, readConfigFiles=False, ignoreErrors=False, root=''):
         cfg.ConfigFile.__init__(self)
@@ -101,3 +104,7 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     @property
     def lastRegistrationFilePath(self):
         return os.path.join(self.topDir, self.lastRegistrationFileName)
+
+    @property
+    def randomWaitFilePath(self):
+        return os.path.join(self.topDir, self.randomWaitFileName)

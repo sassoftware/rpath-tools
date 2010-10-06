@@ -93,6 +93,7 @@ devel:
 		echo "registrationRetryCount 3" >> $(CFGDEVEL)
 		echo "includeConfigFile $(TOPDIR)/devel/config.d/*" >> $(CFGDEVEL)
 		echo "validateRemoteIdentity False" >> $(CFGDEVEL)
+		echo "randomWaitFileName randomWait" >> $(CFGDEVEL)
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/registration
 		echo 'sudo PYTHONPATH=$(TOPDIR):$(TOPDIR)/../../../rbuilder/bayonet/include commands/rpath $$@' > rpath-devel

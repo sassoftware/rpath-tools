@@ -14,6 +14,7 @@
 
 import logging
 import os
+import random
 import sys
 import time
 import StringIO
@@ -46,6 +47,7 @@ class RegistrationCommand(RpathToolsCommand):
         argDef['boot'] = options.NO_PARAM
         argDef['shutdown'] = options.NO_PARAM
         argDef['event-uuid'] = options.ONE_PARAM
+        argDef['random-wait'] = options.NO_PARAM
 
     def checkRegistrationDisabled(self):
         exists = os.path.exists(self.cfg.disableRegistrationFilePath)
@@ -55,6 +57,27 @@ class RegistrationCommand(RpathToolsCommand):
         else:
             logger.debug('Registration disable file does not exist at (%s).' \
                 % self.cfg.disableRegistrationFilePath)
+
+        return exists
+
+    def checkRandomWait(self):
+        exists = os.path.exists(self.cfg.randomWaitFilePath)
+        if exists:
+            logger.info('Random wait file exists at (%s).' \
+                % self.cfg.randomWaitFilePath)
+            randomWait = int(open(self.cfg.randomWaitFilePath).read())
+        else:
+            logger.info('Random wait file does not exist at (%s).' \
+                % self.cfg.randomWaitFilePath)
+            randomWait = int(random.random() * self.cfg.randomWaitMax)
+            logger.info('Writing random wait value of (%s) to (%s).' \
+                % (randomWait, self.cfg.randomWaitFilePath))
+
+        logger.info('Sleeping for random wait value of (%s) seconds...' \
+            % randomWait)
+        time.sleep(randomWait)
+        logger.info('Waking up after sleeping for (%s) seconds.' \
+            % randomWait)
 
         return exists
 
@@ -123,6 +146,7 @@ class RegistrationCommand(RpathToolsCommand):
         self.boot = argSet.pop('boot', False)
         self.shutdown = argSet.pop('shutdown', False)
         self.event_uuid = argSet.pop('event-uuid', None)
+        self.randomWait = argSet.pop('random-wait', None)
 
         if not self.shouldRun():
             print 'Registration not needed.'
@@ -130,6 +154,10 @@ class RegistrationCommand(RpathToolsCommand):
             sys.exit(2)
         else:
             print 'Registration needed'
+
+        if self.randomWait:
+            logger.debug('--random-wait specified.')
+            self.checkRandomWait()
 
         registration = register.Registration(self.cfg)
         hwData = hardware.HardwareData(self.cfg)

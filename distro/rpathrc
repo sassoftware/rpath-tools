@@ -210,3 +210,21 @@ validateRemoteIdentity True
 # The SSL cert offered by the remote server during registration will be verified
 # that it is signed by this CA.
 remoteCertificateAuthorityStore /etc/conary/rpath-tools/certs
+
+# random wait file -- File storing the amount of seconds that will be waited
+# when the daily cron job that runs rpath-tools runs.  A randomized value is
+# created the first time --random-wait is passed to rpath-register and stored
+# in this file.  This is so that there aren't a large number of systems
+# running rpath-register at the same time.
+randomWaitFileName randomWait
+
+# random wait -- The amount of seconds to randomly wait if --random-wait is
+# passed as a command line argument to rpath-register
+randomWait 
+
+# random wait max -- The maximum amount of time, in seconds, that will be
+# randomly waited when the --random-wait parameter is used.  The first time
+# that a value for randomWait is generated, a random number greater than 0 and
+# less than 1 is generated, then multiplied by randomWaitMax to get the value
+# for randomWait
+randomWaitMax 14440
