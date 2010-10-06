@@ -13,6 +13,7 @@ install: default-install
 	install -D -m0755 rpath-tools.init $(DESTDIR)/etc/init.d/rpath-tools
 	mkdir $(DESTDIR)/etc/conary/rpath-tools/config.d
 	chmod 755 $(DESTDIR)/etc/conary/rpath-tools/config.d
+	install -D -m0644 rpath-tools.cron $(DESTDIR)/etc/cron.d/rpath-tools.cron
 
 clean: clean-subdirs default-clean
 
