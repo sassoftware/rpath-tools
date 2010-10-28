@@ -94,9 +94,10 @@ devel:
 		echo "includeConfigFile $(TOPDIR)/devel/config.d/*" >> $(CFGDEVEL)
 		echo "validateRemoteIdentity False" >> $(CFGDEVEL)
 		echo "randomWaitFileName randomWait" >> $(CFGDEVEL)
+		echo "conaryProxyFilePath $(TOPDIR)/devel/rpath-tools-conaryProxy" >> $(CFGDEVEL)
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/poll
 		echo "$(TIMESTAMP)" > $(TOPDIR)/devel/registration
-		echo 'sudo PYTHONPATH=$(TOPDIR):$(TOPDIR)/../../../rbuilder/bayonet/include commands/rpath $$@' > rpath-devel
+		echo 'sudo PYTHONPATH=$(TOPDIR):$(TOPDIR)/../../../rbuilder/claymore/include commands/rpath $$@' > rpath-devel
 		chmod +x rpath-devel
         
 clean-devel:

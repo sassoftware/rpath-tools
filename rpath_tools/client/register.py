@@ -17,12 +17,14 @@ import StringIO
 import logging
 import random
 import os
+import os.path
 import pwd
 import subprocess
 import sys
 import tempfile
 import time
 
+from conary import conarycfg
 from conary.lib import digestlib
 from conary.lib import util
 
@@ -225,6 +227,20 @@ class Registration(object):
             os.chown(certPath, uid, gid)
         return certPath
 
+    def writeConaryProxy(self, remote):
+        """
+        Management nodes should already be written as conaryProxies by the cim
+        interface, but add an extra check here to be sure.
+        """
+        conaryCfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
+        proxy = 'https://%s' % remote.split(':')[0]
+        if proxy not in conaryCfg.conaryProxy.values():
+            f = open(self.cfg.conaryProxyFilePath, 'wa')
+            logger.info("Writing %s as a conary proxy to %s" % \
+                (proxy, self.cfg.conaryProxyFilePath))
+            f.write('conaryProxy %s\n' % proxy)
+            f.close()
+
     def removeIssuerFromStore(self, crt, store):
         certHash = crt.hash
         issuerHash = crt.hash_issuer
@@ -358,6 +374,7 @@ class Registration(object):
         crt = x509.X509(None, None)
         crt.load_x509(system.ssl_client_certificate)
         self.writeCertificate(crt)
+        self.writeConaryProxy(remote)
         return system
 
     def _getRegistrationClient(self, remote):
