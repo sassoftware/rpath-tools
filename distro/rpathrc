@@ -218,10 +218,6 @@ remoteCertificateAuthorityStore /etc/conary/rpath-tools/certs
 # running rpath-register at the same time.
 randomWaitFileName randomWait
 
-# random wait -- The amount of seconds to randomly wait if --random-wait is
-# passed as a command line argument to rpath-register
-randomWait 
-
 # random wait max -- The maximum amount of time, in seconds, that will be
 # randomly waited when the --random-wait parameter is used.  The first time
 # that a value for randomWait is generated, a random number greater than 0 and

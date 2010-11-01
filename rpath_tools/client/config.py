@@ -34,7 +34,6 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     localUuidBackupDirectoryName = (cfg.CfgString, "old-registrations")
     localUuidFile = (cfg.CfgString, "local-uuid")
     logFile = (cfg.CfgString, '/var/log/rpath-tools.log')
-    randomWait = cfg.CfgInt
     randomWaitFileName = (cfg.CfgString, 'randomWait')
     randomWaitMax = (cfg.CfgInt, 14400)
     registrationInterval = (cfg.CfgInt, 1)
