@@ -4,4 +4,5 @@
 ^rpathrc$
 ^rpath-devel$
 ^bin/rpath$
+^bin/rpath-.*$
 ^.*constants.py$
