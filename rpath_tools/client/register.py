@@ -301,6 +301,29 @@ class Registration(object):
         f = open(self.cfg.lastRegistrationFilePath, 'w')
         f.write(str(now))
 
+    def getRemote(self):
+        remote = []
+        for method in self.cfg.registrationMethod:
+            if method.upper() == 'DIRECT':
+                remote = [r for r in self.cfg.directMethod]
+            elif method.upper() == 'SLP':
+                remote += self.getSlpRemote()
+        return remote
+
+    def getSlpRemote(self):
+        remote = []
+        for service in self.cfg.slpMethod:
+            slptool = subprocess.Popen(['/usr/bin/slptool', 'findsrvs', 
+                                        'service:%s' % service],
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+            stdoutData, stderrData = slptool.communicate()
+            if stdoutData:
+                remote.append(
+                    stdoutData.strip('service:%s//' % service).split(',')[0])
+        return remote
+
     def registerSystem(self, system):
         sio = StringIO.StringIO()
         system.serialize(sio)
@@ -340,7 +363,6 @@ class Registration(object):
 
     def registerSLP(self, systemXml):
         logger.info("Using SLP registration.")
-        import subprocess 
         actResp = None
         for service in self.cfg.slpMethod:
             logger.info('Searching for "%s" SLP service.' % service)

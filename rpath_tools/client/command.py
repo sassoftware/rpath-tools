@@ -160,6 +160,15 @@ class RegistrationCommand(RpathToolsCommand):
             self.checkRandomWait()
 
         registration = register.Registration(self.cfg)
+        remote = registration.getRemote()
+
+        if not remote:
+            msg = "No remote server found to register with.  " + \
+                "Check that either directMethod or slpMethod is configured correctly."
+            print msg
+            logger.error(msg)
+            sys.exit(2)
+
         hwData = hardware.HardwareData(self.cfg)
 
         sslServerCert = file(registration.sslCertificateFilePath).read()
@@ -194,7 +203,9 @@ class RegistrationCommand(RpathToolsCommand):
         if registration.targetSystemId:
             system.set_target_system_id(registration.targetSystemId)
 
-        localIp = hwData.getLocalIp(self.cfg.directMethod)
+        # Just use the first remote server found to look up the localIp
+        localIp = hwData.getLocalIp(remote)
+
         networks = Networks.factory()
         requiredIp = self.cfg.requiredNetwork or object()
         for ip in ips:
