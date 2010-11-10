@@ -22,9 +22,6 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     conaryProxyFilePath = (cfg.CfgString, 
         '/etc/conary/config.d/rpath-tools-conaryProxy')
     contactTimeoutInterval = (cfg.CfgInt, 3)
-    credentialsCertFileName = (cfg.CfgString, "credentials.cert")
-    credentialsDirectoryName = (cfg.CfgString, "credentials")
-    credentialsKeyFileName = (cfg.CfgString, "credentials.key")
     debugMode = (cfg.CfgBool, False)
     directMethod = (cfg.CfgList(cfg.CfgString), "")
     disableRegistrationFileName = (cfg.CfgString, 'disableRegistration')
@@ -79,20 +76,6 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     @property
     def localUuidOldDirectoryPath(self):
         return os.path.join(self.topDir, self.localUuidBackupDirectoryName)
-
-    @property
-    def credentialsDirectoryPath(self):
-        return os.path.join(self.topDir, self.credentialsDirectoryName)
-
-    @property
-    def credentialsCertFilePath(self):
-        return os.path.join(self.credentialsDirectoryPath,
-            self.credentialsCertFileName)
-
-    @property
-    def credentialsKeyFilePath(self):
-        return os.path.join(self.credentialsDirectoryPath,
-            self.credentialsKeyFileName)
 
     @property
     def lastPollFilePath(self):
