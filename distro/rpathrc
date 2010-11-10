@@ -167,16 +167,6 @@ localUuidFile local-uuid
 # local uuid file in case the contents change.
 localUuidBackupDirectoryName backup-local-uuid
 
-# credentials directory name -- Directory for the sfcb credentials
-credentialsDirectoryName credentials
-
-# credentials certificate file name -- File for the public certificate for
-# sfcb
-credentialsCertFileName credentials.cert
-
-# credentials key file name -- File for the private key for the sfcb
-credentialsKeyFileName credentials.key
-
 # sfcb configuration file -- File for the configuration file for sfcb
 sfcbConfigurationFile /etc/conary/sfcb/sfcb.cfg
 
