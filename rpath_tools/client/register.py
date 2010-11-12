@@ -182,7 +182,6 @@ class LocalUuid(Uuid):
         if not os.access("/dev/mem", os.R_OK):
             raise Exception("Must run as root")
         try:
-            raise KeyError
             import dmidecode
             return dmidecode.system()['0x0001']['data']['UUID']
         except ImportError:
