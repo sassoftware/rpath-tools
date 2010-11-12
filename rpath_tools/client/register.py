@@ -161,12 +161,17 @@ class LocalUuid(Uuid):
         if sts != 0:
             raise Exception("Unable to run ifconfig to find mac address for "
                 "local uuid generation")
-        lines = p.stdout.readline().strip()
+        lines = p.stdout.read().strip()
         matcher = re.compile('^%s.*HWaddr\W(.*)$' % self.deviceName)
+        mac = None
         for line in lines.split('\n'):
             match = matcher.match(line)
             if match:
                 mac = match.groups()[0]
+
+        if not mac:
+            raise Exception("Unable to find mac address for "
+                "local uuid generation")
 
         if len(mac) > 16:
             mac = mac[0:16]
@@ -174,10 +179,11 @@ class LocalUuid(Uuid):
             mac = mac + '0'*(16-len(mac))
         return self.asString(mac)
 
-    def _getDmidecodeUuid(cls):
+    def _getDmidecodeUuid(self):
         if not os.access("/dev/mem", os.R_OK):
             raise Exception("Must run as root")
         try:
+            raise KeyError
             import dmidecode
             return dmidecode.system()['0x0001']['data']['UUID']
         except ImportError:
@@ -208,15 +214,18 @@ class Registration(object):
     def __init__(self, cfg, deviceName=None):
         self.cfg = cfg
         self.generatedUuid = GeneratedUuid(self.cfg.generatedUuidFilePath).uuid
-        localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
+        self.localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
                                  self.cfg.localUuidOldDirectoryPath,
                                  deviceName)
-        self.localUuid = localUuidObj.uuid
-        self.targetSystemId = localUuidObj.targetSystemId
+        self.targetSystemId = self.localUuidObj.targetSystemId
         self._sfcbCfg = None
 
         self.registrationMethods = {'DIRECT' : self.registerDirect,
                                   'SLP'    : self.registerSLP}
+
+    def setDeviceName(self, deviceName):
+        self.localUuidObj.deviceName = deviceName
+        self.localUuid = self.localUuidObj.uuid
 
     @classmethod
     def registration(self, cfg=None):

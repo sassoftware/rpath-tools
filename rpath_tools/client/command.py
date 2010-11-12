@@ -206,7 +206,7 @@ class RegistrationCommand(RpathToolsCommand):
             if active:
                 deviceName = ip.device
 
-        registration.deviceName = deviceName
+        registration.setDeviceName(deviceName)
 
         current_state = CurrentState(name=state)
         system = System(hostname=hostname,
