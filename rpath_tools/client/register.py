@@ -151,8 +151,7 @@ class LocalUuid(Uuid):
     
     def _getUuidFromMac(self):
         """
-        Use the uuidgen command to generate a uuid based on the current time
-        and the system's ethernet hardware address.
+        Use the mac address from the system to hash a uuid.
         """
         # Read mac address of self.deviceName
         cmd = ['/sbin/ifconfig']
