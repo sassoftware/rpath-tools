@@ -146,6 +146,20 @@ class LocalUuid(Uuid):
         else:
             self._writeDmidecodeUuid(self._uuid)
 
+    
+    def _getUuidGenUuid(self):
+        """
+        Use the uuidgen command to generate a uuid based on the current time
+        and the system's ethernet hardware address.
+        """
+        cmd = ['/usr/bin/uuidgen', '-t']
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        sts = p.wait()
+        if sts != 0:
+            raise Exception("Unable to run uuidgen to get a uuid.")
+        uuid = p.stdout.readline().strip()
+        return uuid
+
     def _getDmidecodeUuid(cls):
         if not os.access("/dev/mem", os.R_OK):
             raise Exception("Must run as root")
@@ -155,6 +169,10 @@ class LocalUuid(Uuid):
         except ImportError:
             # python-dmidecode not present
             pass
+        except KeyError:
+            # dmidecode does not expose UUID in kvm
+            return self._getUuidGenUuid()
+
         dmidecode = "/usr/sbin/dmidecode"
         # XXX if dmidecode is not present, make something up
         cmd = [ dmidecode, "-s", "system-uuid" ]
