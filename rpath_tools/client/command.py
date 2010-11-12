@@ -188,6 +188,26 @@ class RegistrationCommand(RpathToolsCommand):
         else:
             state = 'registered'
 
+        # Just use the first remote server found to look up the localIp
+        localIp = hwData.getLocalIp(remote)
+
+        networks = Networks.factory()
+        requiredIp = self.cfg.requiredNetwork or object()
+        deviceName = None
+        for ip in ips:
+            active = (ip.ipv4 == localIp)
+            network = Network.factory(ip_address=ip.ipv4,
+                netmask = ip.netmask,
+                dns_name=ip.dns_name, active=active,
+                required = (requiredIp in [ ip.ipv4, ip.dns_name ] or None),
+                device_name=ip.device)
+            networks.add_network(network)
+
+            if active:
+                deviceName = ip.device
+
+        registration.deviceName = deviceName
+
         current_state = CurrentState(name=state)
         system = System(hostname=hostname,
                                 generated_uuid=registration.generatedUuid,
@@ -203,18 +223,6 @@ class RegistrationCommand(RpathToolsCommand):
         if registration.targetSystemId:
             system.set_target_system_id(registration.targetSystemId)
 
-        # Just use the first remote server found to look up the localIp
-        localIp = hwData.getLocalIp(remote)
-
-        networks = Networks.factory()
-        requiredIp = self.cfg.requiredNetwork or object()
-        for ip in ips:
-            network = Network.factory(ip_address=ip.ipv4,
-                netmask = ip.netmask,
-                dns_name=ip.dns_name, active=(ip.ipv4 == localIp),
-                required = (requiredIp in [ ip.ipv4, ip.dns_name ] or None),
-                device_name=ip.device)
-            networks.add_network(network)
         system.set_networks(networks)
         logger.info('Registering System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))

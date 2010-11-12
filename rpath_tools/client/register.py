@@ -19,6 +19,7 @@ import random
 import os
 import os.path
 import pwd
+import re
 import subprocess
 import sys
 import tempfile
@@ -86,10 +87,11 @@ class GeneratedUuid(Uuid):
         return cls.asString(data)
 
 class LocalUuid(Uuid):
-    def __init__(self, uuidFile, oldDir):
+    def __init__(self, uuidFile, oldDir, deviceName=None):
         self.oldDirPath = os.path.join(os.path.dirname(uuidFile), oldDir)
         Uuid.__init__(self, uuidFile)
         self._targetSystemId = None
+        self.deviceName = deviceName
 
     @classmethod
     def _readProcVersion(cls):
@@ -147,12 +149,30 @@ class LocalUuid(Uuid):
             self._writeDmidecodeUuid(self._uuid)
 
     
-    def _getGenUuid(self):
+    def _getUuidFromMac(self):
         """
         Use the uuidgen command to generate a uuid based on the current time
         and the system's ethernet hardware address.
         """
-        return GeneratedUuid._generateUuid()
+        # Read mac address of self.deviceName
+        cmd = ['/sbin/ifconfig']
+        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+        sts = p.wait()
+        if sts != 0:
+            raise Exception("Unable to run ifconfig to find mac address for "
+                "local uuid generation")
+        lines = p.stdout.readline().strip()
+        matcher = re.compile('^%s.*HWaddr\W(.*)$' % self.deviceName)
+        for line in lines.split('\n'):
+            match = matcher.match(line)
+            if match:
+                mac = match.groups()[0]
+
+        if len(mac) > 16:
+            mac = mac[0:16]
+        elif len(mac) < 16:
+            mac = mac + '0'*(16-len(mac))
+        return self.asString(mac)
 
     def _getDmidecodeUuid(cls):
         if not os.access("/dev/mem", os.R_OK):
@@ -165,7 +185,7 @@ class LocalUuid(Uuid):
             pass
         except KeyError:
             # dmidecode does not expose UUID in kvm
-            return self._getGenUuid()
+            return self._getUuidFromMac()
 
         dmidecode = "/usr/sbin/dmidecode"
         # XXX if dmidecode is not present, make something up
@@ -185,11 +205,12 @@ class LocalUuid(Uuid):
 
 class Registration(object):
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, deviceName=None):
         self.cfg = cfg
         self.generatedUuid = GeneratedUuid(self.cfg.generatedUuidFilePath).uuid
         localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
-                                   self.cfg.localUuidOldDirectoryPath)
+                                 self.cfg.localUuidOldDirectoryPath,
+                                 deviceName)
         self.localUuid = localUuidObj.uuid
         self.targetSystemId = localUuidObj.targetSystemId
         self._sfcbCfg = None
