@@ -159,7 +159,9 @@ class RegistrationCommand(RpathToolsCommand):
             logger.debug('--random-wait specified.')
             self.checkRandomWait()
 
-        registration = register.Registration(self.cfg)
+        hwData = hardware.HardwareData(self.cfg)
+        deviceName = hwData.getDeviceName()
+        registration = register.Registration(self.cfg, deviceName)
         remote = registration.getRemote()
 
         if not remote:
@@ -169,7 +171,6 @@ class RegistrationCommand(RpathToolsCommand):
             logger.error(msg)
             sys.exit(2)
 
-        hwData = hardware.HardwareData(self.cfg)
 
         sslServerCert = file(registration.sslCertificateFilePath).read()
         agentPort = int(registration.sfcbConfig.get('httpsPort', 5989))
@@ -193,7 +194,6 @@ class RegistrationCommand(RpathToolsCommand):
 
         networks = Networks.factory()
         requiredIp = self.cfg.requiredNetwork or object()
-        deviceName = None
         for ip in ips:
             active = (ip.ipv4 == localIp)
             network = Network.factory(ip_address=ip.ipv4,
@@ -202,11 +202,6 @@ class RegistrationCommand(RpathToolsCommand):
                 required = (requiredIp in [ ip.ipv4, ip.dns_name ] or None),
                 device_name=ip.device)
             networks.add_network(network)
-
-            if active:
-                deviceName = ip.device
-
-        registration.setDeviceName(deviceName)
 
         current_state = CurrentState(name=state)
         system = System(hostname=hostname,

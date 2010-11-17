@@ -67,6 +67,8 @@ class HardwareData(WBEMData):
     def __init__(self, cfg):
         self.cfg = cfg
         WBEMData.__init__(self, cfg.sfcbUrl)
+        self.ips = []
+        self.deviceName = ''
 
     @property
     def hardware(self):
@@ -74,21 +76,23 @@ class HardwareData(WBEMData):
         return self.getData()
 
     def getIpAddresses(self):
-        ips = []
-        for iface in self.hardware['Linux_IPProtocolEndpoint'].values():
-            ipv4 = iface['IPv4Address']
-            if ipv4 is not None and  ipv4 not in ('NULL', '127.0.0.1'):
-                device = iface['Name']
-                device = device.split('_')
-                if len(device) > 1:
-                    deviceName = device[1]
-                else:
-                    deviceName = device[0]
-                dnsName = self.resolve(ipv4) or ipv4
-                ip = self.IP(ipv4=ipv4, netmask=iface['SubnetMask'],
-                    device=deviceName, dns_name=dnsName)
-                ips.append(ip)
-        return ips
+        if self.ips:
+            return self.ips
+        else:
+            for iface in self.hardware['Linux_IPProtocolEndpoint'].values():
+                ipv4 = iface['IPv4Address']
+                if ipv4 is not None and  ipv4 not in ('NULL', '127.0.0.1'):
+                    device = iface['Name']
+                    device = device.split('_')
+                    if len(device) > 1:
+                        deviceName = device[1]
+                    else:
+                        deviceName = device[0]
+                    dnsName = self.resolve(ipv4) or ipv4
+                    ip = self.IP(ipv4=ipv4, netmask=iface['SubnetMask'],
+                        device=deviceName, dns_name=dnsName)
+                    self.ips.append(ip)
+            return self.ips
 
     def resolve(self, ipaddr):
         try:
@@ -105,6 +109,17 @@ class HardwareData(WBEMData):
             return self._getLocalIp(ipList[0])
         # Hope for the best
         return self._getLocalIp('8.8.8.8')
+
+    def getDeviceName(self):
+        if self.deviceName:
+            return self.deviceName
+        else:
+            ips = self.getIpAddresses()
+            for ip in ips:
+                active = (ip.ipv4 == localIp)
+                if active:
+                    self.deviceName = ip.device
+                    return self.deviceName
 
     @classmethod
     def _getLocalIp(cls, destination):
