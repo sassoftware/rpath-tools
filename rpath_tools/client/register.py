@@ -215,13 +215,15 @@ class Registration(object):
         self.localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
                                  self.cfg.localUuidOldDirectoryPath,
                                  deviceName)
-        self.localUuidObj.deviceName = deviceName
-        self.localUuid = self.localUuidObj.uuid
         self.targetSystemId = self.localUuidObj.targetSystemId
         self._sfcbCfg = None
 
         self.registrationMethods = {'DIRECT' : self.registerDirect,
                                   'SLP'    : self.registerSLP}
+
+    def setDeviceName(self, deviceName):
+        self.localUuidObj.deviceName = deviceName
+        self.localUuid = self.localUuidObj.uuid
 
     @classmethod
     def registration(self, cfg=None):

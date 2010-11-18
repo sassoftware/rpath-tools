@@ -110,7 +110,7 @@ class HardwareData(WBEMData):
         # Hope for the best
         return self._getLocalIp('8.8.8.8')
 
-    def getDeviceName(self):
+    def getDeviceName(self, localIp):
         if self.deviceName:
             return self.deviceName
         else:

@@ -160,9 +160,12 @@ class RegistrationCommand(RpathToolsCommand):
             self.checkRandomWait()
 
         hwData = hardware.HardwareData(self.cfg)
-        deviceName = hwData.getDeviceName()
-        registration = register.Registration(self.cfg, deviceName)
+        registration = register.Registration(self.cfg)
         remote = registration.getRemote()
+        # Just use the first remote server found to look up the localIp
+        localIp = hwData.getLocalIp(remote)
+        deviceName = hwData.getDeviceName(localIp)
+        registration.setDeviceName(deviceName)
 
         if not remote:
             msg = "No remote server found to register with.  " + \
@@ -189,8 +192,6 @@ class RegistrationCommand(RpathToolsCommand):
         else:
             state = 'registered'
 
-        # Just use the first remote server found to look up the localIp
-        localIp = hwData.getLocalIp(remote)
 
         networks = Networks.factory()
         requiredIp = self.cfg.requiredNetwork or object()
