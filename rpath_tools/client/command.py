@@ -22,7 +22,7 @@ import StringIO
 from conary.lib import command
 from conary.lib import options
 
-from rpath_models import System, Networks, Network, CurrentState
+from rpath_models import System, Networks, Network, CurrentState, ManagementInterface
 from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client.utils import client
