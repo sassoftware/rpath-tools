@@ -22,7 +22,7 @@ import StringIO
 from conary.lib import command
 from conary.lib import options
 
-from rpath_models import System, Networks, Network, CurrentState
+from rpath_models import System, Networks, Network, CurrentState, ManagementInterface
 from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client.utils import client
@@ -205,14 +205,15 @@ class RegistrationCommand(RpathToolsCommand):
             networks.add_network(network)
 
         current_state = CurrentState(name=state)
+        management_interface = ManagementInterface(name='cim')
         system = System(hostname=hostname,
-                                generated_uuid=registration.generatedUuid,
-                                local_uuid=registration.localUuid,
-                                ssl_server_certificate=sslServerCert,
-                                current_state=current_state,
-                                agent_port = agentPort,
-                                event_uuid = self.event_uuid,
-                                )
+                        generated_uuid=registration.generatedUuid,
+                        local_uuid=registration.localUuid,
+                        ssl_server_certificate=sslServerCert,
+                        current_state=current_state,
+                        agent_port=agentPort,
+                        event_uuid=self.event_uuid,
+                        management_interface=management_interface)
         if self.boot and os.path.exists(self.BOOT_UUID_FILE):
             bootUuid = file(self.BOOT_UUID_FILE).read().strip()
             system.set_boot_uuid(bootUuid)

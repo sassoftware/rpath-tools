@@ -19,6 +19,7 @@ source /etc/init.d/functions
 
 RPATH=/usr/bin/rpath
 RPATHTOOSLBOOTCONFIG=/etc/conary/rpath-tools/config.d/boot_params
+LOCKFILE=/var/lock/subsys/rpath-tools
 
 setbootparams() {
     rm -f $RPATHTOOLSBOOTCONFIG
@@ -33,10 +34,12 @@ setbootparams() {
 
 start() {
     setbootparams
+    touch $LOCKFILE
     $RPATH register --boot && success || failure
 }
 
 stop() {
+    rm -f $LOCKFILE
     $RPATH register --shutdown && success || failure
 }
 
