@@ -1,2 +1,2 @@
 #m      h   DoM mon DoW     user    cmd
-*       2   *   *   *       root    /usr/bin/rpath-tools register --random-wait
+*       2   *   *   *       root    /usr/bin/rpath-register --random-wait
