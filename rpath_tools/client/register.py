@@ -183,23 +183,33 @@ class LocalUuid(Uuid):
             raise Exception("Must run as root")
         try:
             import dmidecode
-            return dmidecode.system()['0x0001']['data']['UUID']
         except ImportError:
-            # python-dmidecode not present
-            pass
-        except KeyError:
-            # dmidecode does not expose UUID in kvm
+            logger.warn("Can't import dmidecode, falling back to dmidecode command.")
+            return self._getDmidecodeUuidCommand()
+
+        try:
+            return dmidecode.system()['0x0001']['data']['UUID']
+        except Exception:
+            # Depending on the target type, various Exceptions can be raised,
+            # so just handle any exception.
+            # kvm - AttributeError
+            # xen - RuntimeError
+            logger.warn("Can't use dmidecode library, falling back to mac address")
             return self._getUuidFromMac()
 
-        dmidecode = "/usr/sbin/dmidecode"
-        # XXX if dmidecode is not present, make something up
-        cmd = [ dmidecode, "-s", "system-uuid" ]
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        sts = p.wait()
-        if sts != 0:
-            raise Exception("Unable to extract system-uuid from dmidecode")
-        uuid = p.stdout.readline().strip()
-        return uuid
+    def _getDmidecodeUuidCommand(self):
+        try:
+            dmidecode = "/usr/sbin/dmidecode"
+            cmd = [ dmidecode, "-s", "system-uuid" ]
+            p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+            sts = p.wait()
+            if sts != 0:
+                raise Exception("Unable to extract system-uuid from dmidecode")
+            uuid = p.stdout.readline().strip()
+            return uuid
+        except Exception:
+            logger.warn("Can't use dmidecode command, falling back to mac address")
+            return self._getUuiFromMac()
 
     def _writeDmidecodeUuid(self, uuid):
         destFilePath = os.path.join(self.oldDirPath, "%.1f" % time.time())
