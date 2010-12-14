@@ -15,6 +15,7 @@
 import logging
 import os
 import random
+import subprocess
 import sys
 import time
 import StringIO
@@ -284,3 +285,14 @@ class HelpCommand(RpathToolsCommand):
             print commands[command].usage()
         else:
             print self.mainHandler.usage()
+
+class IConfigCommand(RpathToolsCommand):
+    commands = ['iconfig']
+    help = 'Apply the instance configuration'
+
+    def runCommand(self, cfg, argSet, args, **kwargs):
+        cmd = ['/usr/sbin/iconfig']
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        sts = p.wait()
+        print p.stdout.read()
+
