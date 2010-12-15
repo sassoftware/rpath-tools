@@ -35,12 +35,14 @@ setbootparams() {
 start() {
     setbootparams
     touch $LOCKFILE
-    daemon $RPATH register --boot && success || failure
+    echo -ne "Running rpath-register on boot..."
+    ($RPATH register --boot > /dev/null 2>&1 &) && success || failure
 }
 
 stop() {
     rm -f $LOCKFILE
-    daemon $RPATH register --shutdown && success || failure
+    echo -ne "Running rpath-register on shutdown..."
+    ($RPATH register --shutdown > /dev/null 2>&1 &) && success || failure
 }
 
 restart() {
