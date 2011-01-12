@@ -15,6 +15,7 @@
 
 import socket
 from conary.lib import util
+from rpath_tools.client import utils
 from rpath_tools.client.utils import wbemlib
 
 class WBEMData(object):
@@ -92,7 +93,12 @@ class HardwareData(WBEMData):
                     ip = self.IP(ipv4=ipv4, netmask=iface['SubnetMask'],
                         device=deviceName, dns_name=dnsName)
                     self.ips.append(ip)
-            return self.ips
+
+        if utils.runningInEC2():
+            self.ips.append(self._getExternalEC2Network())
+
+        return self.ips
+
 
     def resolve(self, ipaddr):
         try:
@@ -124,6 +130,10 @@ class HardwareData(WBEMData):
     @classmethod
     def _getLocalIp(cls, destination):
         """Return my IP address visible to the destination host"""
+
+        if utils.runningInEC2():
+            return cls._getExternalEC2Ip()
+
         if "://" not in destination:
             destination = "http://%s" % destination
         hostname, port = util.urlSplit(destination, defaultPort=443)[3:5]
@@ -132,6 +142,30 @@ class HardwareData(WBEMData):
         ret = s.getsockname()[0]
         s.close()
         return ret
+
+    @classmethod
+    def _getExternalEC2Ip(cls):
+        try:
+            from amiconfig import instancedata
+            instanceData = instancedata.InstanceData()
+        except ImportError:
+            return
+
+        return instanceData.getPublicIPv4()
+
+    def _getExternalEC2Network(self):
+        try:
+            from amiconfig import instancedata
+            instanceData = instancedata.InstanceData()
+        except ImportError:
+            return
+
+        return self.IP(
+            ipv4=instanceData.getPublicIPv4(),
+            netmask='255.255.255.0',
+            device='eth0-ec2',
+            dns_name=instanceData.getPublicHostname())
+        
 
 def main(cfg=None):
     h = HardwareData(cfg)

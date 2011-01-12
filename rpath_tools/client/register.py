@@ -115,10 +115,7 @@ class LocalUuid(Uuid):
         Return the EC2 instance ID if the system is running in EC2
         Return None otherwise.
         """
-        version = cls._readProcVersion()
-        if version is None:
-            return None
-        if not ('amazon' in version or 'aes' in version or 'SAST' in version):
+        if not utils.runningInEC2():
             return None
         return cls._readInstanceIdFromEC2()
 
@@ -154,6 +151,9 @@ class LocalUuid(Uuid):
         Use the mac address from the system to hash a uuid.
         """
         # Read mac address of self.deviceName
+        if utils.runningInEC2():
+            self.deviceName = 'eth0'
+
         cmd = ['/sbin/ifconfig']
         p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
         sts = p.wait()
@@ -209,7 +209,7 @@ class LocalUuid(Uuid):
             return uuid
         except Exception:
             logger.warn("Can't use dmidecode command, falling back to mac address")
-            return self._getUuiFromMac()
+            return self._getUuidFromMac()
 
     def _writeDmidecodeUuid(self, uuid):
         destFilePath = os.path.join(self.oldDirPath, "%.1f" % time.time())
