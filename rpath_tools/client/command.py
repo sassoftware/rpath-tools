@@ -73,6 +73,9 @@ class RegistrationCommand(RpathToolsCommand):
             randomWait = int(random.random() * self.cfg.randomWaitMax)
             logger.info('Writing random wait value of (%s) to (%s).' \
                 % (randomWait, self.cfg.randomWaitFilePath))
+            f = open(self.cfg.randomWaitFilePath, 'w')
+            f.write(str(randomWait))
+            f.close()
 
         logger.info('Sleeping for random wait value of (%s) seconds...' \
             % randomWait)
