@@ -12,18 +12,10 @@
 # full details.
 #
 
-import os
-import subprocess
-
 def runningInEC2():
-    arpingPath = '/usr/sbin/arping'
-    grepPath = '/bin/grep'
-    if not (os.path.exists(arpingPath) and os.path.exists(grepPath)):
-        return 0
-
-    arping = subprocess.Popen([arpingPath, '-c', '1', '169.254.169.254'],
-        stdout=subprocess.PIPE)
-    grep = subprocess.Popen([grepPath, '-q', 'FE:FF:FF:FF:FF:FF'],
-        stdin=arping.stdout)
-    grep.communicate()
-    return not grep.returncode
+    try:
+        from amiconfig import metadataservice
+    except ImportError:
+        return False
+    ms = metadataservice.MetadataService(debug=False)
+    return ms.canConnect()
