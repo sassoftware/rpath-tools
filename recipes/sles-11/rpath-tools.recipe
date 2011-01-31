@@ -6,7 +6,7 @@
 
 class Ractivate(RpathPackageRecipe):
     name = 'rpath-tools'
-    version = '1.0.2'
+    version = '1.0.5'
 
     clearBuildRequires('xz:rpm', 'unzip:rpm')
     buildRequires = [
