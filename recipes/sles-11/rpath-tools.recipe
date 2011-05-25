@@ -17,6 +17,7 @@ class Ractivate(RpathPackageRecipe):
         'pywbem-conary:python',
         'net-tools:rpm',
         'rpath-models:python',
+        'm2crypto-conary:python',
     ]
 
     def setup(r):
