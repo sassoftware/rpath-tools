@@ -6,7 +6,7 @@
 # description: Runs the rPath registration client (rpath).
 ### BEGIN INIT INFO
 # Provides: rpath-tools
-# Required-Start: $local_fs
+# Required-Start: $local_fs $network sfcb-coanry
 # Should-Start: 
 # Required-Stop: 
 # Default-Start: 3 4 5
