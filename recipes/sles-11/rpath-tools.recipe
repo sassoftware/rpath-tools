@@ -48,4 +48,4 @@ class Ractivate(RpathPackageRecipe):
         del r.NormalizeInitscriptContents
 
         r.TagSpec('initscript', '%(sysconfdir)s/rc.d/rpath-tools')
-        r.Requires('tag-initscript:description', '%(sysconfdir)s/rc.d/rpath-tools')
+        r.Requires('tag-initscript:tagdescription', '%(sysconfdir)s/rc.d/rpath-tools')
