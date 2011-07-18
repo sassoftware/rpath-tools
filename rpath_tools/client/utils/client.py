@@ -18,6 +18,7 @@ import urllib2
 import urlparse
 
 import rpath_models
+from rpath_tools.client.utils.apifinder import ApiFinder
 from rpath_tools.client.errors import RpathToolsRegistrationError
 from rpath_tools.client.utils import httpslib
 
@@ -46,12 +47,24 @@ class Client(object):
 class RegistrationClient(Client):
 
     SUCCESS_CODES = [200, 201]
-    PATH = '/api/inventory/systems/'
-    SCHEME = 'https'
 
-    def __init__(self, url, ssl_context=None):
-        url = urlparse.urlunsplit([self.SCHEME, url, self.PATH, None, None])
-        Client.__init__(self, url, ssl_context=ssl_context)
+    # refuse to work with servers newer than this
+    # but try older versions if that's all we have
+    # API call is supported to the dawn of versioned time
+    API_MIN_VERSION = 0 
+    API_MAX_VERSION = 1
+
+    def __init__(self, server, ssl_context=None):
+        Client.__init__(self, server, ssl_context=ssl_context)
+        self.finder = ApiFinder(
+            server,
+            minVersion=RegistrationClient.API_MIN_VERSION,
+            maxVersion=RegistrationClient.API_MAX_VERSION,
+            opener=self.opener,
+            secure=True
+        )
+        match = self.finder.url('inventory')
+        self.url = "%s/systems/" % match.url
 
     def register(self, data):
         registered = self.request(data)
