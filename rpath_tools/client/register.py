@@ -482,7 +482,7 @@ class Registration(object):
             registered = regClient.register(systemXml)
 
             if registered:
-                logger.info('Registration with %s succesful' % remote)
+                logger.info('Registration with %s successful' % remote)
                 print "successful."
                 return regClient.system
             print "failed."
