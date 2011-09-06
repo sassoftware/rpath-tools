@@ -10,6 +10,10 @@
 # or fitness for a particular purpose. See the Common Public License for
 # full details.
 
+# NOTE -- this is (currently) a copy of the module in rpath-tools
+# at some point in the future this should be moved into a common
+# lib.
+
 import urllib2
 import urlparse
 import xml.etree.ElementTree as ET
@@ -80,12 +84,9 @@ class ApiFinder(object):
         found = doc.find(purpose)
         if found is None:
             raise Exception("element not found: %s" % found)
-        result = None
-        if versioned:
-            result = found.attrib['id']
-        else:
-            result = found.attrib['href']
-        return ApiFinderResult(version=number, url=self._secureUrl(result))
+        result = found.attrib['id']
+        url=self._secureUrl(result)
+        return ApiFinderResult(version=number, url=url)
 
     def _bestVersion(self, versionElts):
         '''
