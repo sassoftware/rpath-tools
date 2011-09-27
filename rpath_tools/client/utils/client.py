@@ -64,7 +64,10 @@ class RegistrationClient(Client):
             secure=True
         )
         match = self.finder.url('inventory')
-        self.url = "%s/systems/" % match.url
+        if match.url.endswith("/"):
+            self.url = "%ssystems/" % match.url
+        else:
+            self.url = "%s/systems/" % match.url
 
     def register(self, data):
         registered = self.request(data)
