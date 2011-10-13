@@ -16,8 +16,8 @@
 
 import urllib2
 import urlparse
-import xml.etree.ElementTree as ET
-from collections import namedtuple
+from lxml import etree as ET
+from conary.lib.compat import namedtuple
 
 ApiFinderResult = namedtuple('ApiFinderResult', ['version', 'url'])
 
