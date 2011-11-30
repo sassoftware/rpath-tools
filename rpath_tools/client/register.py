@@ -254,8 +254,8 @@ class Registration(object):
             uid, gid = None, None
         self.writeCertificateToStore(crt, sfcbClientTrustStore, uid=uid,
             gid=gid)
-        # Remove this cert's issuer from the store
-        #self.removeIssuerFromStore(crt, sfcbClientTrustStore)
+        # self.removeIssuerFromStore(crt, sfcbClientTrustStore)
+        self.removeLowGradeCert(sfcbClientTrustStore) 
 
     def writeCertificateToStore(self, crt, store, uid=None, gid=None):
         """
@@ -294,12 +294,23 @@ class Registration(object):
     def removeIssuerFromStore(self, crt, store):
         certHash = crt.hash
         issuerHash = crt.hash_issuer
+        destPath = os.path.join(store, "%s.%d" % (issuerHash, 0))
         if certHash == issuerHash:
             # Self-signed cert
             return False
-        destPath = os.path.join(store, "%s.%d" % (issuerHash, 0))
         util.removeIfExists(destPath)
         return True
+
+    def removeLowGradeCert(self, store):
+        files = [os.path.join(store,f) for f in os.listdir(store)]
+        for f in files: 
+            link = None
+            try:
+                link = os.readlink(f)
+            except OSError:
+                pass
+            if link and link == 'rbuilder-lg.pem' != -1:
+                os.unlink(f)
 
     def _getPathInCertificateStore(self, store, certHash, x509Pem):
         for i in range(5):
