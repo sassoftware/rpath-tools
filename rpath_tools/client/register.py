@@ -311,6 +311,9 @@ class Registration(object):
                 pass
             if link and link == 'rbuilder-lg.pem' != -1:
                 os.unlink(f)
+        pem = os.path.join(store, 'rbuilder-lg.pem')
+        if os.path.exists(pem):
+            os.unlink(pem)
 
     def _getPathInCertificateStore(self, store, certHash, x509Pem):
         for i in range(5):
