@@ -15,7 +15,6 @@
 # Description: rPath Registration Client
 ### END INIT INFO
 
-source /etc/init.d/functions
 
 RPATH=/usr/bin/rpath
 RPATHTOOSLBOOTCONFIG=/etc/conary/rpath-tools/config.d/boot_params
@@ -36,13 +35,13 @@ start() {
     setbootparams
     touch $LOCKFILE
     echo -ne "Running rpath-register on boot..."
-    ($RPATH register --boot > /dev/null 2>&1 &) && success || failure
+    ($RPATH register --boot > /dev/null 2>&1 &) && RETVAL=$?
 }
 
 stop() {
     rm -f $LOCKFILE
     echo -ne "Running rpath-register on shutdown..."
-    ($RPATH register --shutdown > /dev/null 2>&1 &) && success || failure
+    ($RPATH register --shutdown > /dev/null 2>&1 &) && RETVAL=$? 
 }
 
 restart() {
@@ -65,4 +64,5 @@ case "$1" in
         exit 1
 esac
 
-exit $?
+echo
+exit $RETVAL

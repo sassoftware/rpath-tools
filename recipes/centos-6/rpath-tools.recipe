@@ -1,0 +1,51 @@
+#
+# Copyright (c) 2010 rPath, Inc.
+# This file is distributed under the terms of the MIT License.
+# A copy is available at http://www.rpath.com/permanent/mit-license.html
+#
+
+loadSuperClass('rpathpackage')
+class Ractivate(RpathPackageRecipe):
+    name = 'rpath-tools'
+    # hgtag = 'da4a984888fa'
+    version = '1.0.5'
+
+    clearBuildRequires('xz:rpm', 'unzip:rpm')
+    buildRequires = [
+        'make:rpm',
+        'python-conary:devel',
+        'coreutils:rpm',
+        'util-linux:rpm',
+        'pywbem-conary:python',
+        'net-tools:rpm',
+        'rpath-models:python',
+    ]
+
+    def setup(r):
+        r.rpathSetup()
+        # It's not clear to me whether we want the "rpath" command set
+        # in the standard path, or in /usr/conary/bin ...
+        r.macros.bindir = '/usr/bin'
+        if Arch.x86_64:
+           # This is a flavoring stub.  Since we're whiting out all of the 
+           # python deps, this package doesn't get flavored by default, even
+           # though the arches put files in different directories
+           pass
+
+        r.addMercurialSnapshot('http://scc.eng.rpath.com//hg/products/rpath-tools/trunk/rpath-tools', tag='%(name)s-%(version)s')
+        r.Make('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
+        r.MakeInstall('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
+        r.Move('/etc/init.d/rpath-tools', '/etc/rc.d/init.d/rpath-tools')
+
+        # Fix init script to use the proper initdir
+        r.Replace('/etc/init.d/functions', '%(initdir)s/functions',
+            '%(initdir)s/%(name)s')
+        r.ComponentRequires({'python': set(('runtime',))})
+
+        # r.Requires('%(bindir)s/slptool', '%(bindir)s/ractivate')
+        r.Requires('conary-cim:lib', '%(bindir)s/rpath')
+        r.Requires('sblim-cmpi-network-conary:lib', '%(bindir)s/rpath')
+        r.Requires('sblim-cmpi-devel-conary:lib', '%(bindir)s/rpath')
+
+        r.ExcludeDirectories(exceptions='/etc/conary/rpath-tools/config.d')
+
