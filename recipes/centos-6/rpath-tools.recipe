@@ -15,7 +15,7 @@ class Ractivate(RpathPackageRecipe):
         'make:rpm',
         'python-conary:devel',
         'coreutils:rpm',
-        'util-linux:rpm',
+        'util-linux-ng:rpm',
         'pywbem-conary:python',
         'net-tools:rpm',
         'rpath-models:python',
