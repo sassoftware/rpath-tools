@@ -258,9 +258,11 @@ class Registration(object):
         kid = os.fork()
         if kid == 0:
             # allow time for subsequent communications using LG cert
-            time.sleep(30)
-            self.removeLowGradeCert(sfcbClientTrustStore) 
-            os.exit()
+            try:
+                time.sleep(30)
+                self.removeLowGradeCert(sfcbClientTrustStore) 
+            finally:
+                os._exit()
 
     def writeCertificateToStore(self, crt, store, uid=None, gid=None):
         """
