@@ -255,7 +255,12 @@ class Registration(object):
         self.writeCertificateToStore(crt, sfcbClientTrustStore, uid=uid,
             gid=gid)
         # self.removeIssuerFromStore(crt, sfcbClientTrustStore)
-        self.removeLowGradeCert(sfcbClientTrustStore) 
+        kid = os.fork()
+        if kid == 0:
+            # allow time for subsequent communications using LG cert
+            time.sleep(30)
+            self.removeLowGradeCert(sfcbClientTrustStore) 
+            os.exit()
 
     def writeCertificateToStore(self, crt, store, uid=None, gid=None):
         """
