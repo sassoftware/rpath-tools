@@ -262,7 +262,7 @@ class Registration(object):
                 time.sleep(30)
                 self.removeLowGradeCert(sfcbClientTrustStore) 
             finally:
-                os._exit()
+                os._exit(0)
 
     def writeCertificateToStore(self, crt, store, uid=None, gid=None):
         """
