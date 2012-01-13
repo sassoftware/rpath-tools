@@ -323,16 +323,16 @@ class Registration(object):
             os.unlink(pem)
 
     def _getPathInCertificateStore(self, store, certHash, x509Pem):
-        for i in range(5):
-            destPath = os.path.join(store, "%s.%d" % (certHash, i))
-            if not os.path.exists(destPath):
-                return destPath
-            # Same contents?
-            if file(destPath).read().strip() == x509Pem.strip():
-                return None
-            # Different cert, save it as a different file
-        # We really shouldn't hit this
-        raise Exception("Unable to write certificate to store")
+        # We used to save the cert with successive numbers, but as it
+        # turns out, openssl doesn't use the trailing .0 as a
+        # disambiguator.
+        destPath = os.path.join(store, "%s.%d" % (certHash, 0))
+        if not os.path.exists(destPath):
+            return destPath
+        # Same contents?
+        if file(destPath).read().strip() == x509Pem.strip():
+            return None
+        return destPath
 
     @property
     def sslCertificateFilePath(self):

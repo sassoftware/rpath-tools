@@ -3,6 +3,8 @@
 #
 "Simple module for generating x509 certificates"
 
+import os
+import subprocess
 from conary.lib import digestlib
 import gencert
 
@@ -20,10 +22,13 @@ class X509(object):
     # Expire after 10 years
     EXPIRY = 3653
     TIMESTAMP_OFFSET = 0
+    opensslBin = "/usr/bin/openssl"
 
     def __init__(self, x509, pkey):
         self.x509 = x509
         self.pkey = pkey
+        self._hash_subject = None
+        self._hash_issuer = None
 
     @classmethod
     def new(cls, subject=None, keyLength=None, serial=None, expiry=None,
@@ -72,14 +77,35 @@ class X509(object):
 
     @property
     def hash_issuer(self):
-        certHash = "%08x" % self.x509.get_issuer().as_hash()
-        return certHash
+        if self._hash_issuer is not None:
+            return self._hash_issuer
+        self._hash_issuer = self.callOpenssl('issuer_hash')
+        if self._hash_issuer is not None:
+            return self._hash_issuer
+        # Fall back to m2crypto
+        self._hash_issuer = "%08x" % self.x509.get_issuer().as_hash()
+        return self._hash_issuer
 
     @property
     def hash(self):
-        certHash = "%08x" % self.x509.get_subject().as_hash()
-        return certHash
+        if self._hash_subject is not None:
+            return self._hash_subject
+        self._hash_subject = self.callOpenssl('subject_hash')
+        if self._hash_subject is not None:
+            return self._hash_subject
+        # Fall back to m2crypto
+        self._hash_subject = "%08x" % self.x509.get_subject().as_hash()
+        return self._hash_subject
 
     @property
     def fingerprint(self):
         return digestlib.sha1(self.x509.as_der()).hexdigest()
+
+    def callOpenssl(self, option):
+        if not os.path.exists(self.opensslBin):
+            return None
+        cmd = [ self.opensslBin, 'x509', '-noout', '-%s' % option ]
+        PIPE = subprocess.PIPE
+        p = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate(self.x509.as_pem())
+        return stdout.strip()
