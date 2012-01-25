@@ -145,7 +145,6 @@ class LocalUuid(Uuid):
         else:
             self._writeDmidecodeUuid(self._uuid)
 
-    
     def _getUuidFromMac(self):
         """
         Use the mac address from the system to hash a uuid.
@@ -206,6 +205,8 @@ class LocalUuid(Uuid):
             if sts != 0:
                 raise Exception("Unable to extract system-uuid from dmidecode")
             uuid = p.stdout.readline().strip()
+            if not uuid:
+                raise Exception("Unable to extract system-uuid from dmidecode")
             return uuid
         except Exception:
             logger.warn("Can't use dmidecode command, falling back to mac address")
