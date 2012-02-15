@@ -26,6 +26,7 @@ from conary.lib import options
 from rpath_models import System, Networks, Network, CurrentState, ManagementInterface
 from rpath_tools.client import hardware
 from rpath_tools.client import register
+from rpath_tools.client import scan
 from rpath_tools.client.utils import client
 
 logger = logging.getLogger('client')
@@ -298,4 +299,15 @@ class IConfigCommand(RpathToolsCommand):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         sts = p.wait()
         print p.stdout.read()
+
+
+class ScanCommand(RpathToolsCommand):
+    commands = ['scan']
+    help = "Run a survey on the local host."
+    requireConfig = True
+
+    def runCommand(self, *args, **kw):
+        self.cfg = args[0]
+        scanData = scan.main(self.cfg)
+        return scanData
 

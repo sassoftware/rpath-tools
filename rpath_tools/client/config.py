@@ -46,6 +46,8 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     slpMethod = (cfg.CfgList(cfg.CfgString), ["rpath-inventory",])
     topDir = (cfg.CfgString, "/etc/conary/rpath-tools")
     validateRemoteIdentity = (cfg.CfgBool, True)
+    scannerSurveyStore = (cfg.CfgString, "/var/lib/conary-cim/survey")
+    scannerSurveyLockFile = (cfg.CfgString, "/var/lock/subsys/survey")
 
     def __init__(self, readConfigFiles=False, ignoreErrors=False, root=''):
         cfg.ConfigFile.__init__(self)
