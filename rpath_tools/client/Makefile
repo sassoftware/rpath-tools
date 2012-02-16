@@ -14,7 +14,7 @@
 
 python_files =  $(wildcard *.py)
 
-SUBDIRS = utils
+SUBDIRS = utils sysdisco
 
 all: default-subdirs default-all constants.py
 
