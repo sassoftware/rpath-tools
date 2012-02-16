@@ -145,7 +145,6 @@ class LocalUuid(Uuid):
         else:
             self._writeDmidecodeUuid(self._uuid)
 
-    
     def _getUuidFromMac(self):
         """
         Use the mac address from the system to hash a uuid.
@@ -161,6 +160,17 @@ class LocalUuid(Uuid):
             raise Exception("Unable to run ifconfig to find mac address for "
                 "local uuid generation")
         lines = p.stdout.read().strip()
+
+        # Work around for empty deviceName bug 
+
+        deviceList = None
+
+        if not self.deviceName:
+            deviceList = sorted([ x.split()[0] for x in lines.split('\n')
+                                if 'lo' not in x and 'HWaddr' in x ])
+            if deviceList:
+                self.deviceName = deviceList[0]
+
         matcher = re.compile('^%s.*HWaddr\W(.*)$' % self.deviceName)
         mac = None
         for line in lines.split('\n'):

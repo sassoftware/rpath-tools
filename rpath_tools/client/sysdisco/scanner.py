@@ -19,7 +19,6 @@ class SurveyScanner(object):
         services = self._serviceScanner.getServices()
         rpm_packages, conary_packages = self._packageScanner.scan()
         rpm_xml, conary_xml = self._packageScanner.toxml()
-    
         rpm_packages_xml = etree.Element('rpm_packages')
         for result in rpm_xml:
             rpm_packages_xml.append(result)
