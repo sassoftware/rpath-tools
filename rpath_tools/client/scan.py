@@ -13,25 +13,17 @@
 #
 
 
-import StringIO
 import logging
-import random
 import os
 import os.path
 import pwd
-import re
-import subprocess
 import sys
-import tempfile
 import time
 
-from conary import conarycfg
-from conary.lib import digestlib
 from conary.lib import util
 
 from rpath_tools.client import config
-from rpath_tools.client import errors
-from rpath_tools.client import utils
+from rpath_tools.client import util
 
 from xml.etree import cElementTree as etree
 from rpath_tools.client.sysdisco.scanner import SurveyScanner
@@ -55,7 +47,7 @@ class Scanner(object):
     def __init__(self, cfg, deviceName=None):
         self.cfg = cfg
         self.surveyScanner = SurveyScanner()
-        self.generatedUuid = GeneratedUuid(self.cfg.generatedUuidFilePath).uuid
+        self.generatedUuid = GeneratedUuid().uuid
         self.localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
                                  self.cfg.localUuidOldDirectoryPath,
                                  deviceName)
@@ -94,9 +86,7 @@ class Scanner(object):
 
 
     def removeSurveyFromStore(self, uuid, store):
-        if not uuid:
-            uuid = self.generatedUuid
-        self.surveyPath = os.path.join(store, uuid, '.xml')
+        self.surveyPath = os.path.join(store, '%s.xml' % uuid)
         if self.surveyPath is None:
             return False
         util.removeIfExists(self.surveyPath)
