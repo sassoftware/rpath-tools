@@ -156,8 +156,8 @@ class Scanner(object):
         surveyed = self._scanner()
         if surveyed:
             self.removeLockFile(self.cfg.scannerSurveyLockFile)
-            proctime = start_proc - time.clock()
-            scantime = start - time.time()
+            proctime = time.clock() - start_proc
+            scantime = time.time() - start
             print '  Survey success. %s' % surveyed
             print '      Scan Time: %s' % scantime
             print '      Process Time: %s' % proctime
