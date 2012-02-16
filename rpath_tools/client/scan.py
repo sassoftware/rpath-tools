@@ -23,7 +23,7 @@ import time
 from conary.lib import util
 
 from rpath_tools.client import config
-from rpath_tools.client import util
+from rpath_tools.client import utils
 
 from xml.etree import cElementTree as etree
 from rpath_tools.client.sysdisco.scanner import SurveyScanner
@@ -151,10 +151,16 @@ class Scanner(object):
             self.cfg.logFile
             return False
         lock = self.createLockFile(self.cfg.scannerSurveyLockFile)
+        start = time.time()
+        start_proc = time.clock()
         surveyed = self._scanner()
         if surveyed:
             self.removeLockFile(self.cfg.scannerSurveyLockFile)
+            proctime = start_proc - time.clock()
+            scantime = start - time.time()
             print '  Survey success. %s' % surveyed
+            print '      Scan Time: %s' % scantime
+            print '      Process Time: %s' % proctime
             return True
         print '  Survey failed.  Check the log file at %s' % \
             self.cfg.logFile
