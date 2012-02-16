@@ -8,7 +8,7 @@ loadSuperClass('rpathpackage')
 class Ractivate(RpathPackageRecipe):
     name = 'rpath-tools'
     # hgtag = 'da4a984888fa'
-    version = '1.0.5'
+    version = '2.1.0'
 
     clearBuildRequires('xz:rpm', 'unzip:rpm')
     buildRequires = [
@@ -32,7 +32,8 @@ class Ractivate(RpathPackageRecipe):
            # though the arches put files in different directories
            pass
 
-        r.addMercurialSnapshot('http://scc.eng.rpath.com//hg/products/rpath-tools/trunk/rpath-tools', tag='%(name)s-%(version)s')
+        #r.addMercurialSnapshot('http://scc.eng.rpath.com//hg/products/rpath-tools/trunk/rpath-tools', tag='%(name)s-%(version)s')
+        r.addMercurialSnapshot('http://scc.eng.rpath.com//hg/products/rpath-tools/trunk/rpath-tools', tag='tip')
         r.Make('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.MakeInstall('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.Move('/etc/init.d/rpath-tools', '/etc/rc.d/init.d/rpath-tools')
@@ -46,6 +47,7 @@ class Ractivate(RpathPackageRecipe):
         r.Requires('conary-cim:lib', '%(bindir)s/rpath')
         r.Requires('sblim-cmpi-network-conary:lib', '%(bindir)s/rpath')
         r.Requires('sblim-cmpi-devel-conary:lib', '%(bindir)s/rpath')
+        r.Requires('/usr/bin/openssl', '%(bindir)s/rpath')
 
         r.ExcludeDirectories(exceptions='/etc/conary/rpath-tools/config.d')
 
