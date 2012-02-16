@@ -158,9 +158,10 @@ class Scanner(object):
             self.removeLockFile(self.cfg.scannerSurveyLockFile)
             proctime = time.clock() - start_proc
             scantime = time.time() - start
-            print '  Survey success. %s' % surveyed
-            print '      Scan Time: %s' % scantime
-            print '      Process Time: %s' % proctime
+            print '  Survey succeeded'
+            print '      Survey File   : %s' % surveyed
+            print '      Scan Time     : %s' % scantime
+            print '      Process Time  : %s' % proctime
             return True
         print '  Survey failed.  Check the log file at %s' % \
             self.cfg.logFile
