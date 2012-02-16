@@ -74,11 +74,13 @@ class Uuid(object):
 
 class GeneratedUuid(Uuid):
     def read(self):
-        if not os.path.exists(self.uuidFile):
-            uuid = self._generateUuid()
-            self._writeFile(self.uuidFile, uuid)
-        else:
-            uuid = self._readFile(self.uuidFile)
+        uuid = self._generateUuid()
+        if self.uuidFile:
+            if not os.path.exists(self.uuidFile):
+                uuid = self._generateUuid()
+                self._writeFile(self.uuidFile, uuid)
+            else:
+                uuid = self._readFile(self.uuidFile)
         self._uuid = uuid
 
     @classmethod
