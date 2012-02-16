@@ -79,7 +79,7 @@ class Scanner(object):
         """
         if not uuid:
             uuid = self.generatedUuid
-        self.surveyPath = os.path.join(store, uuid, '.xml')
+        self.surveyPath = os.path.join(store, '%s.xml' % uuid )
         if self.surveyPath is None:
             # Already written
             return None
@@ -164,18 +164,18 @@ class Scanner(object):
         surveyed = self._scanner()
         if surveyed:
             self.removeLockFile(self.cfg.scannerSurveyLockFile)
+            print '  Survey success. %s' % surveyed
             return True
         print '  Survey failed.  Check the log file at %s' % \
             self.cfg.logFile
         return False
-            
-    
+
     def _scanner(self):
         survey, uuid = self._scan_system()
         if survey is None:
             return survey
         # If the server returned something back, save
-        survey_path = self.writeSurveytoStore(survey, 
+        survey_path = self.writeSurveytoStore(survey,
                         self.cfg.scannerSurveyStore, uuid=uuid,
                         uid=None, gid=None)
         return survey_path
