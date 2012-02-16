@@ -71,7 +71,7 @@ class Scanner(object):
         """
         if not uuid:
             uuid = self.generatedUuid
-        self.surveyPath = os.path.join(store, '%s.xml' % uuid )
+        self.surveyPath = os.path.join(store, 'survey-%s.xml' % uuid )
         if self.surveyPath is None:
             # Already written
             return None
@@ -86,7 +86,7 @@ class Scanner(object):
 
 
     def removeSurveyFromStore(self, uuid, store):
-        self.surveyPath = os.path.join(store, '%s.xml' % uuid)
+        self.surveyPath = os.path.join(store, 'survey-%s.xml' % uuid)
         if self.surveyPath is None:
             return False
         util.removeIfExists(self.surveyPath)
