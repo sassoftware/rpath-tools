@@ -53,6 +53,7 @@ class Scanner(object):
                                  deviceName)
         self.targetSystemId = self.localUuidObj.targetSystemId
         self.surveyPath = None
+        self.survey = None
 
     def setDeviceName(self, deviceName):
         self.localUuidObj.deviceName = deviceName
@@ -143,14 +144,16 @@ class Scanner(object):
 
 
     def scanSystem(self):
+        logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
+        print '  Attempting to run survey on %s...' % self.localUuidObj.uuid
         check = self.checkLockFile(self.cfg.scannerSurveyLockFile)
         if check:
             logger.error(' Survey failed. Lock File Exists: %s' %
                         self.cfg.scannerSurveyLockFile)
             print '  Survey failed. Check the log file at %s' % \
-            self.cfg.logFile
+                self.cfg.logFile
             return False
-        lock = self.createLockFile(self.cfg.scannerSurveyLockFile)
+        self.createLockFile(self.cfg.scannerSurveyLockFile)
         start = time.time()
         start_proc = time.clock()
         surveyed = self._scanner()
@@ -158,6 +161,12 @@ class Scanner(object):
             self.removeLockFile(self.cfg.scannerSurveyLockFile)
             proctime = time.clock() - start_proc
             scantime = time.time() - start
+            logger.info('    Survey succeeded\n'
+                        '        Survey File   : %s\n'
+                        '        Scan Time     : %s\n'
+                        '        Process Time  : %s\n' %
+                            (surveyed, scantime,proctime)
+                        )
             print '  Survey succeeded'
             print '      Survey File   : %s' % surveyed
             print '      Scan Time     : %s' % scantime
@@ -167,20 +176,46 @@ class Scanner(object):
             self.cfg.logFile
         return False
 
+    def scanSystemCIM(self):
+        '''use this from CIM as it removes prints'''
+        logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
+        check = self.checkLockFile(self.cfg.scannerSurveyLockFile)
+        if check:
+            logger.error(' Survey failed. Lock File Exists: %s' %
+                        self.cfg.scannerSurveyLockFile)
+            return False
+        self.createLockFile(self.cfg.scannerSurveyLockFile)
+        start = time.time()
+        start_proc = time.clock()
+        surveyed = self._scanner()
+        if surveyed:
+            self.removeLockFile(self.cfg.scannerSurveyLockFile)
+            proctime = time.clock() - start_proc
+            scantime = time.time() - start
+            logger.info('    Survey succeeded\n'
+                        '        Survey File   : %s\n'
+                        '        Scan Time     : %s\n'
+                        '        Process Time  : %s\n' %
+                            (surveyed, scantime,proctime)
+                        )
+            return True
+        logger.error('  Survey failed.  Check the log file at %s' %
+            self.cfg.logFile)
+        return False
+
+
     def _scanner(self):
-        survey, uuid = self._scan_system()
-        if survey is None:
-            return survey
+        self.survey, uuid = self._scan_system()
+        if self.survey is None:
+            return self.survey
         # If the server returned something back, save
-        survey_path = self.writeSurveytoStore(survey,
+        survey_path = self.writeSurveytoStore(self.survey,
                         self.cfg.scannerSurveyStore, uuid=uuid,
                         uid=None, gid=None)
         return survey_path
 
 
     def _scan_system(self):
-        logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
-        print '  Attempting to run survey on %s...' % self.localUuidObj.uuid
         uuid = self.generatedUuid
         dom = self.surveyScanner.toxml()
         etree.SubElement(dom, 'uuid').text = str(uuid)
