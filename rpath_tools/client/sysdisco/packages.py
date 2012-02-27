@@ -32,13 +32,13 @@ class NEVRA(namedtuple('nevra', 'name epoch version release arch')):
 
 
 class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
-    'sha1header')):
+    'sha1header license')):
     def __new__(cls, name, epoch, version, release, arch, description,
-        installtime, size, sha1header):
+        installtime, size, sha1header, license):
 
         nevra = NEVRA(name, epoch, version, release, arch)
         return tuple.__new__(cls, (nevra, description, installtime, size,
-            sha1header))
+            sha1header, license))
 
     @classmethod
     def fromHeader(cls, hdr):
@@ -52,9 +52,10 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
         installtime = hdr[1008]
         size = hdr[1009]
         sha1 = hdr[rpmhelper.SIG_SHA1]
+        license = hdr[1014]
 
         return cls(name, epoch, version, release, arch, desc, installtime,
-            size, sha1)
+            size, sha1, license)
 
     def toxml(self, id):
         root = etree.Element('rpm_package', dict(id=id))
@@ -78,6 +79,10 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
 
         install_date = etree.SubElement(root, 'install_date')
         install_date.text = str(self.installtime)
+
+        license = etree.SubElement(root, 'license')
+        if self.license:
+            license.text = self.license
 
         return root
 
@@ -109,12 +114,12 @@ class MSIInfo(namedtuple('msiInfo', 'name version productCode')):
 
 
 class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
-    'architecture signature nevra msi')):
+    'architecture signature nevra msi license')):
     def __new__(cls, name, version, flavor, description, revision, architecture,
-        signature, nevra, msi):
+        signature, nevra, msi, license):
         nvf = trovetup.TroveTuple(name, version, flavor)
         return tuple.__new__(cls, (nvf, description, revision, architecture,
-            signature, nevra, msi))
+            signature, nevra, msi, license))
 
     def toxml(self, id):
         root = etree.Element('conary_package', dict(id=id))
@@ -137,6 +142,11 @@ class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
 
         # TODO not implemented in conary yet
         install_date = etree.SubElement(root, 'install_date')
+
+        # TODO not implemented in conary yet
+        license = etree.SubElement(root, 'license')
+        if self.license:
+            license.text = self.license
 
         return root
 
@@ -211,8 +221,10 @@ class ConaryScanner(AbstractPackageScanner):
 
             description = trv.troveInfo.metadata.get().get('longDesc')
 
+            license = trv.troveInfo.metadata.get().get('licenses')
+
             cinfo = ConaryInfo(name, version, flavor, description, revision,
-                arch, sig, nevra, msiInfo)
+                arch, sig, nevra, msiInfo, license)
 
             self._results[cinfo.nvf] = cinfo
 
