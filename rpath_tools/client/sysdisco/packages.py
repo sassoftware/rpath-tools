@@ -106,6 +106,10 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
         sig = etree.SubElement(root, 'signature')
         sig.text = self.sha1header
 
+        license = etree.SubElement(root, 'license')
+        if self.license:
+            license.text = self.license
+
         return root
 
 
