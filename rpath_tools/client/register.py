@@ -185,7 +185,7 @@ class LocalUuid(Uuid):
                 "local uuid generation")
 
         if len(mac) > 16:
-            mac = mac[0:16]
+            mac = mac[-16:]
         elif len(mac) < 16:
             mac = mac + '0'*(16-len(mac))
         return self.asString(mac)
