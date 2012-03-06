@@ -124,41 +124,13 @@ class Scanner(object):
             return (0, 0)
 
 
-    def checkLockFile(self, lockfile):
-        if os.path.exists(lockfile):
-            return True
-        return False
-
-
-    def createLockFile(self, lockfile, uuid=None):
-        if not uuid:
-            uuid = self.generatedUuid
-        f = open(lockfile, 'w')
-        f.write(str(uuid))
-        return True
-
-
-    def removeLockFile(self, lockfile):
-        util.removeIfExists(lockfile)
-        return True
-
-
     def scanSystem(self):
         logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
         print '  Attempting to run survey on %s...' % self.localUuidObj.uuid
-        check = self.checkLockFile(self.cfg.scannerSurveyLockFile)
-        if check:
-            logger.error(' Survey failed. Lock File Exists: %s' %
-                        self.cfg.scannerSurveyLockFile)
-            print '  Survey failed. Check the log file at %s' % \
-                self.cfg.logFile
-            return False
-        self.createLockFile(self.cfg.scannerSurveyLockFile)
         start = time.time()
         start_proc = time.clock()
         surveyed = self._scanner()
         if surveyed:
-            self.removeLockFile(self.cfg.scannerSurveyLockFile)
             proctime = time.clock() - start_proc
             scantime = time.time() - start
             logger.info('    Survey succeeded\n'
@@ -179,17 +151,10 @@ class Scanner(object):
     def scanSystemCIM(self):
         '''use this from CIM as it removes prints'''
         logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
-        check = self.checkLockFile(self.cfg.scannerSurveyLockFile)
-        if check:
-            logger.error(' Survey failed. Lock File Exists: %s' %
-                        self.cfg.scannerSurveyLockFile)
-            return False
-        self.createLockFile(self.cfg.scannerSurveyLockFile)
         start = time.time()
         start_proc = time.clock()
         surveyed = self._scanner()
         if surveyed:
-            self.removeLockFile(self.cfg.scannerSurveyLockFile)
             proctime = time.clock() - start_proc
             scantime = time.time() - start
             logger.info('    Survey succeeded\n'
@@ -221,7 +186,6 @@ class Scanner(object):
         etree.SubElement(dom, 'uuid').text = str(uuid)
         xml = etree.tostring(dom)
         return xml, uuid
-
 
 
 if __name__ == '__main__':
