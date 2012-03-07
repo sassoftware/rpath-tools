@@ -155,30 +155,45 @@ class LocalUuid(Uuid):
         if utils.runningInEC2():
             self.deviceName = 'eth0'
 
-        cmd = ['/sbin/ifconfig']
-        p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        sts = p.wait()
-        if sts != 0:
-            raise Exception("Unable to run ifconfig to find mac address for "
-                "local uuid generation")
-        lines = p.stdout.read().strip()
-
-        # Work around for empty deviceName bug 
-
-        deviceList = None
-
-        if not self.deviceName:
-            deviceList = sorted([ x.split()[0] for x in lines.split('\n')
-                                if 'lo' not in x and 'HWaddr' in x ])
-            if deviceList:
-                self.deviceName = deviceList[0]
-
-        matcher = re.compile('^%s.*HWaddr\W(.*)$' % self.deviceName)
         mac = None
-        for line in lines.split('\n'):
-            match = matcher.match(line)
-            if match:
-                mac = match.groups()[0]
+
+        if os.path.exists('/sys/class/net'):
+            if not self.deviceName:
+                deviceList = sorted( [ x for x in os.listdir('/sys/class/net') 
+                                        if x != 'lo' ] )
+                if deviceList:
+                    self.deviceName = deviceList[0]
+
+            mac = open('/sys/class/net/%s/address' % self.deviceName).read().strip()
+
+        if not mac:
+            # Legacy code
+            if os.path.exists('/sbin/ifconfig'):
+                logger.warn("No sysfs, falling back to ifconfig command.")
+                cmd = ['/sbin/ifconfig']
+                p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+                sts = p.wait()
+                if sts != 0:
+                    raise Exception("Unable to run ifconfig to find mac address"
+                        " for local uuid generation")
+                lines = p.stdout.read().strip()
+
+                # Work around for empty deviceName bug 
+
+                deviceList = None
+
+                if not self.deviceName:
+                    deviceList = sorted([ x.split()[0] for x in lines.split('\n')
+                                        if 'lo' not in x and 'HWaddr' in x ])
+                    if deviceList:
+                        self.deviceName = deviceList[0]
+
+                matcher = re.compile('^%s.*HWaddr\W(.*)$' % self.deviceName)
+
+                for line in lines.split('\n'):
+                    match = matcher.match(line)
+                    if match:
+                        mac = match.groups()[0].strip()
 
         if not mac:
             raise Exception("Unable to find mac address for "
