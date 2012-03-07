@@ -199,6 +199,8 @@ class LocalUuid(Uuid):
             raise Exception("Unable to find mac address for "
                 "local uuid generation")
 
+        mac = mac.lower()
+
         if len(mac) > 16:
             mac = mac[-16:]
         elif len(mac) < 16:
