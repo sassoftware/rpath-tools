@@ -26,9 +26,7 @@ class ServiceInfo(object):
         self.autostart = autostart
         self.runlevels = runlevels
         self.init = os.path.join(os.path.realpath('/etc/init.d'),self.name).encode('ascii')
-        self.running = 'false'
-        if 'running' in self.status or 'pid' in self.status:
-            self.running = 'true'
+        self.running = self._getRunning()
         self.conary_pkg = None
         self.rpm_pkg = None
         self.conary_pkg_uri = None
@@ -129,6 +127,18 @@ class ServiceScanner(object):
         if trv[0]:
             conary_list.append(trv[0][0])
         return conary_list
+
+    def _getRunning(self):
+        running = 'false'
+        if 'not running' in self.status:
+            running = 'false'
+        elif 'running' in self.status or 'pid' in self.status:
+            running = 'true'
+        elif self.name == 'iptables':
+            if 'ACCEPT' in self.status:
+                running = 'true'
+        return running
+
 
     def _fromString(self, cls, srv):
         self.current_runlevel = self._getRunlevel()
