@@ -26,11 +26,22 @@ class ServiceInfo(object):
         self.autostart = autostart
         self.runlevels = runlevels
         self.init = os.path.join(os.path.realpath('/etc/init.d'),self.name).encode('ascii')
-        self.running = self._getRunning()
+        self.running = self._checkRunning()
         self.conary_pkg = None
         self.rpm_pkg = None
         self.conary_pkg_uri = None
         self.rpm_pkg_uri = None
+
+    def _checkRunning(self):
+        running = 'false'
+        if 'not running' in self.status:
+            running = 'false'
+        elif 'running' in self.status or 'pid' in self.status:
+            running = 'true'
+        elif self.name == 'iptables':
+            if 'ACCEPT' in self.status:
+                running = 'true'
+        return running
 
     def toxml(self, srv_id):
         root = etree.Element('service', id=srv_id)
@@ -128,16 +139,6 @@ class ServiceScanner(object):
             conary_list.append(trv[0][0])
         return conary_list
 
-    def _getRunning(self):
-        running = 'false'
-        if 'not running' in self.status:
-            running = 'false'
-        elif 'running' in self.status or 'pid' in self.status:
-            running = 'true'
-        elif self.name == 'iptables':
-            if 'ACCEPT' in self.status:
-                running = 'true'
-        return running
 
 
     def _fromString(self, cls, srv):
