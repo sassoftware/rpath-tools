@@ -38,9 +38,8 @@ class ServiceInfo(object):
             running = 'false'
         elif 'running' in self.status or 'pid' in self.status:
             running = 'true'
-        elif self.name == 'iptables':
-            if 'ACCEPT' in self.status:
-                running = 'true'
+        elif 'ACCEPT' in self.status:
+            running = 'true'
         return running
 
     def toxml(self, srv_id):
