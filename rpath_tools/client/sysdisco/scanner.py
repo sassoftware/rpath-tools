@@ -28,7 +28,7 @@ class SurveyScanner(object):
             conary_packages_xml.append(result)
 
         services_xml = etree.Element('services')
-        srv_id = 001
+        srv_id = 100
         for srv in services:
             if srv.conary_pkg:
                 troves = [ conary_packages.get(x) for x in srv.conary_pkg 
@@ -41,13 +41,7 @@ class SurveyScanner(object):
                             if x in rpm_packages]
                 for rpm in rpms:
                     srv.rpm_pkg_uri = self._packageScanner._idfactory.getId(rpm)
-            if srv.conary_pkg_uri:
-                services_xml.append(srv.toxml(srv.conary_pkg_uri))
-                continue
-            if srv.rpm_pkg_uri:
-                services_xml.append(srv.toxml(srv.rpm_pkg_uri))
-                continue
-            services_xml.append(srv.toxml(srv_id))
+            services_xml.append(srv.toxml(str(srv_id)))
             srv_id += 1
 
         return rpm_packages_xml, conary_packages_xml, services_xml

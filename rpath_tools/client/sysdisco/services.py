@@ -48,7 +48,7 @@ class ServiceInfo(object):
         childRunning = etree.SubElement(root, 'running').text = self.running
         childServiceInfo = etree.SubElement(root, 'service_info' )
         childName = etree.SubElement(childServiceInfo, 'name' ).text = self.name
-        childAutostart = etree.SubElement(childServiceInfo, 'autostart').text = self.autostart  
+        childAutostart = etree.SubElement(childServiceInfo, 'autostart').text = self.autostart
         childRunlevels = etree.SubElement(childServiceInfo, 'runlevels')
         rls = []
         for rl in sorted(self.runlevels):
@@ -120,7 +120,6 @@ class ServiceScanner(object):
         return services
 
     def _getRpm(self, init_script):
-        rpm_list = {}
         ts = rpm.TransactionSet()
         mi = ts.dbMatch()
         hdrs = [ RPMInfo.fromHeader(h) for h in mi if init_script in h['filenames'] ]
