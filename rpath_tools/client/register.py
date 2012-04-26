@@ -235,6 +235,8 @@ class LocalUuid(Uuid):
             if sts != 0:
                 raise Exception("Unable to extract system-uuid from dmidecode")
             uuid = p.stdout.readline().strip()
+            if not uuid:
+                raise Exception("Unable to extract system-uuid from dmidecode")
             return uuid
         except Exception:
             logger.warn("Can't use dmidecode command, falling back to mac address")
