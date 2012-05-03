@@ -118,12 +118,12 @@ class MSIInfo(namedtuple('msiInfo', 'name version productCode')):
 
 
 class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
-    'architecture signature nevra msi license')):
+    'architecture signature nevra msi license installtime')):
     def __new__(cls, name, version, flavor, description, revision, architecture,
-        signature, nevra, msi, license):
+            signature, nevra, msi, license, installtime):
         nvf = trovetup.TroveTuple(name, version, flavor)
         return tuple.__new__(cls, (nvf, description, revision, architecture,
-            signature, nevra, msi, license))
+            signature, nevra, msi, license, installtime))
 
     def toxml(self, id):
         root = etree.Element('conary_package', dict(id=id))
@@ -145,8 +145,9 @@ class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
         if self.signature is not None:
             signature.text = self.signature
 
-        # TODO not implemented in conary yet
         install_date = etree.SubElement(root, 'install_date')
+        if self.installtime:
+            install_date.text = str(self.installtime)
 
         # TODO not implemented in conary yet
         license = etree.SubElement(root, 'license')
@@ -225,11 +226,14 @@ class ConaryScanner(AbstractPackageScanner):
                 msiInfo = MSIInfo(msi.name(), msi.version(), msi.productCode())
 
             description = trv.troveInfo.metadata.get().get('longDesc')
-
             license = trv.troveInfo.metadata.get().get('licenses')
+            if hasattr(trv.troveInfo, 'installTime'):
+                installTime = trv.troveInfo.installTime()
+            else:
+                installTime = None
 
             cinfo = ConaryInfo(name, version, flavor, description, revision,
-                arch, sig, nevra, msiInfo, license)
+                    arch, sig, nevra, msiInfo, license, installTime)
 
             self._results[cinfo.nvf] = cinfo
 
