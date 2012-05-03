@@ -73,7 +73,7 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
         arch.text = self.nevra.arch
         description = etree.SubElement(rpm_package_info, 'description')
         if self.description:
-            description.text = self.description
+            description.text = self.description.decode('utf8', 'replace')
         sig = etree.SubElement(rpm_package_info, 'signature')
         sig.text = self.sha1header
 
@@ -101,7 +101,7 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
         arch.text = self.nevra.arch
         description = etree.SubElement(root, 'description')
         if self.description:
-            description.text = self.description
+            description.text = self.description.decode('utf8', 'replace')
 
         sig = etree.SubElement(root, 'signature')
         sig.text = self.sha1header
@@ -135,7 +135,8 @@ class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
         flavor = etree.SubElement(conary_package_info, 'flavor')
         flavor.text = str(self.nvf.flavor)
         description = etree.SubElement(conary_package_info, 'description')
-        description.text = self.description
+        if self.description:
+            description.text = self.description.decode('utf8', 'replace')
         revision = etree.SubElement(conary_package_info, 'revision')
         revision.text = self.revision
         architecture = etree.SubElement(conary_package_info, 'architecture')
