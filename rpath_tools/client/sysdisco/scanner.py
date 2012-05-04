@@ -8,7 +8,7 @@ from packages import PackageScanner
 from packages import IDFactory
 
 import time
-
+import os
 
 class SurveyScanner(object):
     def __init__(self):
