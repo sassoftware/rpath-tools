@@ -44,15 +44,20 @@ class SurveyScanner(object):
             services_xml.append(srv.toxml(str(srv_id)))
             srv_id += 1
 
-        return rpm_packages_xml, conary_packages_xml, services_xml
+        values_xml = etree.Element('values')
+        valuesFile = '/var/lib/iconfig/values.xml'
+        if os.path.exists(valuesFile):
+            values_xml.append(etree.parse(valuesFile).getroot())
+        return rpm_packages_xml, conary_packages_xml, services_xml, values_xml
 
     def toxml(self):
         root = etree.Element('survey')
         etree.SubElement(root, 'created_date').text = str(int(time.time()))
-        rpm_packages, conary_pkgs, services = self.scan()
+        rpm_packages, conary_pkgs, services, values = self.scan()
         root.append(rpm_packages)
         root.append(conary_pkgs)
         root.append(services)
+        root.append(values)
         return root
 
 if __name__ == '__main__':
