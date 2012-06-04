@@ -21,6 +21,8 @@ RPATH=/usr/bin/rpath
 RPATHTOOSLBOOTCONFIG=/etc/conary/rpath-tools/config.d/boot_params
 LOCKFILE=/var/lock/subsys/rpath-tools
 
+servicename=rpath-tools
+
 setbootparams() {
     rm -f $RPATHTOOLSBOOTCONFIG
     BOOTPARAMS=`sed 's# #\n#g' /proc/cmdline | awk '{if($i~/RPATHTOOLS/){print $i}}'`
@@ -50,6 +52,11 @@ restart() {
     start
 }
 
+checkstatus() {
+       echo -ne "Checking $1 \n"
+       [ -f $LOCKFILE ] && echo -ne "rpath-register running...lockfile exists\n"
+}
+
 RETVAL=0
 
 # See how we were called.
@@ -60,8 +67,14 @@ case "$1" in
     stop)
         stop
         ;;
+    restart)
+        restart
+        ;;
+    status)
+        checkstatus $servicename
+        ;;
     *)
-        echo $"Usage: $0 {start|stop}"
+        echo $"Usage: $0 {start|stop|restart|status}"
         exit 1
 esac
 
