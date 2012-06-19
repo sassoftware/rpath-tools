@@ -189,6 +189,7 @@ class ConaryScanner(AbstractPackageScanner):
         cfg = conarycfg.ConaryConfiguration(True)
         client = conaryclient.ConaryClient(cfg)
         db = client.getDatabase()
+        return db
 
     def scan(self):
         if self._results:
