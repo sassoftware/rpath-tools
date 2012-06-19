@@ -185,13 +185,16 @@ class RPMScanner(AbstractPackageScanner):
 
 
 class ConaryScanner(AbstractPackageScanner):
+    def _getDb(self):
+        cfg = conarycfg.ConaryConfiguration(True)
+        client = conaryclient.ConaryClient(cfg)
+        db = client.getDatabase()
+
     def scan(self):
         if self._results:
             return self._results
 
-        cfg = conarycfg.ConaryConfiguration(True)
-        client = conaryclient.ConaryClient(cfg)
-        db = client.getDatabase()
+        db = self._getDb()
 
         ISDepClass = deps.InstructionSetDependency
 
