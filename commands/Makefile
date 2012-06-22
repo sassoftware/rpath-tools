@@ -28,16 +28,16 @@ all: default-all
 	install -m755 rpath-iconfig $(TOPDIR)/bin/rpath-iconfig
 	install -m755 rpath-scanner $(TOPDIR)/bin/rpath-scanner
 
-install-mkdirs:
+install:
+ifndef LIB_ONLY
 	mkdir -p $(DESTDIR)$(bindir)
-
-install: install-mkdirs
 	for f in $(bin_files); do \
 		install -m755 $$f $(DESTDIR)$(bindir)/$$f; \
 	done
 	for f in $(sbin_files); do \
 		install -m755 $$f $(DESTDIR)$(sbindir)/$$f; \
 	done
+endif
 
 dist: default-dist
 

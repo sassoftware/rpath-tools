@@ -1,0 +1,22 @@
+#
+# Copyright (c) rPath, Inc.
+# This file is distributed under the terms of the MIT License.
+# A copy is available at http://www.rpath.com/permanent/mit-license.html
+#
+
+
+class Ractivate(PackageRecipe):
+    name = 'rpath-tools'
+    version = '2.1'
+
+    buildRequires = [
+        'make:runtime',
+        'python:devel',
+        'pywbem:python',
+        'rpath-models:python',
+    ]
+
+    def setup(r):
+        r.addMercurialSnapshot()
+        r.Make()
+        r.MakeInstall('LIB_ONLY=1')
