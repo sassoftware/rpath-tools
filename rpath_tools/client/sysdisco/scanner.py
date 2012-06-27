@@ -11,9 +11,10 @@ import time
 import os
 
 class SurveyScanner(object):
-    def __init__(self):
+    def __init__(self, origin="scanner"):
         self._serviceScanner = ServiceScanner(ServiceInfo)
         self._packageScanner = PackageScanner(IDFactory())
+        self.origin = origin
 
     def scan(self):
         services = self._serviceScanner.getServices()
@@ -58,6 +59,7 @@ class SurveyScanner(object):
         root.append(conary_pkgs)
         root.append(services)
         root.append(values)
+        etree.SubElement(root, 'origin').text = str(self.origin)
         return root
 
 if __name__ == '__main__':
