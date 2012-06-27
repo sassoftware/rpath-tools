@@ -17,9 +17,10 @@ import os
 
 
 class SurveyScanner(object):
-    def __init__(self):
+    def __init__(self, origin="scanner"):
         self._serviceScanner = ServiceScanner(ServiceInfo)
         self._packageScanner = PackageScanner(IDFactory())
+        self.origin = origin
 
     def _getServices(self):
         return self._serviceScanner.getServices()
@@ -134,6 +135,7 @@ class SurveyScanner(object):
         root.append(conary_pkgs)
         root.append(services)
         root.append(values)
+        etree.SubElement(root, 'origin').text = str(self.origin)
         root.append(preview)
         root.append(descriptors)
         for node in configurators:

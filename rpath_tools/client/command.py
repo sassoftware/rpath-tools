@@ -19,10 +19,9 @@ import subprocess
 import sys
 import time
 
-from conary.lib import command
-from conary.lib import options
+from conary.lib import command, util, options
 
-from rpath_models import System, Networks, Network, CurrentState, ManagementInterface
+from rpath_models import System, Networks, Network, CurrentState, ManagementInterface, Survey
 from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client import scan
@@ -208,6 +207,26 @@ class RegistrationCommand(RpathToolsCommand):
                 device_name=ip.device)
             networks.add_network(network)
 
+        try:
+            logger.info("Running system scan...")
+            survey = scan.SurveyScanner(origin="registration").toxml()
+        except Exception, e:
+            logger.info("System scan failed: %s", str(e))
+            # Save the exception
+            excInfo = sys.exc_info()
+            try:
+                sio = StringIO.StringIO()
+                util.formatTrace(*excInfo, stream=sio, withLocals=False)
+                logger.info("Details: %s", sio.getvalue())
+
+                survey = scan.etree.Element("survey")
+                error = scan.etree.SubElement(survey, "error")
+                scan.etree.SubElement(error, "text").text = str(e)
+                scan.etree.SubElement(error, "details").text = sio.getvalue()
+            except Exception, e:
+                logger.info("Error reporting failed: %s", str(e))
+                survey = None
+
         current_state = CurrentState(name=state)
         management_interface = ManagementInterface(name='cim')
         system = System(hostname=hostname,
@@ -217,7 +236,8 @@ class RegistrationCommand(RpathToolsCommand):
                         current_state=current_state,
                         agent_port=agentPort,
                         event_uuid=self.event_uuid,
-                        management_interface=management_interface)
+                        management_interface=management_interface,
+                        survey=Survey(survey))
         if self.boot and os.path.exists(self.BOOT_UUID_FILE):
             bootUuid = file(self.BOOT_UUID_FILE).read().strip()
             system.set_boot_uuid(bootUuid)
