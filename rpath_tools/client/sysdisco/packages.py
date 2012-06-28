@@ -2,16 +2,17 @@
 # Copyright (c) rPath, Inc.
 #
 
+from conary import trovetup
 from collections import namedtuple
 from xml.etree import cElementTree as etree
 
 import rpm
 
-from conary import trovetup
 from conary.deps import deps
 from conary import rpmhelper
 from conary import conarycfg
 from conary import conaryclient
+from conary.lib import util
 from conary.lib.sha1helper import sha256ToString
 
 class IDFactory(object):
@@ -118,12 +119,8 @@ class MSIInfo(namedtuple('msiInfo', 'name version productCode')):
 
 
 class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
-    'architecture signature nevra msi license installtime')):
-    def __new__(cls, name, version, flavor, description, revision, architecture,
-            signature, nevra, msi, license, installtime):
-        nvf = trovetup.TroveTuple(name, version, flavor)
-        return tuple.__new__(cls, (nvf, description, revision, architecture,
-            signature, nevra, msi, license, installtime))
+        'architecture signature nevra msi license installtime isTopLevel')):
+    __slots__ = ()
 
     def toxml(self, id):
         root = etree.Element('conary_package', dict(id=id))
@@ -134,6 +131,8 @@ class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
         version.text = self.nvf.version.freeze()
         flavor = etree.SubElement(conary_package_info, 'flavor')
         flavor.text = str(self.nvf.flavor)
+        if self.isTopLevel:
+            etree.SubElement(conary_package_info, 'is_top_level').text = 'true'
         description = etree.SubElement(conary_package_info, 'description')
         if self.description:
             description.text = self.description.decode('utf8', 'replace')
@@ -156,11 +155,18 @@ class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
 
         return root
 
-
+class SystemModel(conaryclient.SystemModel):
+    __slots__ = ()
+    def toxml(self):
+        root = etree.Element('system_model')
+        etree.SubElement(root, 'contents').text = self.contents
+        etree.SubElement(root, 'modified_date').text = str(int(self.mtime))
+        return root
 
 class AbstractPackageScanner(object):
     def __init__(self):
         self._results = None
+        self._client = None
 
     def scan(self):
         raise NotImplementedError
@@ -185,11 +191,22 @@ class RPMScanner(AbstractPackageScanner):
 
 
 class ConaryScanner(AbstractPackageScanner):
+    @property
+    def client(self):
+        if self._client is None:
+            cfg = conarycfg.ConaryConfiguration(True)
+            self._client = conaryclient.ConaryClient(cfg)
+        return self._client
+
     def _getDb(self):
-        cfg = conarycfg.ConaryConfiguration(True)
-        client = conaryclient.ConaryClient(cfg)
-        db = client.getDatabase()
+        db = self.client.getDatabase()
         return db
+
+    def getSystemModel(self):
+        sysmodel = self.client.getSystemModel()
+        if sysmodel is None:
+            return None
+        return SystemModel(*sysmodel)
 
     def scan(self):
         if self._results:
@@ -199,19 +216,23 @@ class ConaryScanner(AbstractPackageScanner):
 
         ISDepClass = deps.InstructionSetDependency
 
+        topLevelItems = set(self.client.getUpdateItemList())
+
         self._results = {}
-        allTroves = [ x for x in db.iterAllTroves() ]
-        for name, version, flavor in allTroves:
-            if not name.startswith('group-') and ':' not in name:
-                continue
+        # We cannot use the iterator here, it keeps the database locked, and
+        # fetching the trove fails later
+        allTroves = list(db.iterAllTroves())
+        for nvf in allTroves:
+            if not isinstance(nvf, trovetup.TroveTuple):
+                # Older versions of Conary did not return a trove tuple
+                nvf = trovetup.TroveTuple(*nvf)
 
-            trv = db.getTrove(name, version, flavor)
+            trv = db.getTrove(nvf.name, nvf.version, nvf.flavor)
 
-            frzVer = version.freeze()
-            revision = version.trailingRevision().asString()
+            frzVer = nvf.version.freeze()
+            revision = nvf.version.trailingRevision().asString()
 
-            strFlv = str(flavor)
-            arch = ' '.join(str(x) for x in flavor.iterDepsByClass(ISDepClass))
+            arch = ' '.join(str(x) for x in nvf.flavor.iterDepsByClass(ISDepClass))
 
             sig = None
             digest = trv.troveInfo.sigs.vSigs.getDigest(1)
@@ -236,8 +257,12 @@ class ConaryScanner(AbstractPackageScanner):
             else:
                 installTime = None
 
-            cinfo = ConaryInfo(name, version, flavor, description, revision,
-                    arch, sig, nevra, msiInfo, license, installTime)
+            isTopLevel = None
+            if nvf in topLevelItems:
+                isTopLevel = True
+            cinfo = ConaryInfo(nvf, description, revision,
+                    arch, sig, nevra, msiInfo, license, installTime,
+                    isTopLevel)
 
             self._results[cinfo.nvf] = cinfo
 
@@ -259,6 +284,9 @@ class PackageScanner(object):
         rpmData = self._rpmScanner.scan()
         conaryData = self._conaryScanner.scan()
         return rpmData, conaryData
+
+    def getSystemModel(self):
+        return self._conaryScanner.getSystemModel()
 
     def toxml(self):
         rpms, troves = self.scan()

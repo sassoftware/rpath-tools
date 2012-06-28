@@ -54,6 +54,9 @@ class SurveyScanner(object):
     def toxml(self):
         root = etree.Element('survey')
         etree.SubElement(root, 'created_date').text = str(int(time.time()))
+        sysmodel = self._packageScanner.getSystemModel()
+        if sysmodel is not None:
+            root.append(sysmodel.toxml())
         rpm_packages, conary_pkgs, services, values = self.scan()
         root.append(rpm_packages)
         root.append(conary_pkgs)
