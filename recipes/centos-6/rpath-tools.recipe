@@ -38,6 +38,17 @@ class Ractivate(RpathPackageRecipe):
         r.MakeInstall('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.Move('/etc/init.d/rpath-tools', '/etc/rc.d/init.d/rpath-tools')
 
+        r.MakeDirs('%(prefix)s/lib/rpath-tools/read.d')
+        r.MakeDirs('%(prefix)s/lib/rpath-tools/write.d')
+        r.MakeDirs('%(prefix)s/lib/rpath-tools/validate.d')
+        r.MakeDirs('%(prefix)s/lib/rpath-tools/discover.d')
+
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/read.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/write.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/validate.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/discover.d')
+
+
         # Fix init script to use the proper initdir
         r.Replace('/etc/init.d/functions', '%(initdir)s/functions',
             '%(initdir)s/%(name)s')
