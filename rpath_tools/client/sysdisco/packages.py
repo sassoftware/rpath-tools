@@ -229,7 +229,6 @@ class ConaryScanner(AbstractPackageScanner):
 
             trv = db.getTrove(nvf.name, nvf.version, nvf.flavor)
 
-            frzVer = nvf.version.freeze()
             revision = nvf.version.trailingRevision().asString()
 
             arch = ' '.join(str(x) for x in nvf.flavor.iterDepsByClass(ISDepClass))
