@@ -12,17 +12,13 @@
 # full details.
 #
 
-import os
-import sys
 
 import xml.etree.cElementTree as etree
 
 from collections import namedtuple
 
-from conary.lib import util
 
 import executioner
-import parsevalues
 
 valuesXmlPath = "/var/lib/rpath-tools/values.xml"
 readExtensionPath = "/usr/lib/rpath-tools/read.d/"
@@ -77,7 +73,6 @@ class RunConfigurators(object):
         return root
 
 if __name__ == '__main__':
-    import sys
     from conary.lib import util
     sys.excepthook = util.genExcepthook()
     configurators = RunConfigurators()

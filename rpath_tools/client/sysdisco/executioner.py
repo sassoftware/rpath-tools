@@ -40,7 +40,7 @@ class Executioner(object):
         etree.SubElement(error, 'detail').text = detail
         etree.SubElement(error, 'message').text = "Error: Executable failed"
         etree.SubElement(error, 'success').text = "False"
-        extensions = etree.SubElement(root, 'extensions')
+        etree.SubElement(root, 'extensions')
         return root
 
 
