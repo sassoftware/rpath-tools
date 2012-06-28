@@ -12,6 +12,7 @@
 # full details.
 #
 
+import sys
 
 import xml.etree.cElementTree as etree
 
