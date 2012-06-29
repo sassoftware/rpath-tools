@@ -14,16 +14,11 @@
 
 
 import logging
-import os
-import os.path
-import pwd
 import sys
 import time
 
-from conary.lib import util
 
 from rpath_tools.client import config
-from rpath_tools.client import utils
 
 from xml.etree import cElementTree as etree
 from rpath_tools.client.sysdisco.configurators import RunConfigurators
