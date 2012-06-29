@@ -12,12 +12,12 @@
 # full details.
 #
 
-import sys
 
 import xml.etree.cElementTree as etree
 
 from collections import namedtuple
 
+from conary.lib import util
 
 import executioner
 
@@ -33,7 +33,9 @@ class CONFIGURATOR(namedtuple('configurator' , 'name extpath vxml')):
 
 class RunConfigurators(object):
 
-    def __init__(self):
+    def __init__(self, configurators=None):
+        write = CONFIGURATOR('write', writeExtensionPath,
+                                valuesXmlPath)
         read = CONFIGURATOR('observed_values', readExtensionPath, 
                                     valuesXmlPath)
         validate = CONFIGURATOR('validation_report', validateExtensionPath,
@@ -41,7 +43,18 @@ class RunConfigurators(object):
         discover = CONFIGURATOR('discovered_values', discoverExtensionPath,
                                         valuesXmlPath)
 
-        self.configurators = [ read, validate, discover ]
+        self.configurator_types = dict([('read', read),('validate', validate),
+                                        ('discover', discover), 
+                                        ('write', write)])
+
+        self.configurators = []
+
+        if configurators:
+            for configurator in configurators:
+                self.configurators.append(self.configurator_types[configurator])
+
+        if not self.configurators:
+            self.configurators = [ read, validate, discover ]
 
     def _run(self, configurator):
         executer = executioner.Executioner(configurator.extpath, configurator.vxml)
@@ -72,8 +85,9 @@ class RunConfigurators(object):
         for configurator in self.configurators:
             root.append(self._toxml(configurator))
         return root
-
+            
 if __name__ == '__main__':
+    import sys
     from conary.lib import util
     sys.excepthook = util.genExcepthook()
     configurators = RunConfigurators()

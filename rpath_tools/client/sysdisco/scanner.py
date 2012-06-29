@@ -6,15 +6,16 @@ from services import ServiceInfo
 from services import ServiceScanner
 from packages import PackageScanner
 from packages import IDFactory
+from configurators import RunConfigurators
+from configurators import valuesXmlPath
 
 import time
 import os
 
 class SurveyScanner(object):
-    def __init__(self, origin="scanner"):
+    def __init__(self):
         self._serviceScanner = ServiceScanner(ServiceInfo)
         self._packageScanner = PackageScanner(IDFactory())
-        self.origin = origin
 
     def scan(self):
         services = self._serviceScanner.getServices()
@@ -45,24 +46,27 @@ class SurveyScanner(object):
             services_xml.append(srv.toxml(str(srv_id)))
             srv_id += 1
 
-        values_xml = etree.Element('values')
-        valuesFile = '/var/lib/iconfig/values.xml'
-        if os.path.exists(valuesFile):
-            values_xml.append(etree.parse(valuesFile).getroot())
-        return rpm_packages_xml, conary_packages_xml, services_xml, values_xml
+        values_xml = etree.Element('desired_values')
+        if os.path.exists(valuesXmlPath):
+            values_xml.append(etree.parse(valuesXmlPath).getroot())
+        
+        configurators = RunConfigurators()
+        configurators_xml = configurators.toxml()
+        configurator_nodes = []
+        for nodes in configurators_xml.getchildren():
+            configurator_nodes.append(nodes)
+        return rpm_packages_xml, conary_packages_xml, services_xml, values_xml, configurator_nodes
 
     def toxml(self):
         root = etree.Element('survey')
         etree.SubElement(root, 'created_date').text = str(int(time.time()))
-        sysmodel = self._packageScanner.getSystemModel()
-        if sysmodel is not None:
-            root.append(sysmodel.toxml())
-        rpm_packages, conary_pkgs, services, values = self.scan()
+        rpm_packages, conary_pkgs, services, values, configurators = self.scan()
         root.append(rpm_packages)
         root.append(conary_pkgs)
         root.append(services)
         root.append(values)
-        etree.SubElement(root, 'origin').text = str(self.origin)
+        for node in configurators:
+            root.append(node)
         return root
 
 if __name__ == '__main__':
