@@ -88,7 +88,6 @@ class RunConfigurators(object):
             
 if __name__ == '__main__':
     import sys
-    from conary.lib import util
     sys.excepthook = util.genExcepthook()
     configurators = RunConfigurators()
     root = configurators.toxml()
