@@ -18,7 +18,6 @@ import random
 import subprocess
 import sys
 import time
-import StringIO
 
 from conary.lib import command
 from conary.lib import options
@@ -28,7 +27,6 @@ from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client import scan
 from rpath_tools.client import configurator
-from rpath_tools.client.utils import client
 
 logger = logging.getLogger('client')
 
