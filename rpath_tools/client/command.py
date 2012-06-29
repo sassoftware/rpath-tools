@@ -308,7 +308,6 @@ class ScanCommand(RpathToolsCommand):
     requireConfig = True
 
     def runCommand(self, *args, **kw):
-        from conary.lib import debugger;debugger.st()
         self.cfg = args[0]
         scanData = scan.main(self.cfg)
         return scanData
