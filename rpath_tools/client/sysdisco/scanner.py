@@ -49,7 +49,9 @@ class SurveyScanner(object):
         values_xml = etree.Element('desired_values')
         if os.path.exists(valuesXmlPath):
             values_xml.append(etree.parse(valuesXmlPath).getroot())
-        
+
+        # Adds observed_values, discovered_values, and validation_report
+        # from configurators.
         configurators = RunConfigurators()
         configurators_xml = configurators.toxml()
         configurator_nodes = []
