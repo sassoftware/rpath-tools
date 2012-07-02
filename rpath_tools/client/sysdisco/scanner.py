@@ -57,16 +57,19 @@ class SurveyScanner(object):
         configurator_nodes = []
         for nodes in configurators_xml.getchildren():
             configurator_nodes.append(nodes)
-        return rpm_packages_xml, conary_packages_xml, services_xml, values_xml, configurator_nodes
+
+        preview_xml = etree.Element('preview')
+        return rpm_packages_xml, conary_packages_xml, services_xml, values_xml, preview_xml, configurator_nodes
 
     def toxml(self):
         root = etree.Element('survey')
         etree.SubElement(root, 'created_date').text = str(int(time.time()))
-        rpm_packages, conary_pkgs, services, values, configurators = self.scan()
+        rpm_packages, conary_pkgs, services, values, preview, configurators = self.scan()
         root.append(rpm_packages)
         root.append(conary_pkgs)
         root.append(services)
         root.append(values)
+        root.append(preview)
         for node in configurators:
             root.append(node)
         return root
