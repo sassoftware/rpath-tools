@@ -26,7 +26,8 @@ all: default-all
 	install -m755 rpath-hardware $(TOPDIR)/bin/rpath-hardware
 	install -m755 rpath-config $(TOPDIR)/bin/rpath-config
 	install -m755 rpath-iconfig $(TOPDIR)/bin/rpath-iconfig
-	install -m755 rpath-scanner $(TOPDIR)/bin/rpath-scanner
+	install -m755 rpath-iconfig $(TOPDIR)/bin/rpath-iconfig
+	install -m755 rpath-configurator $(TOPDIR)/bin/rpath-configurator
 
 install:
 ifndef LIB_ONLY
