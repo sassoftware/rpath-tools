@@ -155,13 +155,14 @@ class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
 
         return root
 
-class SystemModel(conaryclient.SystemModel):
-    __slots__ = ()
+
+class SystemModel(conaryclient.systemmodel.SystemModelFile):
     def toxml(self):
         root = etree.Element('system_model')
         etree.SubElement(root, 'contents').text = self.contents
         etree.SubElement(root, 'modified_date').text = str(int(self.mtime))
         return root
+
 
 class AbstractPackageScanner(object):
     def __init__(self):
