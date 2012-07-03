@@ -32,7 +32,7 @@ class Ractivate(RpathPackageRecipe):
            # though the arches put files in different directories
            pass
 
-        r.addMercurialSnapshot('http://scc.eng.rpath.com//hg/products/rpath-tools/trunk/rpath-tools', tag='%(name)s-%(version)s')
+        r.addMercurialSnapshot('http://scc.eng.rpath.com//hg/products/rbuilder/goad/rpath-tools', tag='%(name)s-%(version)s')
         r.Make('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.MakeInstall('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.Move('/etc/init.d/rpath-tools', '/etc/rc.d/init.d/rpath-tools')
