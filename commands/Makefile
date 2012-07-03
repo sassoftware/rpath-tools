@@ -14,7 +14,7 @@
 
 TOPDIR=..
 
-bin_files = rpath rpath-register rpath-hardware rpath-config rpath-iconfig rpath-scanner
+bin_files = rpath rpath-register rpath-hardware rpath-config rpath-iconfig rpath-scanner rpath-configurator
 
 extra_dist = Makefile
 
