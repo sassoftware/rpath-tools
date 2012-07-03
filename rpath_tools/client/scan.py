@@ -148,7 +148,7 @@ class Scanner(object):
             self.cfg.logFile
         return False
 
-    def scanSystemCIM(self):
+    def scanSystemCIM(self, desiredTopLevelItems):
         '''use this from CIM as it removes prints'''
         logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
         start = time.time()
