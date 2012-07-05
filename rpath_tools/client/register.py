@@ -33,6 +33,7 @@ from rpath_tools.client import config
 from rpath_tools.client import errors
 from rpath_tools.client import utils
 from rpath_tools.client.utils import x509
+from rpath_tools.client.utils import client as UtilsClient
 
 logger = logging.getLogger('client')
 
@@ -502,7 +503,7 @@ class Registration(object):
         return system
 
     def _getRegistrationClient(self, remote):
-        SSL = utils.client.SSL
+        SSL = UtilsClient.SSL
         ssl_context = SSL.Context()
         if self.cfg.validateRemoteIdentity:
             ssl_context.load_verify_locations(
@@ -510,7 +511,7 @@ class Registration(object):
             ssl_context.set_allow_unknown_ca(False)
             ssl_context.set_verify(SSL.verify_peer, True)
 
-        regClient = utils.client.RegistrationClient(remote,
+        regClient = UtilsClient.RegistrationClient(remote,
             ssl_context=ssl_context)
         return regClient
 
