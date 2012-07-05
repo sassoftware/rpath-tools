@@ -36,7 +36,7 @@ class RunConfigurators(object):
     def __init__(self, configurators=None):
         write = CONFIGURATOR('write', writeExtensionPath,
                                 valuesXmlPath)
-        read = CONFIGURATOR('observed_values', readExtensionPath, 
+        read = CONFIGURATOR('observed_properties', readExtensionPath, 
                                     valuesXmlPath)
         validate = CONFIGURATOR('validation_report', validateExtensionPath,
                                         valuesXmlPath)
