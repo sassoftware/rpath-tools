@@ -448,7 +448,7 @@ class Registration(object):
         print '  Registration failed.  Check the log file at %s' % \
             self.cfg.logFile
         return False
-                
+
     def registerDirect(self, systemXml):
         logger.info("Using Direct registration.")
         actResp = None

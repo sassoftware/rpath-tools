@@ -41,6 +41,6 @@ def process_file(path, key)
 
 end
 
-process_file("/var/lib/iconfig/values.xml", "desired_properties")
-process_file("/var/lib/iconfig/observed_values.xml", "observed_properties")
+process_file("/var/lib/rpath-tools/values.xml", "desired_properties")
+process_file("/var/lib/rpath-tools/observed_values.xml", "observed_properties")
 
