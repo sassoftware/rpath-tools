@@ -40,7 +40,7 @@ class RunConfigurators(object):
                                     valuesXmlPath)
         validate = CONFIGURATOR('validation_report', validateExtensionPath,
                                         valuesXmlPath)
-        discover = CONFIGURATOR('discovered_values', discoverExtensionPath,
+        discover = CONFIGURATOR('discovered_properties', discoverExtensionPath,
                                         valuesXmlPath)
 
         self.configurator_types = dict([('read', read),('validate', validate),
