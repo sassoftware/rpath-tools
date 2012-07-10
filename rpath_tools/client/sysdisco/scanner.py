@@ -1,5 +1,5 @@
 #
-# Copyright (c) rPath, Inc.
+# Copyright (c) 2012 rPath, Inc.
 #
 from xml.etree import cElementTree as etree
 from services import ServiceInfo

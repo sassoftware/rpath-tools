@@ -26,10 +26,9 @@ from rpath_tools.client import config
 from rpath_tools.client import utils
 
 from xml.etree import cElementTree as etree
-from rpath_tools.client.sysdisco.scanner import SurveyScanner
+from rpath_tools.client.sysdisco import scanner, updater
 
-from rpath_tools.client.register import LocalUuid
-from rpath_tools.client.register import GeneratedUuid
+from rpath_tools.client.register import LocalUuid, GeneratedUuid
 
 logger = logging.getLogger('client')
 
@@ -46,7 +45,7 @@ class Scanner(object):
 
     def __init__(self, cfg, deviceName=None):
         self.cfg = cfg
-        self.surveyScanner = SurveyScanner()
+        self.surveyScanner = scanner.SurveyScanner()
         self.generatedUuid = GeneratedUuid().uuid
         self.localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
                                  self.cfg.localUuidOldDirectoryPath,
@@ -153,7 +152,7 @@ class Scanner(object):
         logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
         start = time.time()
         start_proc = time.clock()
-        surveyed = self._scanner()
+        surveyed = self._scanner(desiredTopLevelItems)
         if surveyed:
             proctime = time.clock() - start_proc
             scantime = time.time() - start
@@ -169,8 +168,8 @@ class Scanner(object):
         return False
 
 
-    def _scanner(self):
-        self.survey, uuid = self._scan_system()
+    def _scanner(self, desiredTopLevelItems):
+        self.survey, uuid = self._scan_system(desiredTopLevelItems)
         if self.survey is None:
             return self.survey
         # If the server returned something back, save
@@ -180,9 +179,13 @@ class Scanner(object):
         return survey_path
 
 
-    def _scan_system(self):
+    def _scan_system(self, desiredTopLevelItems):
         uuid = self.generatedUuid
         dom = self.surveyScanner.toxml()
+        if desiredTopLevelItems:
+            upd = updater.Updater()
+            fmt = upd.previewOperation(desiredTopLevelItems)
+            dom.append(fmt.root)
         etree.SubElement(dom, 'uuid').text = str(uuid)
         xml = etree.tostring(dom)
         return xml, uuid
