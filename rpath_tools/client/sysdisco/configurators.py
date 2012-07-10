@@ -85,7 +85,7 @@ class RunConfigurators(object):
         for configurator in self.configurators:
             root.append(self._toxml(configurator))
         return root
-            
+
 if __name__ == '__main__':
     import sys
     sys.excepthook = util.genExcepthook()

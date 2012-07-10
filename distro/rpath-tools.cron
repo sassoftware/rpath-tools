@@ -1,2 +1,3 @@
 #m      h   DoM mon DoW     user    cmd
-10       2   *   *   *       root    /usr/bin/rpath-register --random-wait
+10      2   *   *   *       root    /usr/bin/rpath-register --random-wait
+11      32  *   *   *       root    /usr/sbin/tmpwatch --mtime 10d /var/lib/conary-cim/surveys/
