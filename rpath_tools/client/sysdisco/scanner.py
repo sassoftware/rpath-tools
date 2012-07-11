@@ -46,7 +46,7 @@ class SurveyScanner(object):
             services_xml.append(srv.toxml(str(srv_id)))
             srv_id += 1
 
-        values_xml = etree.Element('desired_values')
+        values_xml = etree.Element('config_properties')
         if os.path.exists(valuesXmlPath):
             values_xml.append(etree.parse(valuesXmlPath).getroot())
 
