@@ -88,7 +88,10 @@ class ConfigDescriptorCache(object):
 
         self._desc_cache[nvf] = desc
 
-        return desc
+        if not subDescs:
+            return ''
+
+        return desc.toxml()
 
     def _getDescriptorFromTrove(self, nvf):
         # Get properties from the repository
