@@ -129,7 +129,7 @@ class ConfigDescriptorCache(object):
                     for x, y, _ in trv.iterTroveListInfo() if y)
                 self._bydefault[nvf] = bydefault
             else:
-                bydefalt = self._bydefault.get(nvf)
+                bydefault = self._bydefault.get(nvf)
 
             specs |= bydefault
 
