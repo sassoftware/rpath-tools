@@ -53,8 +53,8 @@ class Formatter(object):
 
     def _formatUpdate(self, name, oldVersion, oldFlavor, newVersion, newFlavor):
         node = self._newPackageChange('changed')
-        self._packageSpec(node, 'from', name, oldVersion, oldFlavor)
-        self._packageSpec(node, 'to', name, newVersion, newFlavor)
+        self._packageSpec(node, 'from_conary_package', name, oldVersion, oldFlavor)
+        self._packageSpec(node, 'to_conary_package', name, newVersion, newFlavor)
         diff = etree.SubElement(node, 'conary_package_diff')
         self._fieldDiff(diff, 'version', oldVersion, newVersion)
         self._fieldDiff(diff, 'flavor', oldFlavor, newFlavor)
