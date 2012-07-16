@@ -128,7 +128,7 @@ class Scanner(object):
         print '  Attempting to run survey on %s...' % self.localUuidObj.uuid
         start = time.time()
         start_proc = time.clock()
-        surveyed = self._scanner()
+        surveyed = self._scanner([])
         if surveyed:
             proctime = time.clock() - start_proc
             scantime = time.time() - start
