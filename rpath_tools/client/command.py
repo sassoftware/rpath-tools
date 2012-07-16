@@ -28,6 +28,8 @@ from rpath_tools.client import register
 from rpath_tools.client import scan
 from rpath_tools.client import configurator
 
+from rpath_tools.client.utils.tmpwatcher import TmpWatcher
+
 logger = logging.getLogger('client')
 
 class RpathToolsCommand(command.AbstractCommand):
@@ -321,3 +323,18 @@ class ConfiguratorCommand(RpathToolsCommand):
         self.configurators = [ x for x in args[-1] if x in self.command_types ]
         configuratorData = configurator.main(self.cfg, self.configurators)
         return configuratorData
+
+class TmpWatchCommand(RpathToolsCommand):
+    commands = ['tmpwatch']
+    help = "Delete surveys older than 10 days on the local host."
+    requireConfig = True
+
+    def runCommand(self, *args, **kw):
+        self.cfg = args[0]
+        prefix = 'survey-'
+        mtime = 7
+        watch = TmpWatcher(self.cfg.scannerSurveyStore, mtime=mtime, prefix=prefix)
+        removed = watch.clean()
+
+        return removed
+

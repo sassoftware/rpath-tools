@@ -37,7 +37,7 @@ class TmpWatcher(object):
                 os.remove(filepath)
                 return True
         except IOError, e:
-            raise IOError
+            raise IOError, e
 
     def clean(self):
         files = self._getFiles()
