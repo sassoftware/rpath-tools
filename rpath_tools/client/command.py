@@ -332,7 +332,7 @@ class TmpWatchCommand(RpathToolsCommand):
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
         prefix = 'survey-'
-        mtime = 7
+        mtime = 10
         watch = TmpWatcher(self.cfg.scannerSurveyStore, mtime=mtime, prefix=prefix)
         removed = watch.clean()
 
