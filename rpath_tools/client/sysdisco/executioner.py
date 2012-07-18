@@ -22,7 +22,7 @@ class EXECUTABLE(BaseSlots):
         return ( "Name = %s\nExecutable = %s\nSwitches = %s\nResults = %s\n"
                 "Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
                 ('name', 'exec', 'results', 'switches', 'stdout', 'stderr', 'returncode'))
-    
+
 class Executioner(object):
     def __init__(self, scriptdir, values_xml):
         self.scriptdir = scriptdir
@@ -79,7 +79,6 @@ class Executioner(object):
         except Exception, ex:
             return ex
 
-        
     def _execute(self, script):
         env = self._getEnviron()
         switches = ''
@@ -101,9 +100,11 @@ class Executioner(object):
         results = self.execute()
         for result in results:
             stub = self._errorXml(result)
-            if result.stdout and etree.fromstring(result.stdout):
-                stub = etree.fromstring(result.stdout)
-            assert etree.iselement(stub)
+            if result.stdout:
+                try:
+                    stub = etree.fromstring(result.stdout)
+                except etree.XMLSyntaxError:
+                    pass
             xml.append(stub)
         return xml
 
@@ -116,10 +117,10 @@ if __name__ == '__main__':
     from conary.lib import util
     sys.excepthook = util.genExcepthook()
 
-    #executer = Executioner('/usr/lib/iconfig/write.d', '/var/lib/iconfig/values.xml')
-    #executer = Executioner('/usr/lib/iconfig/read.d', '/var/lib/iconfig/values.xml')
-    #executer = Executioner('/usr/lib/iconfig/validate.d', '/var/lib/iconfig/values.xml')
-    #executer = Executioner('/usr/lib/iconfig/discover.d', '/var/lib/iconfig/values.xml')
+    #executer = Executioner('/usr/lib/rpath-tools/write.d', '/var/lib/rpath-tools/values.xml')
+    #executer = Executioner('/usr/lib/rpath-tools/read.d', '/var/lib/rpath-tools/values.xml')
+    #executer = Executioner('/usr/lib/rpath-tools/validate.d', '/var/lib/rpath-tools/values.xml')
+    #executer = Executioner('/usr/lib/rpath-tools/discover.d', '/var/lib/rpath-tools/values.xml')
 
     #executer.execute()
     #executer.toxml()
