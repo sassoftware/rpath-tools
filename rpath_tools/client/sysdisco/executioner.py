@@ -103,7 +103,7 @@ class Executioner(object):
             if result.stdout:
                 try:
                     stub = etree.fromstring(result.stdout)
-                except etree.XMLSyntaxError:
+                except SyntaxError:
                     pass
             xml.append(stub)
         return xml
