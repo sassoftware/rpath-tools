@@ -10,7 +10,9 @@ import logging
 import itertools
 from StringIO import StringIO
 
+from conary import trove
 from conary.trovetup import TroveTuple
+from conary.local.database import Database
 from conary.trove import _TROVEINFO_TAG_PROPERTIES
 
 from smartform import descriptor_errors
@@ -140,7 +142,11 @@ class ConfigDescriptorCache(object):
         req = [ x for x in specs if x not in self._properties_cache ]
 
         # Get properties from the repository.
-        properties = self._repos.getTroveInfo(_TROVEINFO_TAG_PROPERTIES, req)
+        if not isinstance(self._repos, Database):
+            properties = self._repos.getTroveInfo(_TROVEINFO_TAG_PROPERTIES, req)
+        else:
+            info = self._repos.db.getAllTroveInfo(_TROVEINFO_TAG_PROPERTIES)
+            properties = [ trove.PropertySet(y) for x, y in info if x in req ]
 
         # Build a mapping of nvf to properties.
         resp = dict((x, y) for x, y in itertools.izip(req, properties) if y)
