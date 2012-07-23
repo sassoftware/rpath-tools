@@ -325,16 +325,18 @@ class ConfiguratorCommand(RpathToolsCommand):
         return configuratorData
 
 class TmpWatchCommand(RpathToolsCommand):
-    commands = ['tmpwatch']
+    commands = ['tmpwatch', 'delete']
     help = "Delete surveys older than 10 days on the local host."
     requireConfig = True
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
+        delete = False
+        if [ x for x in args[-1] if x == 'delete']:
+            delete = True
         prefix = 'survey-'
         mtime = 10
         watch = TmpWatcher(self.cfg.scannerSurveyStore, mtime=mtime, prefix=prefix)
-        removed = watch.clean()
-
+        removed = watch.clean(delete=delete)
         return removed
 
