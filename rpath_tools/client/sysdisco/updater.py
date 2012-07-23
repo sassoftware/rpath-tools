@@ -3,6 +3,7 @@
 #
 
 from conary.deps import deps
+from conary.errors import ParseError
 from conary import conarycfg, conaryclient, updatecmd, versions
 
 from rpath_tools.client.utils import update_job_formatter
@@ -72,7 +73,10 @@ class Updater(object):
         n, v, f = conaryclient.cmdline.parseTroveSpec(troveSpec)
         if f is None:
             f = deps.parseFlavor('')
-        v = versions.VersionFromString(v)
+        try:
+            v = versions.VersionFromString(v)
+        except ParseError:
+            v = versions.ThawVersion(v)
         return (n, v, f)
 
     def _fixSignals(self):
