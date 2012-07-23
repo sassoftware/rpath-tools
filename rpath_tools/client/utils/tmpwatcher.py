@@ -34,18 +34,20 @@ class TmpWatcher(object):
     def _removeFile(self, filepath):
         try:
             if os.path.isfile(filepath):
+                print "Removing %s" % filepath
                 os.remove(filepath)
                 return True
         except IOError, e:
             raise IOError, e
 
-    def clean(self):
+    def clean(self, delete=False):
         files = self._getFiles()
         removed = []
         for f in files:
             if os.path.isfile(f):
                 if self._testFileTime(f):
-                    #self._removeFile(f)
+                    if delete:
+                        self._removeFile(f)
                     removed.append(f)
         return removed
 
@@ -56,6 +58,7 @@ if __name__ == '__main__':
     survey_dir = '/var/lib/conary-cim/surveys'
     prefix = 'survey-'
     mtime = 3
+    delete = False
     twatch = TmpWatcher(survey_dir, mtime=mtime, prefix=prefix)
-    removed = twatch.clean()
+    removed = twatch.clean(delete=delete)
     print removed
