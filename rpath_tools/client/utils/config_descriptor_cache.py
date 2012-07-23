@@ -113,7 +113,7 @@ class ConfigDescriptorCache(object):
 
             desc = self._loadDescriptorFromProperties(nvf, propSet)
 
-            descs.append(desc)
+            descs.append((nvf.name, desc))
             self._desc_cache[nvf] = desc
 
         return descs
@@ -181,16 +181,18 @@ class ConfigDescriptorCache(object):
         # More than one descriptor was found for this nvf, wrap it in a
         # complex data type.
         else:
-            desc = self._populateDescriptor(descs)
+            desc = self._populateDescriptor(
+                [ (x.getDisplayName().replace(' ', '_').lower(), x)
+                    for x in descs ])
 
         return desc
 
     def _populateDescriptor(self, descs):
         desc = SystemConfigurationDescriptor()
 
-        for subDesc in descs:
+        for name, subDesc in descs:
             desc.addDataField(
-                subDesc.getDisplayName(),
+                name,
                 type=desc.CompoundType(subDesc),
                 required=True,
                 descriptions=subDesc.getDescriptions(),
