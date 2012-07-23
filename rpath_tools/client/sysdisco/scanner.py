@@ -8,9 +8,13 @@ from packages import PackageScanner
 from packages import IDFactory
 from configurators import RunConfigurators
 from configurators import valuesXmlPath
+#from preview import Preview
+from descriptors import Descriptors
 
+import sys 
 import time
 import os
+
 
 class SurveyScanner(object):
     def __init__(self):
@@ -59,17 +63,28 @@ class SurveyScanner(object):
             configurator_nodes.append(nodes)
 
         preview_xml = etree.Element('preview')
-        return rpm_packages_xml, conary_packages_xml, services_xml, values_xml, preview_xml, configurator_nodes
+        descriptors_xml = etree.Element('config_properties_descriptor')
+        descriptors = Descriptors()
+        raw_desc = descriptors.toxml()
+        #FIXME UGLY... have to remove the xsd from the configuration_descriptor 
+        # so that we don't get them later. I know there is an easier fix just 
+        # need to think about it.
+        rep = [ x for x in raw_desc.split('\n') if x.startswith('<configuration_descriptor')][0]
+        descriptors_namespace_fix = etree.fromstring(raw_desc.replace(rep, '<configuration_descriptor>'))
+        descriptors_xml.append(descriptors_namespace_fix)
+        # END FIXME
+        return rpm_packages_xml, conary_packages_xml, services_xml, values_xml, preview_xml, configurator_nodes, descriptors_xml
 
     def toxml(self):
         root = etree.Element('survey')
         etree.SubElement(root, 'created_date').text = str(int(time.time()))
-        rpm_packages, conary_pkgs, services, values, preview, configurators = self.scan()
+        rpm_packages, conary_pkgs, services, values, preview, configurators, descriptors = self.scan()
         root.append(rpm_packages)
         root.append(conary_pkgs)
         root.append(services)
         root.append(values)
         root.append(preview)
+        root.append(descriptors)
         for node in configurators:
             root.append(node)
         return root
