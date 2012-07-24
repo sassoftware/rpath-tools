@@ -21,9 +21,9 @@ class Descriptors(object):
         desc.addDescription('ConfigurationDescriptor')
         return desc
 
-    def toxml(self):
+    def toxml(self, validate=False):
         desc = self.gather()
-        return  desc.toxml()
+        return  desc.toxml(validate=validate)
 
 if __name__ == '__main__':
     import sys
