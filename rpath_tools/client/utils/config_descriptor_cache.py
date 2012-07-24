@@ -105,7 +105,7 @@ class ConfigDescriptorCache(object):
             # use cached copy
             if nvf in self._desc_cache:
                 desc = self._desc_cache.get(nvf)
-                descs.append(desc)
+                descs.append((nvf.name, desc))
                 continue
 
             # if properties is None, then this nvf has no properties.
