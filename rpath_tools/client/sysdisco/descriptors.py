@@ -17,13 +17,16 @@ class Descriptors(object):
                     x[0].endswith('-appliance') ][0]
 
         desc = ConfigDescriptorCache(self.client.getDatabase()).getDescriptor(group)
-        desc.setDisplayName('ConfigurationDescriptor')
-        desc.addDescription('ConfigurationDescriptor')
+        if desc:
+            desc.setDisplayName('ConfigurationDescriptor')
+            desc.addDescription('ConfigurationDescriptor')
         return desc
 
     def toxml(self, validate=False):
         desc = self.gather()
-        return  desc.toxml(validate=validate)
+        if desc:
+            return  desc.toxml(validate=validate)
+        return desc
 
 if __name__ == '__main__':
     import sys
