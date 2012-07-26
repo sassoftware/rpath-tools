@@ -23,10 +23,9 @@ import time
 from conary.lib import util
 
 from rpath_tools.client import config
-from rpath_tools.client import utils
 
 from xml.etree import cElementTree as etree
-from rpath_tools.client.sysdisco import scanner, updater
+from rpath_tools.client.sysdisco import scanner
 
 from rpath_tools.client.register import LocalUuid, GeneratedUuid
 
@@ -181,11 +180,7 @@ class Scanner(object):
 
     def _scan_system(self, desiredTopLevelItems):
         uuid = self.generatedUuid
-        dom = self.surveyScanner.toxml()
-        if desiredTopLevelItems:
-            upd = updater.Updater()
-            fmt = upd.previewOperation(desiredTopLevelItems)
-            dom.append(fmt.root)
+        dom = self.surveyScanner.toxml(desiredTopLevelItems)
         etree.SubElement(dom, 'uuid').text = str(uuid)
         xml = etree.tostring(dom)
         return xml, uuid
