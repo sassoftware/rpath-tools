@@ -46,10 +46,11 @@ class Executioner(object):
 
     def _getEnviron(self):
         env = os.environ.copy()
-        p = parsevalues.ValuesParser(self.values_xml)
-        adds = p.parse()
-        if adds:
-            env.update(adds)
+        if os.path.exists(self.values_xml):
+            p = parsevalues.ValuesParser(self.values_xml)
+            adds = p.parse()
+            if adds:
+                env.update(adds)
         return env
 
     def _getScripts(self, scriptdir):

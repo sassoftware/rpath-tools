@@ -16,6 +16,9 @@
 import xml.etree.cElementTree as etree
 import collections
 
+class ValuesParserError(Exception):
+    "Raised when unable to read values.xml"
+
 class ValuesParser(object):
 
     def __init__(self, values_xml):
@@ -23,7 +26,10 @@ class ValuesParser(object):
         self.que =  collections.deque([])
 
     def _root(self, values_xml):
-        tree = etree.ElementTree(file=values_xml)
+        try:
+            tree = etree.ElementTree(file=values_xml)
+        except Exception, e:
+            raise ValuesParserError, e
         root = tree.getroot()
         return root
 
