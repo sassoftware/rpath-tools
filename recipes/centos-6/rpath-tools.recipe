@@ -42,13 +42,13 @@ class Ractivate(RpathPackageRecipe):
         r.MakeDirs('%(prefix)s/lib/rpath-tools/write.d')
         r.MakeDirs('%(prefix)s/lib/rpath-tools/validate.d')
         r.MakeDirs('%(prefix)s/lib/rpath-tools/discover.d')
-        r.MakeDirs('%(localstatedir)s/lib/rpath-tools/')
+        r.MakeDirs('%(localstatedir)s/lib/rpath-tools')
 
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/read.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/write.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/validate.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/discover.d')
-        r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools/')
+        r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools')
 
 
         # Fix init script to use the proper initdir
