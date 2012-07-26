@@ -11,6 +11,7 @@ from configurators import valuesXmlPath
 from preview import Preview
 from descriptors import Descriptors
 
+import sys 
 import time
 import os
 
@@ -56,13 +57,13 @@ class SurveyScanner(object):
         for result in conary_xml:
             conary_pkgs_xml.append(result)
         return rpm_pkgs_xml, conary_pkgs_xml
-
+        
     def getValuesXML(self):
         values_xml = etree.Element('config_properties')
         if os.path.exists(valuesXmlPath):
             values_xml.append(etree.parse(valuesXmlPath).getroot())
         return values_xml
-
+ 
     def getPreviewXML(self, sources=None):
         preview = Preview()
         raw_preview_xml = preview.preview(sources)
@@ -79,8 +80,17 @@ class SurveyScanner(object):
         configurators = RunConfigurators()
         configurators_xml = configurators.toxml()
         configurator_nodes = []
-        for nodes in configurators_xml.getchildren():
-            configurator_nodes.append(nodes)
+        for node in configurators_xml.getchildren():
+            if node.tag == 'validation_report':
+                validate = 'pass'
+                status_node = etree.SubElement(node, 'status')
+                results = node.findall('.//success')
+                results.append(node.findall('.//status'))
+                if 'false' or 'fail' in results.lower():
+                    validate = 'fail'
+                status_node.text = validate
+                configurator_nodes.append(status_node)
+            configurator_nodes.append(node)
         return configurator_nodes
 
     def getDescriptors(self):
