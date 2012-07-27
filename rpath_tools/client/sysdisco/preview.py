@@ -73,11 +73,19 @@ class Preview(object):
         signal.signal(signal.SIGUSR1, signal.SIG_DFL)
 
 
-    def updateOperation(self, job, sources, flags):
+    def updateOperation(self, sources, flags, callback=None):
         trvSpecList = [ self.parseTroveSpec(x) for x in sources ]
         jobList = [ (x[0], (None, None), (x[1], x[2]), True)
             for x in trvSpecList ]
         cclient = self.conaryClient
+        topLevelItems = cclient.getUpdateItemList()
+        observed = 'None'
+        desired = 'None'
+        if topLevelItems:
+            observed = '%s=%s[%s]' % topLevelItems[0]
+        if sources:
+            desired = sources[0]
+        cclient.setUpdateCallback(callback)
         try:
             updateJob = self._newUpdateJob(jobList, flags)
         except NoUpdatesFound:
@@ -86,6 +94,8 @@ class Preview(object):
             return fmt.toxml()
         fmt = update_job_formatter.Formatter(updateJob)
         fmt.format()
+        etree.SubElement(fmt.root, 'observed').text = observed
+        etree.SubElement(fmt.root, 'desired').text = desired
         if flags.test:
             return fmt.toxml()
         # NEVER RUN THIS NEVER
@@ -99,11 +109,10 @@ class Preview(object):
 
     def preview(self, sources):
         flags = UpdateFlags(migrate=False,test=True)
-        job = None
-        xml = self.updateOperation(job, sources, flags)
+        xml = self.updateOperation(sources, flags)
         if xml:
             return xml
-        return etree.Element('preview')
+        return '<preview/>'
 
 if __name__ == '__main__':
     import sys
