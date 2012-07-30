@@ -89,9 +89,7 @@ class Preview(object):
         try:
             updateJob = self._newUpdateJob(jobList, flags)
         except NoUpdatesFound:
-            fmt = update_job_formatter.Formatter(None)
-            fmt.format()
-            return fmt.toxml()
+            updateJob = None
         fmt = update_job_formatter.Formatter(updateJob)
         fmt.format()
         etree.SubElement(fmt.root, 'observed').text = observed
