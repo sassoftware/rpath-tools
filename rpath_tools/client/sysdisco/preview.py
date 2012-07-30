@@ -82,7 +82,7 @@ class Preview(object):
         observed = 'None'
         desired = 'None'
         if topLevelItems:
-            topLevelItem = [ n for n,v,f in topLevelItems if
+            topLevelItem = [ (n,v,f) for n,v,f in topLevelItems if
                     n.startswith('group-') and n.endswith('-appliance') ][0]
             if topLevelItem:
                 observed = '%s=%s[%s]' % topLevelItem
