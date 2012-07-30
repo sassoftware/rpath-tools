@@ -82,7 +82,10 @@ class Preview(object):
         observed = 'None'
         desired = 'None'
         if topLevelItems:
-            observed = '%s=%s[%s]' % topLevelItems[0]
+            topLevelItem = [ n for n,v,f in topLevelItems if
+                    n.startswith('group-') and n.endswith('-appliance') ][0]
+            if topLevelItem:
+                observed = '%s=%s[%s]' % topLevelItem
         if sources:
             desired = sources[0]
         cclient.setUpdateCallback(callback)
@@ -106,7 +109,7 @@ class Preview(object):
         return never
 
     def preview(self, sources):
-        flags = UpdateFlags(migrate=False,test=True)
+        flags = UpdateFlags(migrate=True,test=True)
         xml = self.updateOperation(sources, flags)
         if xml:
             return xml
