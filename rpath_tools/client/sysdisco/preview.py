@@ -74,20 +74,30 @@ class Preview(object):
 
 
     def updateOperation(self, sources, flags, callback=None):
-        trvSpecList = [ self.parseTroveSpec(x) for x in sources ]
-        jobList = [ (x[0], (None, None), (x[1], x[2]), True)
-            for x in trvSpecList ]
+        '''Use updateOperation to create a preview by setting flag.test'''
         cclient = self.conaryClient
+        trvSpecList = [ self.parseTroveSpec(x) for x in sources ]
         topLevelItems = cclient.getUpdateItemList()
         observed = 'None'
         desired = 'None'
         if topLevelItems:
+            # Setting observed topLevelItem... topLevelItems can be a 
+            # list of troves including the appliance group
+            # we only want the appliance group for now
             topLevelItem = [ (n,v,f) for n,v,f in topLevelItems if
                     n.startswith('group-') and n.endswith('-appliance') ][0]
             if topLevelItem:
                 observed = '%s=%s[%s]' % topLevelItem
+            # FIXME If trvSpecList is empty assume we are running 
+            # the scanner at command line so set trvSpecList equal to
+            # local top level group. Need to make sure this doesn't mess
+            # with cim survey
+        if not trvSpecList:
+            trvSpecList = [ self.parseTroveSpec(topLevelItem) ]
         if sources:
             desired = sources[0]
+        jobList = [ (x[0], (None, None), (x[1], x[2]), True)
+            for x in trvSpecList ]
         cclient.setUpdateCallback(callback)
         try:
             updateJob = self._newUpdateJob(jobList, flags)
