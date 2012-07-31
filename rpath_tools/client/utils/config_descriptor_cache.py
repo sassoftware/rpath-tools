@@ -181,22 +181,33 @@ class ConfigDescriptorCache(object):
         # More than one descriptor was found for this nvf, wrap it in a
         # complex data type.
         else:
-            desc = self._populateDescriptor(
-                [ (x.getDisplayName().replace(' ', '_').lower(), x)
-                    for x in descs ])
+            desc = self._populateDescriptor([ (nvf.name, x) for x in descs ])
 
         return desc
 
     def _populateDescriptor(self, descs):
         desc = SystemConfigurationDescriptor()
 
+        fields = {}
+        sections = {}
         for name, subDesc in descs:
-            desc.addDataField(
-                name,
-                type=desc.CompoundType(subDesc),
-                required=True,
-                descriptions=subDesc.getDescriptions(),
-            )
+            if ':' in name:
+                name = name.split(':')[0]
+            for field in subDesc.getDataFields():
+                section = field.get_section()
+                if section:
+                    sections.setdefault(section.get_key(), list()).append(field)
+                else:
+                    section = desc.xmlFactory().sectionTypeSub.factory()
+                    section.set_key(name)
+                    field.set_section(section)
+                    fields.setdefault(name, list()).append(field)
+
+        df = desc.getDataFields()
+        df.extend(itertools.chain(*
+            [ y for x, y in sorted(fields.iteritems(), key=lambda x: x[0]) ]))
+        df.extend(itertools.chain(*
+            [ y for x, y in sorted(sections.iteritems(), key=lambda x: x[0]) ]))
 
         return desc
 
