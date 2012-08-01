@@ -59,7 +59,7 @@ class Preview(object):
         except conaryclient.NoNewTrovesError:
             raise NoUpdatesFound
         except conaryclient.errors.RepositoryError, e:
-            raise RepositoryError, e, sys.exc_info()[2]
+            raise RepositoryError, e
         return updateJob
 
     def _fixSignals(self):
