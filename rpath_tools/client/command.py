@@ -33,6 +33,11 @@ from rpath_tools.client.utils.tmpwatcher import TmpWatcher
 logger = logging.getLogger('client')
 
 class RpathToolsCommand(command.AbstractCommand):
+
+    def addParameters(self, argDef):
+        command.AbstractCommand.addParameters(self, argDef)
+        argDef['quiet'] = options.NO_PARAM
+
     def runCommand(self, *args, **kw):
         pass
 
@@ -110,7 +115,6 @@ class RegistrationCommand(RpathToolsCommand):
                 self.cfg.contactTimeoutInterval * 60 * 60)
         if timedOut:
             logger.info('Poll timeout exceeded, running registration.')
-            print 'Poll timeout exceeded, running registration.'
         else:
             logger.info('Poll timeout not exceeded.')
         return timedOut
@@ -120,7 +124,6 @@ class RegistrationCommand(RpathToolsCommand):
                 self.cfg.registrationInterval * 60 * 60)
         if timedOut:
             logger.info('Registration interval exceeded, running registration.')
-            print 'Registration interval exceeded, running registration.'
         else:
             logger.info('Registration interval not exceeded.')
         return timedOut
@@ -155,11 +158,8 @@ class RegistrationCommand(RpathToolsCommand):
         self.randomWait = argSet.pop('random-wait', None)
 
         if not self.shouldRun():
-            print 'Registration not needed.'
             logger.info('Registration Client will not run, exiting.')
             sys.exit(2)
-        else:
-            print 'Registration needed'
 
         if self.randomWait:
             logger.debug('--random-wait specified.')
@@ -176,7 +176,6 @@ class RegistrationCommand(RpathToolsCommand):
         if not remote:
             msg = "No remote server found to register with.  " + \
                 "Check that either directMethod or slpMethod is configured correctly."
-            print msg
             logger.error(msg)
             sys.exit(2)
 
@@ -189,7 +188,6 @@ class RegistrationCommand(RpathToolsCommand):
             hostname = hwData.getHostname()
         except Exception, e:
             logger.error("Error fetching hardware information of system")
-            print "Error fetching hardware information of system"
             logger.error(e)
             raise e
 
@@ -229,13 +227,12 @@ class RegistrationCommand(RpathToolsCommand):
         system.set_networks(networks)
         logger.info('Registering System with local uuid %s and generated '
                     'uuid %s' % (system.local_uuid, system.generated_uuid))
-        print "  Registering system..."
         success = registration.registerSystem(system)
         if not success:
-            print 'Failure'
+            logger.error("Registration failed")
             return 1
         self._cleanup()
-        print 'Complete.'
+        logger.info("Registration complete")
         return 0
 
     def _cleanup(self):
@@ -257,10 +254,6 @@ class ConfigCommand(RpathToolsCommand):
     help = 'Display the current configuration'
     
     def runCommand(self, cfg, argSet, args, **kwargs):
-        try:
-            prettyPrint = sys.stdout.isatty()
-        except AttributeError:
-            prettyPrint = False
         cfg.setDisplayOptions(hidePasswords=True,
                               showContexts=False,
                               prettyPrint=True,
@@ -284,12 +277,12 @@ class HelpCommand(RpathToolsCommand):
             command = subCommands[0]
             commands = self.mainHandler._supportedCommands
             if not command in commands:
-                print "%s: no such command: '%s'" % (self.mainHandler.name,
-                                                     command)
+                print >> sys.stderr, "%s: no such command: '%s'" % (
+                        self.mainHandler.name, command)
                 sys.exit(1)
-            print commands[command].usage()
+            print >> sys.stderr, commands[command].usage()
         else:
-            print self.mainHandler.usage()
+            print >> sys.stderr, self.mainHandler.usage()
 
 class IConfigCommand(RpathToolsCommand):
     commands = ['iconfig']
@@ -300,6 +293,7 @@ class IConfigCommand(RpathToolsCommand):
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         sts = p.wait()
         print p.stdout.read()
+        return sts
 
 
 class ScanCommand(RpathToolsCommand):
@@ -309,8 +303,7 @@ class ScanCommand(RpathToolsCommand):
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
-        scanData = scan.main(self.cfg)
-        return scanData
+        scan.main(self.cfg)
 
 class ConfiguratorCommand(RpathToolsCommand):
     commands = ['configurator', 'read', 'write', 'validate', 'discover']
@@ -321,8 +314,7 @@ class ConfiguratorCommand(RpathToolsCommand):
         self.cfg = args[0]
         self.command_types = [ 'read', 'write', 'validate', 'discover' ]
         self.configurators = [ x for x in args[-1] if x in self.command_types ]
-        configuratorData = configurator.main(self.cfg, self.configurators)
-        return configuratorData
+        configurator.main(self.cfg, self.configurators)
 
 class TmpWatchCommand(RpathToolsCommand):
     commands = ['tmpwatch', 'delete']
@@ -337,6 +329,5 @@ class TmpWatchCommand(RpathToolsCommand):
         prefix = 'survey-'
         mtime = 10
         watch = TmpWatcher(self.cfg.scannerSurveyStore, mtime=mtime, prefix=prefix)
-        removed = watch.clean(delete=delete)
-        return removed
-
+        watch.clean(delete=delete)
+        return 0

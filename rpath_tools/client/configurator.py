@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2010 rPath, Inc.
+# Copyright (c) rPath, Inc.
 #
 # This program is distributed under the terms of the Common Public License,
 # version 1.0. A copy of this license should have been distributed with this
@@ -15,8 +15,6 @@
 
 import logging
 import sys
-import time
-
 
 from rpath_tools.client import config
 
@@ -55,25 +53,12 @@ class Configurator(object):
 
     def run(self):
         logger.info('Attempting to run configurators on %s' % self.localUuidObj.uuid)
-        print '  Attempting to run configurators on %s...' % self.localUuidObj.uuid
-        start = time.time()
-        start_proc = time.clock()
         configurated = self._execute()
         if configurated:
-            proctime = time.clock() - start_proc
-            scantime = time.time() - start
-            logger.info('    Configurators succeeded\n'
-                        '        Time     : %s\n'
-                        '        Process Time  : %s\n' %
-                            (scantime,proctime)
-                        )
-            print '  Configurators succeeded'
-            print '      Time     : %s' % scantime
-            print '      Process Time  : %s' % proctime
+            logger.info('Configurators succeeded')
             print etree.tostring(configurated)
             return True
-        print '  Configuration failed.  Check the log file at %s' % \
-            self.cfg.logFile
+        logger.error("Configuration failed")
         return False
 
 

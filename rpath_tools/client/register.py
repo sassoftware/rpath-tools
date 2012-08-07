@@ -446,8 +446,8 @@ class Registration(object):
                 self.updateRegistrationFile()
                 return True
 
-        print '  Registration failed.  Check the log file at %s' % \
-            self.cfg.logFile
+        logger.error('  Registration failed.  Check the log file at %s',
+                self.cfg.logFile)
         return False
 
     def registerDirect(self, systemXml):
@@ -517,7 +517,6 @@ class Registration(object):
 
     def _register_system(self, remote, systemXml):
         logger.info('Attempting registration with %s' % remote)
-        print '  Attempting registration with %s...' % remote,
 
         regClient = self._getRegistrationClient(remote)
         sleepTime = 0
@@ -536,10 +535,8 @@ class Registration(object):
 
             if registered:
                 logger.info('Registration with %s successful' % remote)
-                print "successful."
                 return regClient.system
-            print "failed."
-            logger.info('Registration with %s failed.' % remote)
+            logger.error('Registration with %s failed.' % remote)
             sleepInc = (self.cfg.retrySlotTime * 2**attempts) - sleepTime
             randSleepInc = random.random() * sleepInc
             sleepTime = sleepTime + int(randSleepInc)

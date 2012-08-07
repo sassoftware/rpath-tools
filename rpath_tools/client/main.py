@@ -17,12 +17,16 @@ import errno
 import logging
 import sys
 
+from conary.lib import log as cny_log
 from conary.lib import mainhandler
 
 from rpath_tools.client import command
 from rpath_tools.client import config
 from rpath_tools.client import constants
 from rpath_tools.client import errors
+
+logger = logging.getLogger('client')
+
 
 class RpathToolsMain(mainhandler.MainHandler):
 
@@ -38,29 +42,33 @@ class RpathToolsMain(mainhandler.MainHandler):
 
     setSysExcepthook = False
 
-    def configureLogging(self, logFile, debug):
-        global logger
-        logger = logging.getLogger('client')
-        logger.setLevel(logging.INFO)
-        handler = logging.FileHandler(logFile)
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-
+    def configureLogging(self, logFile, debug, quiet):
         if debug:
-            logger.setLevel(logging.DEBUG)
-            streamHandler = logging.StreamHandler(sys.stdout)
-            streamHandler.setFormatter(formatter)
-            logger.addHandler(streamHandler)
+            consoleLevel = logging.DEBUG
+            fileLevel = logging.DEBUG
+        elif quiet:
+            consoleLevel = logging.ERROR
+            fileLevel = logging.INFO
+        else:
+            consoleLevel = logging.INFO
+            fileLevel = logging.INFO
+        cny_log.setupLogging(
+                logPath=logFile,
+                consoleLevel=consoleLevel,
+                consoleFormat='apache',
+                fileLevel=fileLevel,
+                fileFormat='apache',
+                logger='client',
+                )
 
-
-    def runCommand(self, command, *args, **kw):
-        cfg = args[0]
-        self.configureLogging(cfg.logFile, cfg.debugMode)
-        logger.info("Starting run of rPath Tools registration...")
+    def runCommand(self, command, cfg, argSet, *args, **kw):
+        debug = cfg.debugMode
+        quiet = argSet.get('quiet', False)
+        self.configureLogging(cfg.logFile, debug, quiet)
         logger.info("Running command: %s" % command.commands[0])
-        response = mainhandler.MainHandler.runCommand(self, command, *args, **kw)
-        logger.info('rPath Tools registration exiting.')
+        response = mainhandler.MainHandler.runCommand(self, command, cfg,
+                argSet, *args, **kw)
+        logger.info("Command finished: %s" % command.commands[0])
         return response
 
 def _main(argv, MainClass):

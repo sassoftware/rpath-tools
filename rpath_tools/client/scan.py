@@ -124,7 +124,6 @@ class Scanner(object):
 
     def scanSystem(self):
         logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
-        print '  Attempting to run survey on %s...' % self.localUuidObj.uuid
         start = time.time()
         start_proc = time.clock()
         surveyed = self._scanner([])
@@ -137,13 +136,7 @@ class Scanner(object):
                         '        Process Time  : %s\n' %
                             (surveyed, scantime,proctime)
                         )
-            print '  Survey succeeded'
-            print '      Survey File   : %s' % surveyed
-            print '      Scan Time     : %s' % scantime
-            print '      Process Time  : %s' % proctime
             return True
-        print '  Survey failed.  Check the log file at %s' % \
-            self.cfg.logFile
         return False
 
     def scanSystemCIM(self, desiredTopLevelItems):
