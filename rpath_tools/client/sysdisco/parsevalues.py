@@ -14,7 +14,6 @@
 #
 
 import xml.etree.cElementTree as etree
-import collections
 
 class ValuesParserError(Exception):
     "Raised when unable to read values.xml"
@@ -23,7 +22,7 @@ class ValuesParser(object):
 
     def __init__(self, values_xml):
         self.xml = self._root(values_xml)
-        self.que =  collections.deque([])
+        self.values = {}
 
     def _root(self, values_xml):
         try:
@@ -33,19 +32,20 @@ class ValuesParser(object):
         root = tree.getroot()
         return root
 
-    def _parse(self, prefix, node):
-        for element in node:
-            name = "__".join([ prefix, element.tag ]).upper()
-            if element.attrib and element.attrib["list"] == "true":
-                self.que.append((name, etree.tostring(element)))
-                continue
-            if element.getchildren():
-                self._parse(name, element)
-                continue
-            self.que.append((name, element.text))
-
     def parse(self):
-        top_que = collections.deque([ (x.tag, x) for x in self.xml ])
-        for prefix, node in top_que:
-            self._parse(prefix, node)
-        return dict(self.que)
+        self.values = {}
+        self._parse(self.xml, prefix=None)
+        return self.values
+
+    def _parse(self, node, prefix):
+        for element in node:
+            name = element.tag.upper()
+            if prefix:
+                name = prefix + '__' + name
+
+            if element.attrib and element.attrib["list"] == "true":
+                self.values[name] = etree.tostring(element)
+            elif element.getchildren():
+                self._parse(element, prefix=name)
+            else:
+                self.values[name] = element.text
