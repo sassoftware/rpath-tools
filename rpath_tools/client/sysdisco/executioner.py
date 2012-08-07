@@ -2,7 +2,9 @@ import os
 import subprocess
 import inspect
 import parsevalues
+import traceback
 import xml.etree.cElementTree as etree
+
 
 class BaseSlots(object):
     __slots__ = []
@@ -65,20 +67,17 @@ class Executioner(object):
         return scripts
 
     def _runProcess(self, cmd, env, returncode=0):
-        '''cmd @ [ '/sbin/service', 'name', 'status' ]'''
-        #TODO mkdtemp;cd to tmp;execute;nuke tmpdir
-        #TODO fix buffer issue with communicate
         try:
             proc = subprocess.Popen(cmd, shell=False, stdin=None,
-                        stdout=subprocess.PIPE , stderr=subprocess.PIPE,
-                        env=env)
-            stdout, stderr = proc.communicate()        
-            proc.poll()
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+            stdout, stderr = proc.communicate()
             if proc.returncode:
                 returncode = proc.returncode
             return stdout.decode("UTF8"), stderr.decode("UTF8"), returncode
         except Exception, ex:
-            return ex
+            msg = "Failed to execute script: %s\n" % str(ex)
+            msg += traceback.format_exc()
+            return '', msg, 70
 
     def _execute(self, script):
         env = self._getEnviron()
