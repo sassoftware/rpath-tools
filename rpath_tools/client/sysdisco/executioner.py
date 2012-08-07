@@ -66,14 +66,12 @@ class Executioner(object):
             raise Exception
         return scripts
 
-    def _runProcess(self, cmd, env, returncode=0):
+    def _runProcess(self, cmd, env):
         try:
             proc = subprocess.Popen(cmd, shell=False, stdin=None,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
             stdout, stderr = proc.communicate()
-            if proc.returncode:
-                returncode = proc.returncode
-            return stdout.decode("UTF8"), stderr.decode("UTF8"), returncode
+            return stdout.decode("UTF8"), stderr.decode("UTF8"), proc.returncode
         except Exception, ex:
             msg = "Failed to execute script: %s\n" % str(ex)
             msg += traceback.format_exc()
@@ -99,13 +97,15 @@ class Executioner(object):
         xml = etree.Element('configurator')
         results = self.execute()
         for result in results:
-            stub = self._errorXml(result)
             if result.stdout:
                 try:
-                    stub = etree.fromstring(result.stdout)
+                    xml.append(etree.fromstring(result.stdout))
                 except SyntaxError:
                     pass
-            xml.append(stub)
+            elif result.returncode:
+                xml.append(self._errorXml(result))
+            # TODO: is it a fatal error if a non-write script prints nothing
+            # but exits with status 0?
         return xml
 
     def tostdout(self):
