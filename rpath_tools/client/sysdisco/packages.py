@@ -296,8 +296,8 @@ class PackageScanner(object):
         for pkg in troves.itervalues():
             nodeId = self._idfactory.getId(pkg)
             node = pkg.toxml(nodeId)
-            if pkg.nevra:
-                rpminfo = rpms.get(pkg.nevra)
+            rpminfo = rpms.get(pkg.nevra) if pkg.nevra else None
+            if rpminfo:
                 rpmId = self._idfactory.getId(rpminfo)
                 child = node.find('.//conary_package_info')
                 child.append(rpminfo.toXmlInfo(rpmId))
