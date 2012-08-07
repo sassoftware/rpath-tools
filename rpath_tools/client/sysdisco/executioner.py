@@ -57,7 +57,7 @@ class Executioner(object):
         scripts = []
         if os.path.exists(scriptdir):
             scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x)) 
-                            for x in os.listdir(scriptdir) 
+                            for x in sorted(os.listdir(scriptdir))
                             if os.access(os.path.join(scriptdir, x), os.X_OK) ]
             scripts.sort()
         else:
