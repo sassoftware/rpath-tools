@@ -48,4 +48,4 @@ class ValuesParser(object):
             elif element.getchildren():
                 self._parse(element, prefix=name)
             else:
-                self.values[name] = element.text
+                self.values[name] = element.text or ''
