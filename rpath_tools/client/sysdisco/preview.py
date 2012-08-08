@@ -1,6 +1,7 @@
 from conary import conarycfg
 from conary import conaryclient
 from conary import updatecmd
+from conary import versions
 
 from xml.etree import cElementTree as etree
 
@@ -48,6 +49,12 @@ class Preview(object):
     @classmethod
     def parseTroveSpec(cls, troveSpec):
         n, v, f = conaryclient.cmdline.parseTroveSpec(troveSpec)
+        try:
+            # Conary doesn't like being passed frozen versions, so try to parse
+            # it and if it works use the object.
+            v = versions.ThawVersion(v)
+        except ValueError:
+            pass
         return (n, v, f)
 
     def _newUpdateJob(self, applyList, flags):
