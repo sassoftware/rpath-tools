@@ -100,7 +100,7 @@ class Preview(object):
             # local top level group. Need to make sure this doesn't mess
             # with cim survey
         if not trvSpecList:
-            trvSpecList = [ self.parseTroveSpec(topLevelItem) ]
+            trvSpecList = [ topLevelItem ]
         if sources:
             desired = sources[0]
         jobList = [ (x[0], (None, None), (x[1], x[2]), True)
