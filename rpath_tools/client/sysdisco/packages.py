@@ -157,6 +157,10 @@ class ConaryInfo(namedtuple('ConaryInfo', 'nvf description revision '
 
 
 class SystemModel(conaryclient.systemmodel.SystemModelFile):
+    def __init__(self, sysmodel):
+        super(SystemModel, self).__init__(
+            sysmodel.model, sysmodel.fileName)
+
     def toxml(self):
         root = etree.Element('system_model')
         etree.SubElement(root, 'contents').text = self.contents
@@ -207,7 +211,7 @@ class ConaryScanner(AbstractPackageScanner):
         sysmodel = self.client.getSystemModel()
         if sysmodel is None:
             return None
-        return SystemModel(*sysmodel)
+        return SystemModel(sysmodel)
 
     def scan(self):
         if self._results:

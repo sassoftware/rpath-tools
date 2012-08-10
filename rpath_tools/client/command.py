@@ -210,7 +210,7 @@ class RegistrationCommand(RpathToolsCommand):
 
         try:
             logger.info("Running system scan...")
-            survey = scan.SurveyScanner(origin="registration").toxml()
+            survey = scan.scanner.SurveyScanner(origin="registration").toxml()
         except Exception, e:
             logger.info("System scan failed: %s", str(e))
             # Save the exception

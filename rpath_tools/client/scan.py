@@ -45,7 +45,6 @@ class Scanner(object):
     def __init__(self, cfg, deviceName=None):
         self.cfg = cfg
         self.surveyScanner = scanner.SurveyScanner()
-        self.generatedUuid = GeneratedUuid().uuid
         self.localUuidObj = LocalUuid(self.cfg.localUuidFilePath,
                                  self.cfg.localUuidOldDirectoryPath,
                                  deviceName)
@@ -69,7 +68,7 @@ class Scanner(object):
         Write the Survey to the store, using the supplied uid and gid
         """
         if not uuid:
-            uuid = self.generatedUuid
+            uuid = self.surveyScanner.uuid
         self.surveyPath = os.path.join(store, 'survey-%s.xml' % uuid )
         if self.surveyPath is None:
             # Already written
@@ -172,11 +171,9 @@ class Scanner(object):
 
 
     def _scan_system(self, desiredTopLevelItems):
-        uuid = self.generatedUuid
         dom = self.surveyScanner.toxml(desiredTopLevelItems)
-        etree.SubElement(dom, 'uuid').text = str(uuid)
         xml = etree.tostring(dom)
-        return xml, uuid
+        return xml, self.surveyScanner.uuid
 
 
 if __name__ == '__main__':

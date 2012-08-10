@@ -14,6 +14,7 @@ from descriptors import Descriptors
 import sys 
 import time
 import os
+import uuid
 
 
 class SurveyScanner(object):
@@ -21,6 +22,7 @@ class SurveyScanner(object):
         self._serviceScanner = ServiceScanner(ServiceInfo)
         self._packageScanner = PackageScanner(IDFactory())
         self.origin = origin
+        self.uuid = None
 
     def _getServices(self):
         return self._serviceScanner.getServices()
@@ -116,6 +118,7 @@ class SurveyScanner(object):
         return descriptors_xml
 
     def scan(self, sources=None):
+        self.uuid = uuid.uuid4()
         self.sources = []
         if sources:
             self.sources = sources
@@ -128,12 +131,14 @@ class SurveyScanner(object):
         return rpm_xml, conary_xml, services_xml, values_xml, preview_xml, configurator_nodes, descriptors_xml
 
     def toxml(self, sources=None):
+        # Scan first. This will create the new uuid
+        rpm_pkgs, conary_pkgs, services, values, preview, configurators, descriptors = self.scan(sources)
         root = etree.Element('survey')
+        etree.SubElement(root, 'uuid').text = str(self.uuid)
         etree.SubElement(root, 'created_date').text = str(int(time.time()))
         sysmodel = self._packageScanner.getSystemModel()
         if sysmodel is not None:
             root.append(sysmodel.toxml())
-        rpm_pkgs, conary_pkgs, services, values, preview, configurators, descriptors = self.scan(sources)
         root.append(rpm_pkgs)
         root.append(conary_pkgs)
         root.append(services)
