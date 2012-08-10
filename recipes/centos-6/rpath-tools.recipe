@@ -19,6 +19,7 @@ class Ractivate(RpathPackageRecipe):
         'pywbem-conary:python',
         'net-tools:rpm',
         'rpath-models:python',
+        'smartform:python',
     ]
 
     def setup(r):

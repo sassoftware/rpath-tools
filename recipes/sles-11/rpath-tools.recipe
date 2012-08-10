@@ -18,6 +18,7 @@ class Ractivate(RpathPackageRecipe):
         'net-tools:rpm',
         'rpath-models:python',
         'm2crypto-conary:python',
+        'smartform:python',
     ]
 
     def setup(r):

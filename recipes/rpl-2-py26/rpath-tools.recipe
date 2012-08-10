@@ -16,6 +16,7 @@ class Ractivate(PackageRecipe):
         'rpath-models:python',
         'rpm:python',
         'util-linux:runtime',
+        'smartform:python',
     ]
 
     def setup(r):
