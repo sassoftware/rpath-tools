@@ -18,6 +18,7 @@ import random
 import subprocess
 import sys
 import time
+import StringIO
 
 from conary.lib import command, util, options
 
