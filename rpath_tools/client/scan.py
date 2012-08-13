@@ -51,6 +51,7 @@ class Scanner(object):
         self.targetSystemId = self.localUuidObj.targetSystemId
         self.surveyPath = None
         self.survey = None
+        self.surveyUuid = None
 
     def setDeviceName(self, deviceName):
         self.localUuidObj.deviceName = deviceName
@@ -160,7 +161,7 @@ class Scanner(object):
 
 
     def _scanner(self, desiredTopLevelItems):
-        self.survey, uuid = self._scan_system(desiredTopLevelItems)
+        self.survey, self.surveyUuid = self._scan_system(desiredTopLevelItems)
         if self.survey is None:
             return self.survey
         # If the server returned something back, save
