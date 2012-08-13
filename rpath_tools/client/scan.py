@@ -37,7 +37,7 @@ def main(cfg=None):
         cfg.topDir = '/etc/conary'
     r = Scanner(cfg)
     r.scanSystem()
-    return r.generatedUuid, r.surveyPath
+    return r.surveyScanner.uuid, r.surveyPath
 
 
 class Scanner(object):
