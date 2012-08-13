@@ -31,6 +31,14 @@ class Formatter(object):
             for j in oneJob:
                 self._formatJob(j)
 
+    def addObservedVersion(self, troveTup):
+        etree.SubElement(self.root, 'observed').text = troveTup.asString(
+                withTimestamp=True)
+
+    def addDesiredVersion(self, troveTup):
+        etree.SubElement(self.root, 'desired').text = troveTup.asString(
+                withTimestamp=True)
+
     def toxml(self):
         return etree.tostring(self.root)
 
@@ -56,7 +64,8 @@ class Formatter(object):
         self._packageSpec(node, 'from_conary_package', name, oldVersion, oldFlavor)
         self._packageSpec(node, 'to_conary_package', name, newVersion, newFlavor)
         diff = etree.SubElement(node, 'conary_package_diff')
-        self._fieldDiff(diff, 'version', oldVersion, newVersion)
+        self._fieldDiff(diff, 'version',
+                oldVersion.freeze(), newVersion.freeze())
         self._fieldDiff(diff, 'flavor', oldFlavor, newFlavor)
 
     def _newPackageChange(self, type):
@@ -67,7 +76,7 @@ class Formatter(object):
     def _packageSpec(self, parent, tag, name, version, flavor):
         node = etree.SubElement(parent, tag)
         etree.SubElement(node, 'name').text = str(name)
-        etree.SubElement(node, 'version').text = str(version)
+        etree.SubElement(node, 'version').text = version.freeze()
         etree.SubElement(node, 'flavor').text = str(flavor)
         return node
 
@@ -77,4 +86,3 @@ class Formatter(object):
         node = etree.SubElement(parent, tag)
         etree.SubElement(node, 'from').text = str(oldValue)
         etree.SubElement(node, 'to').text = str(newValue)
-

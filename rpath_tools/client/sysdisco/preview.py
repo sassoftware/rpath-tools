@@ -1,9 +1,8 @@
 from conary import conarycfg
 from conary import conaryclient
+from conary import trovetup
 from conary import updatecmd
 from conary import versions
-
-from xml.etree import cElementTree as etree
 
 from rpath_tools.client.utils import update_job_formatter
 
@@ -36,8 +35,8 @@ class ConaryClientFactory(object):
 class Preview(object):
     conaryClientFactory = ConaryClientFactory
 
-    def __init__(self):
-        self.cclient = None
+    def __init__(self, cclient=None):
+        self.cclient = cclient
 
     def _getClient(self, force=False):
         if self.cclient is None or force:
@@ -79,42 +78,52 @@ class Preview(object):
         signal.signal(signal.SIGQUIT, signal.SIG_DFL)
         signal.signal(signal.SIGUSR1, signal.SIG_DFL)
 
+    def getCurrentTop(self):
+        """Return the tuple for the present top-level group"""
+        topLevelItems = sorted(self.conaryClient.getUpdateItemList())
+        for name, version, flavor in topLevelItems:
+            if name.startswith('group-') and name.endswith('-appliance'):
+                break
+        else:
+            return None
+        return trovetup.TroveTuple(name, version, flavor)
+
+    def getUpdatedTop(self, topTuple, updateJob):
+        """
+        Return the tuple for the new top-level group after applying an
+        update job.
+        """
+        for jobList in updateJob.getJobs():
+            for (name, (oldVersion, oldFlavor), (newVersion, newFlavor),
+                    isAbsolute) in jobList:
+                if name == topTuple.name:
+                    return trovetup.TroveTuple(name, newVersion, newFlavor)
+        # Not mentioned, so reuse the old version. Migrating to "remediate" a
+        # system back to its nominal group would cause this, for example.
+        return topTuple
 
     def updateOperation(self, sources, flags, callback=None):
         '''Use updateOperation to create a preview by setting flag.test'''
         cclient = self.conaryClient
+        oldTop = self.getCurrentTop()
         trvSpecList = [ self.parseTroveSpec(x) for x in sources ]
-        topLevelItems = cclient.getUpdateItemList()
-        observed = 'None'
-        desired = 'None'
-        if topLevelItems:
-            # Setting observed topLevelItem... topLevelItems can be a 
-            # list of troves including the appliance group
-            # we only want the appliance group for now
-            topLevelItem = [ (n,v,f) for n,v,f in topLevelItems if
-                    n.startswith('group-') and n.endswith('-appliance') ][0]
-            if topLevelItem:
-                observed = '%s=%s[%s]' % topLevelItem
-            # FIXME If trvSpecList is empty assume we are running 
-            # the scanner at command line so set trvSpecList equal to
-            # local top level group. Need to make sure this doesn't mess
-            # with cim survey
         if not trvSpecList:
-            trvSpecList = [ topLevelItem ]
-        if sources:
-            desired = sources[0]
+            # No destination was provided, so use the existing version.
+            trvSpecList = [ oldTop ]
         jobList = [ (x[0], (None, None), (x[1], x[2]), True)
             for x in trvSpecList ]
         cclient.setUpdateCallback(callback)
         try:
             updateJob = self._newUpdateJob(jobList, flags)
+            newTop = self.getUpdatedTop(oldTop, updateJob)
         except NoUpdatesFound:
             updateJob = None
+            newTop = oldTop
         fmt = update_job_formatter.Formatter(updateJob)
         fmt.format()
-        etree.SubElement(fmt.root, 'observed').text = observed
-        etree.SubElement(fmt.root, 'desired').text = desired
-        if flags.test:
+        fmt.addDesiredVersion(newTop)
+        if flags.test or updateJob is None:
+            fmt.addObservedVersion(oldTop)
             return fmt.toxml()
         # NEVER RUN THIS NEVER
         # left this in for future
@@ -122,6 +131,9 @@ class Preview(object):
         if never:
             self._fixSignals()
             cclient.applyUpdateJob(updateJob, test=flags.test)
+            # Re-evaluate top level items now that the update is applied.
+            actualTop = self.getCurrentTop()
+            fmt.addObservedVersion(actualTop)
             return fmt.toxml()
         return never
 
