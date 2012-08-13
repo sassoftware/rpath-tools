@@ -27,7 +27,7 @@ from rpath_tools.client import config
 from xml.etree import cElementTree as etree
 from rpath_tools.client.sysdisco import scanner
 
-from rpath_tools.client.register import LocalUuid, GeneratedUuid
+from rpath_tools.client.register import LocalUuid
 
 logger = logging.getLogger('client')
 
@@ -166,7 +166,7 @@ class Scanner(object):
             return self.survey
         # If the server returned something back, save
         survey_path = self.writeSurveytoStore(self.survey,
-                        self.cfg.scannerSurveyStore, uuid=uuid,
+                        self.cfg.scannerSurveyStore, uuid=self.surveyUuid,
                         uid=None, gid=None)
         return survey_path
 
