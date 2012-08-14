@@ -35,6 +35,7 @@ class Executioner(object):
         root = etree.Element(result.name)
         errors = etree.SubElement(root, 'errors')
         errors_name = etree.SubElement(errors, result.name)
+        etree.SubElement(errors_name, 'name').text = result.name
         error_list = etree.SubElement(errors_name, 'error_list')
         error = etree.SubElement(error_list, 'error')
         etree.SubElement(error, 'code').text = "9999"
