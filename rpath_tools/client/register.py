@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2010 rPath, Inc.
+# Copyright (c) rPath, Inc.
 #
 # This program is distributed under the terms of the Common Public License,
 # version 1.0. A copy of this license should have been distributed with this
@@ -22,12 +22,12 @@ import pwd
 import re
 import subprocess
 import sys
-import tempfile
 import time
 
-from conary import conarycfg
 from conary.lib import digestlib
+from conary.lib import networking
 from conary.lib import util
+from conary.lib.http import request
 
 from rpath_tools.client import config
 from rpath_tools.client import errors
@@ -316,19 +316,34 @@ class Registration(object):
             os.chown(certPath, uid, gid)
         return certPath
 
-    def writeConaryProxy(self, remote):
+    def writeConaryProxies(self, remotes):
         """
         Management nodes should already be written as conaryProxies by the cim
         interface, but add an extra check here to be sure.
         """
-        conaryCfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        proxy = 'https://%s' % remote.split(':')[0]
-        if proxy not in conaryCfg.conaryProxy.values():
-            f = open(self.cfg.conaryProxyFilePath, 'wa')
-            logger.info("Writing %s as a conary proxy to %s" % \
-                (proxy, self.cfg.conaryProxyFilePath))
-            f.write('conaryProxy %s\n' % proxy)
-            f.close()
+        proxies = set()
+        for remote in remotes:
+            if not remote.strip():
+                continue
+            # Strip off port in a way that works for IPv4 and IPv6
+            # 1.2.3.4:8443 -> conarys://1.2.3.4
+            # [fd00::1234]:8443 -> conarys://[fd00::1234]
+            try:
+                host = networking.HostPort(remote).host
+            except ValueError:
+                continue
+            hostport = networking.HostPort(host, None)
+            url = request.URL(
+                    scheme='conarys',
+                    userpass=(None, None),
+                    hostport=hostport,
+                    path='',
+                    )
+            proxies.add(str(url))
+        if not proxies:
+            return
+        with open(self.cfg.conaryProxyFilePath, 'w') as f:
+            print >> f, 'proxyMap *', ' '.join(sorted(proxies))
 
     def removeIssuerFromStore(self, crt, store):
         certHash = crt.hash
@@ -462,6 +477,8 @@ class Registration(object):
             if actResp:
                 break
 
+        if actResp:
+            self.writeConaryProxies(self.cfg.directMethod)
         return actResp
 
     def registerSLP(self, systemXml):
@@ -476,7 +493,8 @@ class Registration(object):
                                        stderr=subprocess.PIPE)
             stdoutData, stderrData = slptool.communicate()
             if stdoutData:
-                remote = stdoutData.strip('service:%s//' % service).split(',')[0]
+                remotes = stdoutData.strip('service:%s//' % service).split(',')
+                remote = remotes[0]
                 logger.info('"%s" SLP service found at %s' % (service, remote))
             else:
                 logger.info('No "%s" SLP service found.' % service)
@@ -485,8 +503,8 @@ class Registration(object):
             actResp = self._register(remote, systemXml)
 
             if actResp:
+                self.writeConaryProxies(remotes)
                 break
-
         return actResp
 
     def _register(self, remote, systemXml):
@@ -499,7 +517,6 @@ class Registration(object):
         crt = x509.X509(None, None)
         crt.load_x509(system.ssl_client_certificate)
         self.writeCertificate(crt)
-        self.writeConaryProxy(remote)
         return system
 
     def _getRegistrationClient(self, remote):
