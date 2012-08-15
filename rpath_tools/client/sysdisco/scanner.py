@@ -60,13 +60,13 @@ class SurveyScanner(object):
         for result in conary_xml:
             conary_pkgs_xml.append(result)
         return rpm_pkgs_xml, conary_pkgs_xml
-        
+
     def getValuesXML(self):
         values_xml = etree.Element('config_properties')
         if os.path.exists(valuesXmlPath):
             values_xml.append(etree.parse(valuesXmlPath).getroot())
         return values_xml
- 
+
     def getPreviewXML(self, sources=None):
         preview = Preview()
         raw_preview_xml = preview.preview(sources)
