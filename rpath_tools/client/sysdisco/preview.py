@@ -58,8 +58,10 @@ class Preview(object):
 
     def _newUpdateJob(self, applyList, flags):
         cclient = self.conaryClient
-        updateJob = cclient.newUpdateJob()
         try:
+            if cclient.cfg.syncCapsuleDatabase:
+                cclient.syncCapsuleDatabase(cclient.updateCallback)
+            updateJob = cclient.newUpdateJob()
             suggMap = cclient.prepareUpdateJob(updateJob, applyList,
                 migrate = flags.migrate, test = flags.test)
         except conaryclient.NoNewTrovesError:

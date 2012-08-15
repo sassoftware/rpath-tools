@@ -8,12 +8,15 @@ from xml.etree import cElementTree as etree
 
 import rpm
 
-from conary.deps import deps
 from conary import rpmhelper
 from conary import conarycfg
 from conary import conaryclient
 from conary.lib import util
 from conary.lib.sha1helper import sha256ToString
+
+from rpath_tools.client.utils.update_job_formatter import getArchFromFlavor
+
+
 
 class IDFactory(object):
     def __init__(self):
@@ -219,8 +222,6 @@ class ConaryScanner(AbstractPackageScanner):
 
         db = self._getDb()
 
-        ISDepClass = deps.InstructionSetDependency
-
         topLevelItems = set(self.client.getUpdateItemList())
 
         self._results = {}
@@ -236,7 +237,7 @@ class ConaryScanner(AbstractPackageScanner):
 
             revision = nvf.version.trailingRevision().asString()
 
-            arch = ' '.join(str(x) for x in nvf.flavor.iterDepsByClass(ISDepClass))
+            arch = getArchFromFlavor(nvf.flavor)
 
             sig = None
             digest = trv.troveInfo.sigs.vSigs.getDigest(1)
@@ -323,7 +324,6 @@ class PackageScanner(object):
 
 if __name__ == '__main__':
     import sys
-    from conary.lib import util
     sys.excepthook = util.genExcepthook()
 
     scanner = PackageScanner(IDFactory())
