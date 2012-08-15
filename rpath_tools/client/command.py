@@ -27,6 +27,7 @@ from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client import scan
 from rpath_tools.client import configurator
+from rpath_tools.client.sysdisco import puppet
 
 from rpath_tools.client.utils.tmpwatcher import TmpWatcher
 
@@ -336,6 +337,10 @@ class ConfiguratorCommand(RpathToolsCommand):
         self.command_types = [ 'read', 'write', 'validate', 'discover' ]
         self.configurators = [ x for x in args[-1] if x in self.command_types ]
         configurator.main(self.cfg, self.configurators)
+        ruppet = puppet.Puppet()
+        pc = ruppet.run(logger)
+        return pc
+
 
 class TmpWatchCommand(RpathToolsCommand):
     commands = ['tmpwatch', 'delete']
