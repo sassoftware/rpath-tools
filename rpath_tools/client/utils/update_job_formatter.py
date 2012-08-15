@@ -13,7 +13,18 @@
 # full details.
 #
 
+from conary.deps import arch as cny_arch
+from conary.deps import deps as cny_deps
 from xml.etree import cElementTree as etree
+
+
+def getArchFromFlavor(flavor):
+    if flavor.members and cny_deps.DEP_CLASS_IS in flavor.members:
+        depClass = flavor.members[cny_deps.DEP_CLASS_IS]
+        arch = cny_arch.getMajorArch(depClass.getDeps())
+        return arch.name
+    return ''
+
 
 class Formatter(object):
     __slots__ = [ 'jobs', 'root', 'changes' ]
@@ -63,10 +74,18 @@ class Formatter(object):
         node = self._newPackageChange('changed')
         self._packageSpec(node, 'from_conary_package', name, oldVersion, oldFlavor)
         self._packageSpec(node, 'to_conary_package', name, newVersion, newFlavor)
+
         diff = etree.SubElement(node, 'conary_package_diff')
+        oldRev = oldVersion.trailingRevision()
+        newRev = newVersion.trailingRevision()
+        oldArch = getArchFromFlavor(oldFlavor)
+        newArch = getArchFromFlavor(newFlavor)
+
         self._fieldDiff(diff, 'version',
                 oldVersion.freeze(), newVersion.freeze())
+        self._fieldDiff(diff, 'revision', oldRev, newRev)
         self._fieldDiff(diff, 'flavor', oldFlavor, newFlavor)
+        self._fieldDiff(diff, 'architecture', oldArch, newArch)
 
     def _newPackageChange(self, type):
         node = etree.SubElement(self.changes, 'conary_package_change')
@@ -77,7 +96,10 @@ class Formatter(object):
         node = etree.SubElement(parent, tag)
         etree.SubElement(node, 'name').text = str(name)
         etree.SubElement(node, 'version').text = version.freeze()
+        etree.SubElement(node, 'architecture').text = getArchFromFlavor(flavor)
         etree.SubElement(node, 'flavor').text = str(flavor)
+        etree.SubElement(node, 'revision').text = str(
+                version.trailingRevision())
         return node
 
     def _fieldDiff(self, parent, tag, oldValue, newValue):
