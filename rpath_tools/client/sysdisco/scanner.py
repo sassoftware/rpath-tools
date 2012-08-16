@@ -15,7 +15,7 @@ import sys
 import time
 import os
 import uuid
-
+import itertools
 
 class SurveyScanner(object):
     def __init__(self, origin="scanner"):
@@ -77,22 +77,32 @@ class SurveyScanner(object):
                 pass
         return preview_xml
 
+    def _gettxt(self, node): return node.text
+
+    def _validate(self, node):
+        validate = 'pass'
+        blacklist = ['fail', 'false']
+        status = node.findall('.//status')
+        success = node.findall('.//success')
+        # combine the list of nodes we find then put the text in list
+        results = map(self._gettxt, itertools.chain(status, success))
+        # iterate results to check against the blacklist
+        if filter(lambda x: x.lower() in blacklist,results):
+            validate = 'fail'
+        return validate
+
     def getConfigurators(self):
         # Adds observed_values, discovered_values, and validation_report
         # from configurators.
         configurators = RunConfigurators()
         configurators_xml = configurators.toxml()
         configurator_nodes = []
+        status_node = etree.Element('status')
+        status_node.text = 'pass'
         for node in configurators_xml.getchildren():
             if node.tag == 'validation_report':
-                validate = 'pass'
-                status_node = etree.SubElement(node, 'status')
-                results = node.findall('.//success')
-                results.append(node.findall('.//status'))
-                if 'false' or 'fail' in results.lower():
-                    validate = 'fail'
-                status_node.text = validate
-                configurator_nodes.append(status_node)
+                status_node.text = self._validate(node)
+                node.append(status_node)
             configurator_nodes.append(node)
         return configurator_nodes
 
