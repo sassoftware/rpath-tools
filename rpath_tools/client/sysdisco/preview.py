@@ -93,11 +93,29 @@ class Preview(object):
         Return the tuple for the new top-level group after applying an
         update job.
         """
+        added = set()
+        topErased = False
         for jobList in updateJob.getJobs():
             for (name, (oldVersion, oldFlavor), (newVersion, newFlavor),
                     isAbsolute) in jobList:
                 if name == topTuple.name:
-                    return trovetup.TroveTuple(name, newVersion, newFlavor)
+                    if newVersion:
+                        return trovetup.TroveTuple(name, newVersion, newFlavor)
+                    else:
+                        # The top-level group is being erased, so look for
+                        # another group being installed
+                        topErased = True
+                elif oldVersion is None and name.startswith('group-'):
+                    added.add(trovetup.TroveTuple(name, newVersion, newFlavor))
+        if topErased and added:
+            # A common anti-pattern...
+            appliances = sorted(x for x in added
+                    if x.name.endswith('-appliance'))
+            if appliances:
+                return appliances[0]
+            else:
+                # Pick any group
+                return sorted(added)[0]
         # Not mentioned, so reuse the old version. Migrating to "remediate" a
         # system back to its nominal group would cause this, for example.
         return topTuple
