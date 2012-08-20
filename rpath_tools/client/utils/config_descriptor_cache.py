@@ -120,7 +120,7 @@ class ConfigDescriptorCache(object):
 
     def _getProperties(self, nvf):
         return dict((x, self._properties_cache.get(x))
-            for x in self._bydefault.get(nvf)
+            for x in self._bydefault.get(nvf, ())
                 if x in self._properties_cache)
 
     def _populatePropertiesCache(self, nvfs):
