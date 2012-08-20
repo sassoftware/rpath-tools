@@ -354,6 +354,11 @@ class TmpWatchCommand(RpathToolsCommand):
             delete = True
         prefix = 'survey-'
         mtime = 10
-        watch = TmpWatcher(self.cfg.scannerSurveyStore, mtime=mtime, prefix=prefix)
-        watch.clean(delete=delete)
-        return 0
+        if os.path.exists(self.cfg.scannerSurveyStore):
+            watch = TmpWatcher(self.cfg.scannerSurveyStore, mtime=mtime, prefix=prefix)
+            removed = watch.clean(delete=delete)
+            if not delete:
+                print 'Files to remove:'
+                print '\n'.join(removed)
+            return 0
+        return 2
