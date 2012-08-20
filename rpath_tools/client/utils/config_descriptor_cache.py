@@ -120,18 +120,10 @@ class ConfigDescriptorCache(object):
 
     def _getProperties(self, nvf):
         return dict((x, self._properties_cache.get(x))
-            for x in self._bydefault.get(nvf, ())
+            for x in self._bydefault.get(nvf)
                 if x in self._properties_cache)
 
     def _populatePropertiesCache(self, nvfs):
-        # If this is a local database, just go ahead and get all of the
-        # properties.
-        if isinstance(self._repos, Database):
-            info = self._repos.db.getAllTroveInfo(_TROVEINFO_TAG_PROPERTIES)
-            resp = dict((x, trove.PropertySet(y)) for x, y in info if y)
-            self._properties_cache.update(resp)
-            return
-
         specs = set()
         for nvf in nvfs:
             if nvf not in self._bydefault:
@@ -148,11 +140,14 @@ class ConfigDescriptorCache(object):
 
         # Filter out any nvfs that are already cached.
         req = [ x for x in specs if x not in self._properties_cache ]
-        properties = self._repos.getTroveInfo(_TROVEINFO_TAG_PROPERTIES, req)
 
-        # Build a mapping of nvf to properties.
-        resp = dict((x, y) for x, y in itertools.izip(req, properties) if y)
-
+        # Get properties from the repository.
+        if not isinstance(self._repos, Database):
+            properties = self._repos.getTroveInfo(_TROVEINFO_TAG_PROPERTIES, req)
+            resp = ((x, y) for x, y in itertools.izip(req, properties) if y)
+        else:
+            resp = ((x, trove.PropertySet(y)) for (x, y) in
+                    self._repos.db.getAllTroveInfo(_TROVEINFO_TAG_PROPERTIES))
         self._properties_cache.update(resp)
 
     def _loadDescriptorFromProperties(self, nvf, propSet):
