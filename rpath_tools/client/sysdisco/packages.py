@@ -256,7 +256,12 @@ class ConaryScanner(AbstractPackageScanner):
                 msiInfo = MSIInfo(msi.name(), msi.version(), msi.productCode())
 
             description = trv.troveInfo.metadata.get().get('longDesc')
+
             license = trv.troveInfo.metadata.get().get('licenses')
+
+            if license:
+                license = ' '.join(license)
+
             if hasattr(trv.troveInfo, 'installTime'):
                 installTime = trv.troveInfo.installTime()
             else:
