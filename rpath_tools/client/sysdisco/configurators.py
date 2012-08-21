@@ -69,11 +69,13 @@ class RunConfigurators(object):
         nodes = configurator_xml.getchildren()
         for node in nodes:
             errors = node.find('errors')
-            for child in errors.getchildren():
-                errors_xml.append(child)
+            if errors:
+                for child in errors.getchildren():
+                    errors_xml.append(child)
             extensions = node.find('extensions')
-            for child in extensions.getchildren():
-                extensions_xml.append(child)
+            if extensions:
+                for child in extensions.getchildren():
+                    extensions_xml.append(child)
             #TODO add total success status?
             #success = node.find('success')
             #if success:
