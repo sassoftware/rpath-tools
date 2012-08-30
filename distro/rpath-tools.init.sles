@@ -50,7 +50,7 @@ start() {
     setbootparams
     touch $LOCKFILE
     echo -ne "Running rpath-register on boot..."
-    $RPATH register --boot > /dev/null 2>&1     
+    $RPATH register --boot > /dev/null 2>&1
     rc_status -v
 }
 
