@@ -47,8 +47,9 @@ class Executioner(object):
         return root
 
 
-    def _getEnviron(self):
-        env = os.environ.copy()
+    def _getEnviron(self):        
+        env = {}
+        env['PATH'] = os.environ.get('PATH', '')
         if os.path.exists(self.values_xml):
             p = parsevalues.ValuesParser(self.values_xml)
             adds = p.parse()
