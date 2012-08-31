@@ -103,7 +103,7 @@ class Executioner(object):
                 try:
                     xml.append(etree.fromstring(result.stdout))
                 except SyntaxError:
-                    pass
+                    xml.append(self._errorXml(result))
             elif result.returncode:
                 xml.append(self._errorXml(result))
             # TODO: is it a fatal error if a non-write script prints nothing
