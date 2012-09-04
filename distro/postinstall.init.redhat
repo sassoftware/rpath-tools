@@ -17,7 +17,7 @@
 
 source /etc/init.d/functions
 
-scriptdir=/etc/conary/rpath-tools/postinstall.d
+scriptdir=/usr/lib/rpath-tools/postinstall.d
 lockdir=/var/lib/rpath-tools/postinstall.lock
 logfile=/var/log/rpath-tools.log
 
