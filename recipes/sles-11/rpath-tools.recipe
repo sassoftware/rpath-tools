@@ -43,19 +43,14 @@ class Ractivate(RpathPackageRecipe):
         r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools')
         r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools/postinstall.lock')
 
-        r.ComponentSpec('tagdescription', '/etc/conary/tags/')
-        r.ComponentSpec('taghandler',
-            '/usr/libexec/conary/tags/',
+        r.ComponentSpec('postinstall',
+            '/etc/conary/tags/postinstall'
+            '/usr/libexec/conary/tags/postinstall',
+            '%(prefix)s/lib/rpath-tools/postinstall.d',
             '%(localstatedir)s/lib/rpath-tools/postinstall.lock',
             )
 
-        # Fix init script to use the proper initdir
-        r.Replace('/etc/init.d/functions', '%(initdir)s/functions',
-            '%(initdir)s/%(name)s')
-        r.ComponentRequires({
-            'python': set(('runtime',)),
-            'taghandler': set(('tagdescription',)),
-            })
+        r.ComponentRequires({'python': set(('runtime',))})
 
         # r.Requires('%(bindir)s/slptool', '%(bindir)s/ractivate')
         r.Requires('rpath-models:python', '%(sitepkgs)s/rpath_tools/client/command.py')
