@@ -35,16 +35,19 @@ class Ractivate(RpathPackageRecipe):
         r.Make('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.MakeInstall('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
 
-        r.ExcludeDirectories(exceptions='/etc/conary/rpath-tools/postinstall.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/read.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/write.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/validate.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/discover.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/postinstall.d')
         r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools')
         r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools/postinstall.lock')
 
         r.ComponentSpec('tagdescription', '/etc/conary/tags/')
-        r.ComponentSpec('taghandler', '/usr/libexec/conary/tags/')
+        r.ComponentSpec('taghandler',
+            '/usr/libexec/conary/tags/',
+            '%(localstatedir)s/lib/rpath-tools/postinstall.lock',
+            )
 
         # Fix init script to use the proper initdir
         r.Replace('/etc/init.d/functions', '%(initdir)s/functions',
