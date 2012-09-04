@@ -20,9 +20,7 @@ ifndef LIB_ONLY
 	fi
 	mkdir -p $(DESTDIR)/etc/conary/rpath-tools/config.d
 	chmod 755 $(DESTDIR)/etc/conary/rpath-tools/config.d
-	mkdir -p $(DESTDIR)/etc/conary/rpath-tools/postinstall.d
-	mkdir -p $(DESTDIR)/var/lib/rpath-tools/postinstall.lock
-	mkdir -p $(DESTDIR)/var/lib/rpath-tools/{read,write,validate,discover}.d
+	mkdir -p $(DESTDIR)/usr/lib/rpath-tools/{read,write,validate,discover,postinstall}.d
 	install -D -m0644 rpath-tools.cron $(DESTDIR)/etc/cron.d/rpath-tools.cron
 	install -D -m0644 postinstall.tagdescription $(DESTDIR)/etc/conary/tags/postinstall
 	install -D -m0755 postinstall.taghandler $(DESTDIR)/usr/libexec/conary/tags/postinstall
