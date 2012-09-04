@@ -1,0 +1,42 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+    echo "not enough arguments: $0 $*" >&2
+    exit 1
+fi
+
+type="$1"
+shift
+action="$1"
+shift
+
+case "$type" in
+    files)
+        case "$action" in
+            update)
+                # Test whether this script is being run in a chroot. If so,
+                # wait until next boot to invoke the script. If not, then
+                # invoke it immediately.
+                if [[ `awk '{print $2}' /proc/mounts | grep -c ^/proc$` > 1 ]]
+                then
+                    # If /proc appears to be mounted more than once, then it means we're
+                    # chrooted. It manifests itself this way as the actual path is
+                    # outside the chroot and thus can't be addressed.
+                    exit 0
+                fi
+                /etc/init.d/rpath-tools-postinstall start
+                ;;
+            *)
+                echo "ERROR: taghandler $0 invoked for an action ($action) that is not handled" 1>&2
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        echo "ERROR: taghandler $0 invoked for a type ($type) that is not handled" 1>&2
+        exit 1
+        ;;
+esac
+
+exit 0
+
