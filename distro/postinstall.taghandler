@@ -26,6 +26,13 @@ case "$type" in
                 fi
                 /etc/init.d/rpath-tools-postinstall start
                 ;;
+            remove)
+                for script in "$@"
+                do
+                    lock="/var/lib/rpath-tools/postinstall.lock/$(basename $script)"
+                    rm -f "$lock"
+                done
+                ;;
             *)
                 echo "ERROR: taghandler $0 invoked for an action ($action) that is not handled" 1>&2
                 exit 1
