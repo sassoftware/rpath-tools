@@ -468,6 +468,7 @@ class Registration(object):
     def registerDirect(self, systemXml):
         logger.info("Using Direct registration.")
         actResp = None
+        self.writeConaryProxies(self.cfg.directMethod)
         for remote in self.cfg.directMethod:
             remote = remote.strip()
             if not remote:
@@ -477,8 +478,6 @@ class Registration(object):
             if actResp:
                 break
 
-        if actResp:
-            self.writeConaryProxies(self.cfg.directMethod)
         return actResp
 
     def registerSLP(self, systemXml):
@@ -500,10 +499,10 @@ class Registration(object):
                 logger.info('No "%s" SLP service found.' % service)
                 continue
 
+            self.writeConaryProxies(remotes)
             actResp = self._register(remote, systemXml)
 
             if actResp:
-                self.writeConaryProxies(remotes)
                 break
         return actResp
 
