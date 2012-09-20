@@ -2,7 +2,7 @@
 # Copyright (c) rPath, Inc.
 #
 
-from xml.etree import cElementTree as etree
+from lxml import etree
 
 import os
 import subprocess

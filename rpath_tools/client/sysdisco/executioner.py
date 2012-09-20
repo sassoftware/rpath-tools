@@ -3,8 +3,11 @@ import subprocess
 import inspect
 import parsevalues
 import traceback
-import xml.etree.cElementTree as etree
+import uuid
+import time
+from lxml import etree
 
+xsdFilePath = "/usr/conary/share/rpath-tools/xml_resources/xsd"
 
 class BaseSlots(object):
     __slots__ = []
@@ -16,38 +19,58 @@ class BaseSlots(object):
             setattr(self, slotName, kwargs.get(slotName))
 
 class EXECUTABLE(BaseSlots):
-    __slots__ = [ 'name', 'execute', 'switches', 'results', 'stdout', 'stderr', 'returncode' ]
+    __slots__ = [ 'name', 'type', 'execute', 'switches', 'results', 'stdout', 'stderr', 'returncode' ]
     def __repr__(self):
         return '%s' % self.name    
     @property
     def description(self):
-        return ( "Name = %s\nExecutable = %s\nSwitches = %s\nResults = %s\n"
+        return ( "Name = %s\nConfigurator Type = %s\nExecutable = %s\nSwitches = %s\nResults = %s\n"
                 "Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
-                ('name', 'exec', 'results', 'switches', 'stdout', 'stderr', 'returncode'))
+                ('name', 'type', 'exec', 'results', 'switches', 'stdout', 'stderr', 'returncode'))
+    def getdetails(self):
+        return ("Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
+                (self.stdout, self.stderr, self.returncode))
 
 class Executioner(object):
-    def __init__(self, scriptdir, values_xml):
+    def __init__(self, configurator, scriptdir, values_xml, errtemplate):
         self.scriptdir = scriptdir
         self.scripts = []
         self.values_xml = values_xml
+        self.errtemplate = errtemplate
+        self.configurator = configurator
+
+
+    def _validate(self, xml, xsd):
+        xsdfile = os.path.join(xsdFilePath,  xsd)
+        xmlschema_doc = etree.parse(xsdfile)
+        xmlschema = etree.XMLSchema(xmlschema_doc)
+        try:
+            xmlschema.assertValid(xml)
+        except etree.DocumentInvalid, ex:
+            msg = "%s\n"  % str(ex.error_log)
+            msg += traceback.format_exc()
+            return False, msg, 70
+        return True, '', 0
+
 
     def _errorXml(self, result):
-        root = etree.Element(result.name)
-        errors = etree.SubElement(root, 'errors')
-        errors_name = etree.SubElement(errors, result.name)
-        etree.SubElement(errors_name, 'name').text = result.name
-        error_list = etree.SubElement(errors_name, 'error_list')
-        error = etree.SubElement(error_list, 'error')
-        etree.SubElement(error, 'code').text = "9999"
-        detail = "%s %s %s" % (result.stdout,result.stderr,result.returncode)
-        etree.SubElement(error, 'detail').text = detail
-        etree.SubElement(error, 'message').text = "Error: Executable failed"
-        etree.SubElement(error, 'success').text = "False"
-        etree.SubElement(root, 'extensions')
-        return root
+        error_name = 'config_error-%s' % uuid.uuid1()
+        template = open(self.errtemplate).read()
+        template = template.replace('__name__',error_name)
+        template = template.replace('__display_name__',result.name)
+        template = template.replace('__summary__','%s %s type configurator' % (result.execute, result.type))
+        template = template.replace('__details__','Output from %s' % result.execute)
+        template = template.replace('__error_code__',str(result.returncode))
+        template = template.replace('__error_details__',str(result.getdetails()))
+        template = template.replace('__error_summary__',result.name)
+        error_xml = etree.fromstring(template)
+        #THIS IS  CRAP PLEASE FIXME
+        #test, msg, err = validate(template_xml)
+        #if test:
+        return error_xml
 
 
-    def _getEnviron(self):        
+    def _getEnviron(self):
         env = {}
         env['PATH'] = os.environ.get('PATH', '')
         if os.path.exists(self.values_xml):
@@ -60,7 +83,7 @@ class Executioner(object):
     def _getScripts(self, scriptdir):
         scripts = []
         if os.path.exists(scriptdir):
-            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x)) 
+            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x), type=self.configurator)
                             for x in sorted(os.listdir(scriptdir))
                             if os.access(os.path.join(scriptdir, x), os.X_OK) ]
             scripts.sort()
@@ -96,15 +119,29 @@ class Executioner(object):
         return results
 
     def toxml(self):
-        xml = etree.Element('configurator')
+        xml = etree.Element(self.configurator)
         results = self.execute()
         for result in results:
+            xsd = 'rpath-configurator-2.0.xsd'
+            myxml = None
             if result.stdout:
                 try:
-                    xml.append(etree.fromstring(result.stdout))
-                except SyntaxError:
+                    myxml = etree.fromstring(result.stdout)
+                except SyntaxError, ex:
+                    #TODO add ex to error somehow... maybe?
                     xml.append(self._errorXml(result))
-            elif result.returncode:
+                if myxml is not None:
+                    # get xsd from xml not this way...
+                    if myxml.attrib:
+                        xsd = myxml.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'].split()[-1]
+                    result.results, result.stderr, result.returncode = self._validate(myxml, xsd)
+                    if result.results:
+                        xml.append(myxml)
+                    else:
+                        # TODO  if stdout contains xml we have to kill it...
+                        result.stdout = '' 
+                        xml.append(self._errorXml(result))
+            else:
                 xml.append(self._errorXml(result))
             # TODO: is it a fatal error if a non-write script prints nothing
             # but exits with status 0?

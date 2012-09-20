@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from xml.etree import cElementTree as etree
+from lxml import etree
 
 from conary import conarycfg
 from conary import conaryclient
