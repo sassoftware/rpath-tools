@@ -13,7 +13,7 @@
 # full details.
 #
 
-import xml.etree.cElementTree as etree
+from lxml import etree
 
 class ValuesParserError(Exception):
     "Raised when unable to read values.xml"

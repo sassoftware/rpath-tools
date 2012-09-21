@@ -1,7 +1,8 @@
 #
 # Copyright (c) 2012 rPath, Inc.
 #
-from xml.etree import cElementTree as etree
+from lxml import etree
+
 from services import ServiceInfo
 from services import ServiceScanner
 from packages import PackageScanner

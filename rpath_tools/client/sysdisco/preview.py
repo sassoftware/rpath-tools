@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2012 rPath, Inc.
+#
+
 from conary import conarycfg
 from conary import conaryclient
 from conary import trovetup

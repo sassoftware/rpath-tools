@@ -4,8 +4,7 @@
 
 from conary import trovetup
 from collections import namedtuple
-from xml.etree import cElementTree as etree
-
+from lxml import etree
 import rpm
 
 from conary import rpmhelper
