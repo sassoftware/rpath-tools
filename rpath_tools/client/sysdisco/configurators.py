@@ -108,8 +108,8 @@ class RunConfigurators(object):
 
     def _transform(self, xml):
         # place holder have to look up the right way 
-        # get this from the url in the xml not this way        
-        xsd =  [ node.attrib[self.xsdattrib].split()[-1]
+        # get this from the url in the xml not this way
+        xsd = [ node.attrib[self.xsdattrib].split()[-1]
                     for node in xml.getchildren() ][0]
         #version = [ node.attrib['version'] for node in xml.getchildren() ]
         # probably need to deal with 2 vs 2.0
