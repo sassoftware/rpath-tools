@@ -1,10 +1,14 @@
+#
+# Copyright (c) 2012 rPath, Inc.
+#
+
 import os
 import subprocess
 import inspect
 import parsevalues
 import traceback
 import uuid
-import time
+
 from lxml import etree
 
 xsdFilePath = "/usr/conary/share/rpath-tools/xml_resources/xsd"
@@ -30,6 +34,7 @@ class EXECUTABLE(BaseSlots):
     def getdetails(self):
         return ("Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
                 (self.stdout, self.stderr, self.returncode))
+        
 
 class Executioner(object):
     def __init__(self, configurator, scriptdir, values_xml, errtemplate):
@@ -38,6 +43,7 @@ class Executioner(object):
         self.values_xml = values_xml
         self.errtemplate = errtemplate
         self.configurator = configurator
+        self.xsdattrib = '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'
 
 
     def _validate(self, xml, xsd):
@@ -70,7 +76,7 @@ class Executioner(object):
         return error_xml
 
 
-    def _getEnviron(self):
+    def _getEnviron(self):        
         env = {}
         env['PATH'] = os.environ.get('PATH', '')
         if os.path.exists(self.values_xml):
@@ -83,7 +89,7 @@ class Executioner(object):
     def _getScripts(self, scriptdir):
         scripts = []
         if os.path.exists(scriptdir):
-            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x), type=self.configurator)
+            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x), type=self.configurator) 
                             for x in sorted(os.listdir(scriptdir))
                             if os.access(os.path.join(scriptdir, x), os.X_OK) ]
             scripts.sort()
@@ -133,7 +139,7 @@ class Executioner(object):
                 if myxml is not None:
                     # get xsd from xml not this way...
                     if myxml.attrib:
-                        xsd = myxml.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'].split()[-1]
+                        xsd = myxml.attrib[self.xsdattrib].split()[-1]
                     result.results, result.stderr, result.returncode = self._validate(myxml, xsd)
                     if result.results:
                         xml.append(myxml)

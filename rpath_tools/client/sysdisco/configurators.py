@@ -1,19 +1,9 @@
 #
 # Copyright (c) 2012 rPath, Inc.
 #
-# This program is distributed under the terms of the Common Public License,
-# version 1.0. A copy of this license should have been distributed with this
-# source file in a file called LICENSE. If it is not present, the license
-# is always available at http://www.rpath.com/permanent/licenses/CPL-1.0.
-#
-# This program is distributed in the hope that it will be useful, but
-# without any warranty; without even the implied warranty of merchantability
-# or fitness for a particular purpose. See the Common Public License for
-# full details.
-#
 
 import os
-
+import uuid
 import traceback
 
 from lxml import etree
@@ -23,6 +13,7 @@ from conary.lib import util
 from executioner import Executioner
 
 from executioner import BaseSlots
+
 
 # CONFIG VARIABLES
 valuesXmlPath = "/var/lib/rpath-tools/values.xml"
@@ -85,6 +76,8 @@ class RunConfigurators(object):
         if not self.configurators:
             self.configurators = [ read, validate, discover ]
 
+        self.xsdattrib = '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'
+
 
     def _errorXml(self, result):
         error_xml = etree.element(result.name)
@@ -105,9 +98,9 @@ class RunConfigurators(object):
         # TODO < FIXME
         # Change this and pass the whole configurator to it...or just add the name
         #executer = executioner.Executioner(configurator.extpath, configurator.vxml)
-        executer = Executioner(configurator.name, 
-                                configurator.extpath, 
-                                configurator.vxml, 
+        executer = Executioner(configurator.name,
+                                configurator.extpath,
+                                configurator.vxml,
                                 configurator.errtmpl)
         xml = executer.toxml()
         return xml
@@ -115,13 +108,14 @@ class RunConfigurators(object):
 
     def _transform(self, xml):
         # place holder have to look up the right way 
-        # get this from the url in the xml not this way
-        xslname = 'rpath-configurator-2.0.xsl'
-        version = [ node.attrib['version'] for node in xml.getchildren() ]
+        # get this from the url in the xml not this way        
+        xsd =  [ node.attrib[self.xsdattrib].split()[-1]
+                    for node in xml.getchildren() ][0]
+        #version = [ node.attrib['version'] for node in xml.getchildren() ]
         # probably need to deal with 2 vs 2.0
-        if version:
-            ver = float(version[0])
-            xslname = 'rpath-configurator-%.1f.xsl' % ver
+        #if version:
+        #    ver = float(version[0])
+        xslname = xsd.replace('.xsd', '.xsl')
         xslFile = os.path.join(xslFilePath,  xslname)
         xslt_doc = etree.parse(xslFile)
         transformer = etree.XSLT(xslt_doc)
@@ -142,7 +136,6 @@ class RunConfigurators(object):
         # wrap all up in clean xml??a
         if retval:
             return etree.fromstring(configurator.xml)
-        #from conary.lib import epdb;epdb.st()
         return self._errorXml(configurator)
 
     def toxml(self):
