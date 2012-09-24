@@ -34,7 +34,6 @@ class EXECUTABLE(BaseSlots):
     def getdetails(self):
         return ("Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
                 (self.stdout, self.stderr, self.returncode))
-        
 
 class Executioner(object):
     def __init__(self, configurator, scriptdir, values_xml, errtemplate):
@@ -76,9 +75,9 @@ class Executioner(object):
         return error_xml
 
 
-    def _getEnviron(self):        
+    def _getEnviron(self):
         env = {}
-        env['PATH'] = os.environ.get('PATH', '')
+        env['PATH'] = os.environ.get('PATH', '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin')
         if os.path.exists(self.values_xml):
             p = parsevalues.ValuesParser(self.values_xml)
             adds = p.parse()
