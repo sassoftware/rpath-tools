@@ -130,7 +130,7 @@ class RunConfigurators(object):
 
     def _toxml(self, configurator):
         configurator_xml = self._run(configurator)
-        if configurator_xml:
+        if len(configurator_xml):
             retval, configurator.xml, retcode = self._transform(configurator_xml)
             if retval:
                 return etree.fromstring(configurator.xml)
