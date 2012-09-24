@@ -80,7 +80,7 @@ class RunConfigurators(object):
 
 
     def _errorXml(self, result):
-        error_xml = etree.element(result.name)
+        error_xml = etree.Element(result.name)
         error_name = 'config_error-%s' % uuid.uuid1()
         template = open(result.errtmpl).read()
         template = template.replace('__name__',error_name)
@@ -89,7 +89,7 @@ class RunConfigurators(object):
         template = template.replace('__details__',str(result.error))
         template = template.replace('__error_code__','999')
         template = template.replace('__error_details__','xslt transform error')
-        template = template.replace('__error_summary__','this is bad...')
+        template = template.replace('__error_summary__','Either no configurators found or things went bad')
         error_xml.append(etree.fromstring(template))
         return error_xml
 
@@ -130,12 +130,11 @@ class RunConfigurators(object):
 
     def _toxml(self, configurator):
         configurator_xml = self._run(configurator)
-        retval, configurator.xml, retcode = self._transform(configurator_xml)
-        # TODO
-        # if retval shit should go bad
-        # wrap all up in clean xml??a
-        if retval:
-            return etree.fromstring(configurator.xml)
+        if configurator_xml:
+            retval, configurator.xml, retcode = self._transform(configurator_xml)
+            if retval:
+                return etree.fromstring(configurator.xml)
+        # TODO Is it really an error if there are no configurators?
         return self._errorXml(configurator)
 
     def toxml(self):
