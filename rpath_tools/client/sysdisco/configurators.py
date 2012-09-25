@@ -42,6 +42,7 @@ class CONFIGURATOR(BaseSlots):
 class RunConfigurators(object):
 
     def __init__(self, configurators=None):
+
         write = CONFIGURATOR(name='write', 
                             extpath=writeExtensionPath,
                             vxml=valuesXmlPath, 
@@ -66,6 +67,9 @@ class RunConfigurators(object):
         self.configurator_types = dict([('read', read),('validate', validate),
                                         ('discover', discover), 
                                         ('write', write)])
+
+
+        self.runConfigurators = os.path.exists(valuesXmlPath)
 
         self.configurators = []
 
@@ -139,8 +143,10 @@ class RunConfigurators(object):
 
     def toxml(self):
         root = etree.Element('configurators')
-        for configurator in self.configurators:
-            root.append(self._toxml(configurator))
+        # Do not run if there is no values.xml
+        if self.runConfigurators:
+            for configurator in self.configurators:
+                root.append(self._toxml(configurator))
         return root
 
 if __name__ == '__main__':
