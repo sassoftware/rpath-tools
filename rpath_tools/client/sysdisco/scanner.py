@@ -69,28 +69,16 @@ class SurveyScanner(object):
         return values_xml
 
     def getPreviewXML(self, sources=None):
+        # Preview returns an empty preview tag if it fails
         preview = Preview()
         raw_preview_xml = preview.preview(sources)
         if raw_preview_xml:
             try:
                 preview_xml = etree.fromstring(raw_preview_xml)
             except SyntaxError:
+                # FIX ME This is going to  go bad at some point
                 pass
         return preview_xml
-
-    def _gettxt(self, node): return node.text
-
-    def _validate(self, node):
-        validate = 'pass'
-        blacklist = ['fail', 'false']
-        status = node.findall('.//status')
-        success = node.findall('.//success')
-        # combine the list of nodes we find then put the text in list
-        results = map(self._gettxt, itertools.chain(status, success))
-        # iterate results to check against the blacklist
-        if filter(lambda x: x.lower() in blacklist,results):
-            validate = 'fail'
-        return validate
 
     def getConfigurators(self):
         # Adds observed_values, discovered_values, and validation_report
@@ -98,12 +86,7 @@ class SurveyScanner(object):
         configurators = RunConfigurators()
         configurators_xml = configurators.toxml()
         configurator_nodes = []
-        status_node = etree.Element('status')
-        status_node.text = 'pass'
         for node in configurators_xml.getchildren():
-            if node.tag == 'validation_report':
-                status_node.text = self._validate(node)
-                node.append(status_node)
             configurator_nodes.append(node)
         return configurator_nodes
 
@@ -112,7 +95,7 @@ class SurveyScanner(object):
         descriptors = Descriptors()
         raw_desc = descriptors.toxml()
         if raw_desc:
-            #FIXME UGLY... have to remove the xsd 
+            # FIXME UGLY... have to remove the xsd 
             # from the configuration_descriptor 
             # so that we don't get them later. 
             # I know there is an easier fix just 
