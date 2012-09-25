@@ -145,7 +145,6 @@ class SurveyScanner(object):
         return root
 
 if __name__ == '__main__':
-    import sys
     from conary.lib import util
     sys.excepthook = util.genExcepthook()
     scanner = SurveyScanner()

@@ -143,10 +143,8 @@ class RunConfigurators(object):
 
     def toxml(self):
         root = etree.Element('configurators')
-        # Do not run if there is no values.xml
-        if self.runConfigurators:
-            for configurator in self.configurators:
-                root.append(self._toxml(configurator))
+        for configurator in self.configurators:
+            root.append(self._toxml(configurator))
         return root
 
 if __name__ == '__main__':
