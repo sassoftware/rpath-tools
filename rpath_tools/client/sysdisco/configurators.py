@@ -95,7 +95,8 @@ class RunConfigurators(object):
         template = template.replace('__error_details__','xslt transform error')
         template = template.replace('__error_summary__','Either no configurators found or things went bad')
         error_xml.append(etree.fromstring(template))
-        return error_xml
+        retval, err_xml, retcode = self._transform(error_xml)
+        return etree.fromstring(err_xml)
 
 
     def _run(self, configurator):
@@ -130,7 +131,6 @@ class RunConfigurators(object):
             msg += traceback.format_exc()
             return False, msg, 70
         return True, str(xs), 0
-
 
     def _toxml(self, configurator):
         configurator_xml = self._run(configurator)
