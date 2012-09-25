@@ -23,6 +23,7 @@ discoverExtensionPath = "/usr/lib/rpath-tools/discover.d"
 validateExtensionPath = "/usr/lib/rpath-tools/validate.d"
 xslFilePath = "/usr/conary/share/rpath-tools/xml_resources/xsl"
 templatePath = "/usr/conary/share/rpath-tools/xml_resources/templates"
+writeErrorTemplate = os.path.join(templatePath, "write_error_template.xml")
 readErrorTemplate = os.path.join(templatePath, "read_error_template.xml")
 validateErrorTemplate = os.path.join(templatePath, "validation_error_template.xml")
 discoverErrorTemplate = os.path.join(templatePath, "discover_error_template.xml")
@@ -46,7 +47,7 @@ class RunConfigurators(object):
         write = CONFIGURATOR(name='write', 
                             extpath=writeExtensionPath,
                             vxml=valuesXmlPath, 
-                            errtmpl=''
+                            errtmpl=writeErrorTemplate
                             )
         read = CONFIGURATOR(name='read_reports', 
                             extpath=readExtensionPath, 
