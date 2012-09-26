@@ -8,6 +8,8 @@ import inspect
 import parsevalues
 import traceback
 import uuid
+import tempfile
+import shutil
 
 from lxml import etree
 
@@ -85,6 +87,12 @@ class Executioner(object):
                 env.update(adds)
         return env
 
+    def _getTmpDir(self, pre):
+        return tempfile.mkdtemp(prefix=pre)
+
+    def _removeTmpDir(self, tmpdir):
+        return shutil.rmtree(tmpdir)
+
     def _getScripts(self, scriptdir):
         scripts = []
         if os.path.exists(scriptdir):
@@ -96,10 +104,11 @@ class Executioner(object):
             raise Exception
         return scripts
 
-    def _runProcess(self, cmd, env):
+    def _runProcess(self, cmd, env, tmpdir=None):
         try:
             proc = subprocess.Popen(cmd, shell=False, stdin=None,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+                    cwd=tmpdir, env=env)
             stdout, stderr = proc.communicate()
             return stdout.decode("UTF8"), stderr.decode("UTF8"), proc.returncode
         except Exception, ex:
@@ -112,8 +121,11 @@ class Executioner(object):
         switches = ''
         if script.switches:
             switches = str(script.switches)
-        cmd = [ script.execute, switches]
-        script.stdout, script.stderr, script.returncode = self._runProcess(cmd, env)
+        cmd = [script.execute, switches]
+        tempdir =  self._getTmpDir('rpath-')
+        script.stdout, script.stderr, script.returncode = self._runProcess(cmd, env, tempdir)
+        if not script.returncode:
+            self._removeTmpDir(tempdir)
         return script
 
     def execute(self):
