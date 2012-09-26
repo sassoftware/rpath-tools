@@ -54,7 +54,7 @@ class Configurator(object):
     def run(self):
         logger.info('Attempting to run configurators on %s' % self.localUuidObj.uuid)
         configurated = self._execute()
-        if configurated:
+        if len(configurated):
             logger.info('Configurators succeeded')
             print etree.tostring(configurated)
             return True
