@@ -274,7 +274,7 @@ class HardwareCommand(RpathToolsCommand):
 class ConfigCommand(RpathToolsCommand):
     commands = ['config']
     help = 'Display the current configuration'
-    
+
     def runCommand(self, cfg, argSet, args, **kwargs):
         cfg.setDisplayOptions(hidePasswords=True,
                               showContexts=False,
