@@ -24,7 +24,7 @@ from conary.lib import util
 
 from rpath_tools.client import config
 
-from xml.etree import cElementTree as etree
+from lxml import etree
 from rpath_tools.client.sysdisco import scanner
 
 from rpath_tools.client.register import LocalUuid

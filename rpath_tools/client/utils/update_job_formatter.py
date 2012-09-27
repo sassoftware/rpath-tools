@@ -15,7 +15,7 @@
 
 from conary.deps import arch as cny_arch
 from conary.deps import deps as cny_deps
-from xml.etree import cElementTree as etree
+from lxml import etree
 
 
 def getArchFromFlavor(flavor):
