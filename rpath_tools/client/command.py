@@ -30,6 +30,7 @@ from rpath_tools.client import configurator
 from rpath_tools.client.sysdisco import puppet
 
 from rpath_tools.client.utils.tmpwatcher import TmpWatcher
+from rpath_tools.client.utils.collector import Collector
 
 logger = logging.getLogger('client')
 
@@ -362,3 +363,15 @@ class TmpWatchCommand(RpathToolsCommand):
                 print '\n'.join(removed)
             return 0
         return 2
+
+class CollectorCommand(RpathToolsCommand):
+    commands = ['collector']
+    help = "Collect log and config files on the local host."
+    requireConfig = True
+
+    def runCommand(self, *args, **kw):
+        self.cfg = args[0]
+        collector = Collector()
+        results = collector.collect()
+        return results
+
