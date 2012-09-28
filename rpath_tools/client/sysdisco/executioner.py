@@ -59,6 +59,9 @@ class Executioner(object):
             return False, msg, 70
         return True, '', 0
 
+    def _sanitize(self, results):
+        from xml.sax.saxutils import escape
+        return escape(results)
 
     def _errorXml(self, result):
         error_name = 'config_error-%s' % uuid.uuid1()
@@ -68,7 +71,7 @@ class Executioner(object):
         template = template.replace('__summary__','%s %s type configurator' % (result.execute, result.type))
         template = template.replace('__details__','Output from %s' % result.execute)
         template = template.replace('__error_code__',str(result.returncode))
-        template = template.replace('__error_details__',str(result.getdetails()))
+        template = template.replace('__error_details__',self._sanitize(result.getdetails()))
         template = template.replace('__error_summary__',result.name)
         error_xml = etree.fromstring(template)
         #THIS IS  CRAP PLEASE FIXME
