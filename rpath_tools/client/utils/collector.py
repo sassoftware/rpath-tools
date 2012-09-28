@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tarfile
 import inspect
-
+import traceback
 
 class BaseSlots(object):
     __slots__ = []
