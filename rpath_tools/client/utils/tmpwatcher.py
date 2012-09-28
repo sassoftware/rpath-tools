@@ -1,5 +1,7 @@
+import errno
 import os
 import time
+
 
 class TmpWatcher(object):
     def __init__(self, dir, mtime=None, atime=None, ctime=None, prefix=None):
@@ -10,11 +12,15 @@ class TmpWatcher(object):
         self.prefix = prefix
 
     def _getFiles(self):
+        try:
+            files = [os.path.join(self.dir, x) for x in os.listdir(self.dir )]
+        except OSError, err:
+            if err.errno == errno.ENOENT:
+                return []
+            raise
         if self.prefix:
-            files = [ os.path.join(self.dir, x) for x in os.listdir(self.dir ) 
-                        if x.startswith(self.prefix)]
-            return files
-        files = [ os.path.join(self.dir, x) for x in os.listdir(self.dir) ]
+            files = [x for x in files
+                    if os.path.basename(x).startswith(self.prefix) ]
         return files
 
     def _testFileTime(self, filepath):
