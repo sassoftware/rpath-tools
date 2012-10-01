@@ -146,26 +146,23 @@ class Executioner(object):
             for result in results:
                 xsd = 'rpath-configurator-2.0.xsd'
                 myxml = None
-                if result.returncode == 0:
-                    if result.stdout:
-                        try:
-                            myxml = etree.fromstring(result.stdout)
-                        except SyntaxError, ex:
-                            #TODO add ex to error somehow... maybe?
-                            xml.append(self._errorXml(result))
-                        if myxml is not None:
-                            # get xsd from xml not this way...
-                            if myxml.attrib:
-                                xsd = myxml.attrib[self.xsdattrib].split()[-1]
-                            result.results, result.stderr, result.returncode = self._validate(myxml, xsd)
-                            if result.results:
-                                xml.append(myxml)
-                            else:
-                                # TODO  if stdout contains xml we have to kill it...
-                                result.stdout = ''
-                                xml.append(self._errorXml(result))
-                    else:
+                if result.stdout:
+                    try:
+                        myxml = etree.fromstring(result.stdout)
+                    except SyntaxError, ex:
+                        #TODO add ex to error somehow... maybe?
                         xml.append(self._errorXml(result))
+                    if myxml is not None:
+                        # get xsd from xml not this way...
+                        if myxml.attrib:
+                            xsd = myxml.attrib[self.xsdattrib].split()[-1]
+                        result.results, result.stderr, result.returncode = self._validate(myxml, xsd)
+                        if result.results:
+                            xml.append(myxml)
+                        else:
+                            # TODO  if stdout contains xml we have to kill it...
+                            result.stdout = '' 
+                            xml.append(self._errorXml(result))
                 else:
                     xml.append(self._errorXml(result))
                     # TODO: is it a fatal error if a non-write script prints nothing
