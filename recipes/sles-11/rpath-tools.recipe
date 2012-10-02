@@ -19,7 +19,8 @@ class Ractivate(RpathPackageRecipe):
         'net-tools:rpm',
         'rpath-models:python',
         'm2crypto-conary:python',
-        'smartform:python',
+        'smartform-conary:python',
+        'xml_resources:data',
     ]
 
     def setup(r):
@@ -34,6 +35,8 @@ class Ractivate(RpathPackageRecipe):
         r.addMercurialSnapshot()
         r.Make('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.MakeInstall('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
+        r.MakeDirs('/usr/conary/share/rpath-tools/xml_resources')
+        r.Run('cp -a /usr/share/rpath_xml_resources/* %(destdir)s/usr/conary/share/rpath-tools/xml_resources/')
 
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/read.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/write.d')
