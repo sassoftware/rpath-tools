@@ -12,11 +12,13 @@ class Descriptors(object):
         self.client = conaryclient.ConaryClient(self.cfg)
 
     def gather(self):
-        group = [ x for x in self.client.getUpdateItemList()
-                    if x[0].startswith('group-') and 
+        desc = None
+        groups = [ x for x in self.client.getUpdateItemList()
+                    if x[0].startswith('group-') and
                     x[0].endswith('-appliance') ][0]
-
-        desc = ConfigDescriptorCache(self.client.getDatabase()).getDescriptor(group)
+        if len(groups):
+            group = groups[0]
+            desc = ConfigDescriptorCache(self.client.getDatabase()).getDescriptor(group)
         if desc:
             desc.setDisplayName('ConfigurationDescriptor')
             desc.addDescription('ConfigurationDescriptor')
@@ -25,7 +27,7 @@ class Descriptors(object):
     def toxml(self, validate=False):
         desc = self.gather()
         if desc:
-            return  desc.toxml(validate=validate)
+            return desc.toxml(validate=validate)
         return desc
 
 if __name__ == '__main__':
