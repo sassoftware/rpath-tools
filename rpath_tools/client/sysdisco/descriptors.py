@@ -15,7 +15,7 @@ class Descriptors(object):
         desc = None
         groups = [ x for x in self.client.getUpdateItemList()
                     if x[0].startswith('group-') and
-                    x[0].endswith('-appliance') ][0]
+                    x[0].endswith('-appliance') ]
         if len(groups):
             group = groups[0]
             desc = ConfigDescriptorCache(self.client.getDatabase()).getDescriptor(group)
