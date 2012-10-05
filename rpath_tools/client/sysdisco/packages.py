@@ -85,7 +85,7 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
 
         license = etree.SubElement(root, 'license')
         if self.license:
-            license.text = self.license
+            license.text = self.license.decode('utf8', 'replace')
 
         return root
 
@@ -111,7 +111,7 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
 
         license = etree.SubElement(root, 'license')
         if self.license:
-            license.text = self.license
+            license.text = self.license.decode('utf8', 'replace')
 
         return root
 
