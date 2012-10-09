@@ -99,7 +99,7 @@ class RunConfigurators(object):
         template = etree.parse(result.errtmpl).getroot()
         # Get the xsd info from the error templates...ugly I know
         plate_node = etree.SubElement(plate_xml, template.tag, template.attrib)
-        etree.SubElement(plate_root, 'name').text = result.name
+        etree.SubElement(plate_node, 'name').text = result.name
         # Make sure the xslt likes what it sees
         etree.SubElement(plate_node, 'success').text = 'true'
         retval, p_xml, retcode = self._transform(plate_xml)
