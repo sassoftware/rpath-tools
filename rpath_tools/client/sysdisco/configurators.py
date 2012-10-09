@@ -30,13 +30,16 @@ discoverErrorTemplate = os.path.join(templatePath, "discover_error_template.xml"
 
 
 class CONFIGURATOR(BaseSlots):
-    __slots__ = [ 'name', 'extpath', 'vxml', 'errtmpl', 'error', 'xml' ]
+    __slots__ = [ 'name', 'extpath', 'vxml', 'errtmpl', 
+                    'error', 'retval', 'retcode', 'xml' ]
     def __repr__(self):
         return '%s' % self.name
     def description(self):
-        return ( "Name = %s\nExtension Path = %s\nValues XML= %s\n Error Template = %s\nError = %s\n"
-                "XML = %s\n" %
-                ('name', 'extpath', 'vxml', 'errtmpl', 'error', 'xml'))
+        return ( "Name = %s\nExtension Path = %s\nValues XML= %s\n" 
+                "Error Template = %s\nError = %s\nRETVAL = %s\n"
+                "RETCODE = %S\nXML = %s\n" %
+                ('name', 'extpath', 'vxml', 'errtmpl', 
+                    'error', 'retval', 'retcode', 'xml'))
 
 
 
@@ -83,6 +86,24 @@ class RunConfigurators(object):
 
         self.xsdattrib = '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'
 
+    def _sanitize(self, results):
+        from xml.sax.saxutils import escape
+        return escape(results)
+
+    def _plateXml(self, result):
+        # XML Template for when no configurator exists
+        # If we have errors switch templates
+        if result.retval:
+            return self._errorXml(result)
+        plate_xml = etree.Element(result.name)
+        template = etree.parse(result.errtmpl).getroot()
+        # Get the xsd info from the error templates...ugly I know
+        plate_node = etree.SubElement(plate_xml, template.tag, template.attrib)
+        etree.SubElement(plate_root, 'name').text = result.name
+        # Make sure the xslt likes what it sees
+        etree.SubElement(plate_node, 'success').text = 'true'
+        retval, p_xml, retcode = self._transform(plate_xml)
+        return etree.fromstring(p_xml)
 
     def _errorXml(self, result):
         error_xml = etree.Element(result.name)
@@ -91,10 +112,10 @@ class RunConfigurators(object):
         template = template.replace('__name__',error_name)
         template = template.replace('__display_name__',result.name)
         template = template.replace('__summary__','%s type configurator' % result.name)
-        template = template.replace('__details__',str(result.error))
+        template = template.replace('__details__',self._sanitize(str(result.error)))
         template = template.replace('__error_code__','999')
         template = template.replace('__error_details__','xslt transform error')
-        template = template.replace('__error_summary__','Either no configurators found or things went bad')
+        template = template.replace('__error_summary__','Invalid XML')
         error_xml.append(etree.fromstring(template))
         retval, err_xml, retcode = self._transform(error_xml)
         return etree.fromstring(err_xml)
@@ -102,8 +123,7 @@ class RunConfigurators(object):
 
     def _run(self, configurator):
         # TODO < FIXME
-        # Change this and pass the whole configurator to it...or just add the name
-        #executer = executioner.Executioner(configurator.extpath, configurator.vxml)
+        # Change this and pass the whole configurator to it...
         executer = Executioner(configurator.name,
                                 configurator.extpath,
                                 configurator.vxml,
@@ -113,15 +133,14 @@ class RunConfigurators(object):
 
 
     def _transform(self, xml):
-        # place holder have to look up the right way 
-        # get this from the url in the xml not this way
-        xsd = [ node.attrib[self.xsdattrib].split()[-1]
-                    for node in xml.getchildren() ][0]
-        #version = [ node.attrib['version'] for node in xml.getchildren() ]
-        # probably need to deal with 2 vs 2.0
-        #if version:
-        #    ver = float(version[0])
-        xslname = xsd.replace('.xsd', '.xsl')
+        # place holder have to look up the right way
+        xslname = 'rpath-configurator-2.0.xsl'
+        # get this from the url in the xml if possible
+        xsds = [ node.attrib[self.xsdattrib].split()[-1]
+                    for node in xml.getchildren() ]
+        if len(xsds):
+            xsd = xsds[0]
+            xslname = xsd.replace('.xsd', '.xsl')
         xslFile = os.path.join(xslFilePath,  xslname)
         xslt_doc = etree.parse(xslFile)
         transformer = etree.XSLT(xslt_doc)
@@ -134,13 +153,15 @@ class RunConfigurators(object):
         return True, str(xs), 0
 
     def _toxml(self, configurator):
-        configurator_xml = self._run(configurator)
-        if len(configurator_xml):
-            retval, configurator.xml, retcode = self._transform(configurator_xml)
-            if retval:
+        # output should be xml from the configurator
+        output = self._run(configurator)
+        if output is not None:
+            configurator.retval, configurator.xml, configurator.retcode = self._transform(output)
+            if configurator.retval:
                 return etree.fromstring(configurator.xml)
-        # TODO Is it really an error if there are no configurators?
-        return self._errorXml(configurator)
+            else:
+                configurator.error = output
+        return self._plateXml(configurator)
 
     def toxml(self):
         root = etree.Element('configurators')
