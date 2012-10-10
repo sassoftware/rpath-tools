@@ -44,6 +44,11 @@ class ValuesParser(object):
                 name = prefix + '__' + name
 
             if element.attrib and element.attrib["list"] == "true":
+                # Remove list attrib from env var
+                try:
+                    del element.attrib["list"]
+                except:
+                    pass
                 self.values[name] = etree.tostring(element)
             elif element.getchildren():
                 self._parse(element, prefix=name)
