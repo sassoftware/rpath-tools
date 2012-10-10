@@ -17,9 +17,20 @@ class Ractivate(PackageRecipe):
         'rpm:python',
         'util-linux:runtime',
         'smartform:python',
+        'xml_resources:data',
     ]
 
     def setup(r):
         r.addMercurialSnapshot()
+        r.MakeDirs('%(datadir)s/rpath-tools/xml_resources')
+        # Fix up xsd path
+        r.Replace('/usr/conary/share/rpath-tools',
+            '%(datadir)s/rpath-tools',
+            'rpath_tools/client/sysdisco/configurators.py',
+            'rpath_tools/client/sysdisco/executioner.py')
+
         r.Make()
         r.MakeInstall('LIB_ONLY=1')
+
+        # Copy data from xml_resources
+        r.Run('cp -a %(datadir)s/rpath_xml_resources/* %(destdir)s%(datadir)s/rpath-tools/xml_resources/')
