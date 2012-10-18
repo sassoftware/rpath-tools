@@ -4,8 +4,7 @@
 
 from conary import trovetup
 from collections import namedtuple
-from xml.etree import cElementTree as etree
-
+from lxml import etree
 import rpm
 
 from conary import rpmhelper
@@ -86,7 +85,7 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
 
         license = etree.SubElement(root, 'license')
         if self.license:
-            license.text = self.license
+            license.text = self.license.decode('utf8', 'replace')
 
         return root
 
@@ -112,7 +111,7 @@ class RPMInfo(namedtuple('RPMInfo', 'nevra description installtime size '
 
         license = etree.SubElement(root, 'license')
         if self.license:
-            license.text = self.license
+            license.text = self.license.decode('utf8', 'replace')
 
         return root
 

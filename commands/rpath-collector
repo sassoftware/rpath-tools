@@ -1,0 +1,9 @@
+#!/usr/conary/bin/python2.6
+
+import sys
+
+if __name__ == '__main__':
+    from rpath_tools.client import main
+    sys.argv.insert(1, 'collector')
+    sys.exit(main.main(sys.argv))
+

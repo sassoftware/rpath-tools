@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from xml.etree import cElementTree as etree
+from lxml import etree
 
 from conary import conarycfg
 from conary import conaryclient
@@ -27,7 +27,7 @@ class Descriptors(object):
     def toxml(self, validate=False):
         desc = self.gather()
         if desc:
-            return  desc.toxml(validate=validate)
+            return desc.toxml(validate=validate)
         return desc
 
 if __name__ == '__main__':

@@ -1,10 +1,19 @@
+#
+# Copyright (c) 2012 rPath, Inc.
+#
+
 import os
 import subprocess
 import inspect
 import parsevalues
 import traceback
-import xml.etree.cElementTree as etree
+import uuid
+import tempfile
+import shutil
 
+from lxml import etree
+
+xsdFilePath = "/usr/conary/share/rpath-tools/xml_resources/xsd"
 
 class BaseSlots(object):
     __slots__ = []
@@ -16,40 +25,61 @@ class BaseSlots(object):
             setattr(self, slotName, kwargs.get(slotName))
 
 class EXECUTABLE(BaseSlots):
-    __slots__ = [ 'name', 'execute', 'switches', 'results', 'stdout', 'stderr', 'returncode' ]
+    __slots__ = [ 'name', 'type', 'execute', 'switches', 'results', 'stdout', 'stderr', 'returncode' ]
     def __repr__(self):
         return '%s' % self.name    
     @property
     def description(self):
-        return ( "Name = %s\nExecutable = %s\nSwitches = %s\nResults = %s\n"
+        return ( "Name = %s\nConfigurator Type = %s\nExecutable = %s\nSwitches = %s\nResults = %s\n"
                 "Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
-                ('name', 'exec', 'results', 'switches', 'stdout', 'stderr', 'returncode'))
+                ('name', 'type', 'exec', 'results', 'switches', 'stdout', 'stderr', 'returncode'))
+    def getdetails(self):
+        return ("Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
+                (self.stdout, self.stderr, self.returncode))
 
 class Executioner(object):
-    def __init__(self, scriptdir, values_xml):
+    def __init__(self, configurator, scriptdir, values_xml, errtemplate):
         self.scriptdir = scriptdir
         self.scripts = []
         self.values_xml = values_xml
+        self.errtemplate = errtemplate
+        self.configurator = configurator
+        self.xsdattrib = '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'
+
+
+    def _validate(self, xml, xsd):
+        xsdfile = os.path.join(xsdFilePath,  xsd)
+        xmlschema_doc = etree.parse(xsdfile)
+        xmlschema = etree.XMLSchema(xmlschema_doc)
+        try:
+            xmlschema.assertValid(xml)
+        except etree.DocumentInvalid, ex:
+            msg = "%s\n"  % str(ex.error_log)
+            msg += traceback.format_exc()
+            return False, msg, 70
+        return True, '', 0
+
+    def _sanitize(self, results):
+        from xml.sax.saxutils import escape
+        return escape(results)
 
     def _errorXml(self, result):
-        root = etree.Element(result.name)
-        errors = etree.SubElement(root, 'errors')
-        errors_name = etree.SubElement(errors, result.name)
-        etree.SubElement(errors_name, 'name').text = result.name
-        error_list = etree.SubElement(errors_name, 'error_list')
-        error = etree.SubElement(error_list, 'error')
-        etree.SubElement(error, 'code').text = "9999"
-        detail = "%s %s %s" % (result.stdout,result.stderr,result.returncode)
-        etree.SubElement(error, 'detail').text = detail
-        etree.SubElement(error, 'message').text = "Error: Executable failed"
-        etree.SubElement(error, 'success').text = "False"
-        etree.SubElement(root, 'extensions')
-        return root
+        error_name = 'config_error-%s' % uuid.uuid1()
+        template = open(self.errtemplate).read()
+        template = template.replace('__name__',error_name)
+        template = template.replace('__display_name__',result.name)
+        template = template.replace('__summary__','%s %s type configurator' % (result.execute, result.type))
+        template = template.replace('__details__','Output from %s' % result.execute)
+        template = template.replace('__error_code__',str(result.returncode))
+        template = template.replace('__error_details__',self._sanitize(result.getdetails()))
+        template = template.replace('__error_summary__',result.name)
+        error_xml = etree.fromstring(template)
+        return error_xml
 
 
-    def _getEnviron(self):        
+    def _getEnviron(self):
         env = {}
-        env['PATH'] = os.environ.get('PATH', '')
+        env['PATH'] = os.environ.get('PATH', '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin')
         if os.path.exists(self.values_xml):
             p = parsevalues.ValuesParser(self.values_xml)
             adds = p.parse()
@@ -57,10 +87,16 @@ class Executioner(object):
                 env.update(adds)
         return env
 
+    def _getTmpDir(self, pre):
+        return tempfile.mkdtemp(prefix=pre)
+
+    def _removeTmpDir(self, tmpdir):
+        return shutil.rmtree(tmpdir)
+
     def _getScripts(self, scriptdir):
         scripts = []
         if os.path.exists(scriptdir):
-            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x)) 
+            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x), type=self.configurator) 
                             for x in sorted(os.listdir(scriptdir))
                             if os.access(os.path.join(scriptdir, x), os.X_OK) ]
             scripts.sort()
@@ -68,10 +104,11 @@ class Executioner(object):
             raise Exception
         return scripts
 
-    def _runProcess(self, cmd, env):
+    def _runProcess(self, cmd, env, tmpdir=None):
         try:
             proc = subprocess.Popen(cmd, shell=False, stdin=None,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+                    cwd=tmpdir, env=env)
             stdout, stderr = proc.communicate()
             return stdout.decode("UTF8"), stderr.decode("UTF8"), proc.returncode
         except Exception, ex:
@@ -84,8 +121,11 @@ class Executioner(object):
         switches = ''
         if script.switches:
             switches = str(script.switches)
-        cmd = [ script.execute, switches]
-        script.stdout, script.stderr, script.returncode = self._runProcess(cmd, env)
+        cmd = [script.execute, switches]
+        tempdir =  self._getTmpDir('rpath-')
+        script.stdout, script.stderr, script.returncode = self._runProcess(cmd, env, tempdir)
+        if not script.returncode:
+            self._removeTmpDir(tempdir)
         return script
 
     def execute(self):
@@ -96,18 +136,30 @@ class Executioner(object):
         return results
 
     def toxml(self):
-        xml = etree.Element('configurator')
-        results = self.execute()
-        for result in results:
-            if result.stdout:
-                try:
-                    xml.append(etree.fromstring(result.stdout))
-                except SyntaxError:
+        xml = etree.Element(self.configurator)
+        # Do not run configurator if values.xml missing.
+        if os.path.exists(self.values_xml):
+            results = self.execute()
+            for result in results:
+                xsd = 'rpath-configurator-2.0.xsd'
+                myxml = None
+                if result.stdout:
+                    try:
+                        myxml = etree.fromstring(result.stdout)
+                    except SyntaxError, ex:
+                        #TODO add ex to error somehow... maybe?
+                        xml.append(self._errorXml(result))
+                    if myxml is not None:
+                        # get xsd from xml if possible
+                        if myxml.attrib and self.xsdattrib in myxml.attrib:
+                            xsd = myxml.attrib[self.xsdattrib].split()[-1]
+                        result.results, result.stderr, result.returncode = self._validate(myxml, xsd)
+                        if result.results:
+                            xml.append(myxml)
+                        else:
+                            xml.append(self._errorXml(result))
+                else:
                     xml.append(self._errorXml(result))
-            elif result.returncode:
-                xml.append(self._errorXml(result))
-            # TODO: is it a fatal error if a non-write script prints nothing
-            # but exits with status 0?
         return xml
 
     def tostdout(self):

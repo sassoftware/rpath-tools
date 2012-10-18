@@ -1,12 +1,13 @@
 #
-# Copyright (c) 2010 rPath, Inc.
+# Copyright (c) rPath, Inc.
 # This file is distributed under the terms of the MIT License.
 # A copy is available at http://www.rpath.com/permanent/mit-license.html
 #
 
+
 class Ractivate(RpathPackageRecipe):
     name = 'rpath-tools'
-    version = '2.1.0'
+    version = '2.1'
 
     clearBuildRequires('xz:rpm', 'unzip:rpm')
     buildRequires = [
@@ -18,13 +19,12 @@ class Ractivate(RpathPackageRecipe):
         'net-tools:rpm',
         'rpath-models:python',
         'm2crypto-conary:python',
-        'smartform:python',
+        'smartform-conary:python',
+        'xml_resources:data',
     ]
 
     def setup(r):
         r.rpathSetup()
-        # It's not clear to me whether we want the "rpath" command set
-        # in the standard path, or in /usr/conary/bin ...
         r.macros.bindir = '/usr/bin'
         if Arch.x86_64:
            # This is a flavoring stub.  Since we're whiting out all of the 
@@ -32,21 +32,26 @@ class Ractivate(RpathPackageRecipe):
            # though the arches put files in different directories
            pass
 
-        r.addMercurialSnapshot('http://scc.eng.rpath.com//hg/products/rbuilder/goad/rpath-tools', tag='%(name)s-%(version)s')
+        r.addMercurialSnapshot()
         r.Make('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
         r.MakeInstall('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')
-        r.Move('/etc/init.d/rpath-tools', '/etc/rc.d/rpath-tools')
-
-        r.MakeDirs('%(prefix)s/lib/rpath-tools/read.d')
-        r.MakeDirs('%(prefix)s/lib/rpath-tools/write.d')
-        r.MakeDirs('%(prefix)s/lib/rpath-tools/validate.d')
-        r.MakeDirs('%(prefix)s/lib/rpath-tools/discover.d')
+        r.MakeDirs('/usr/conary/share/rpath-tools/xml_resources')
+        r.Run('cp -a /usr/share/rpath_xml_resources/* %(destdir)s/usr/conary/share/rpath-tools/xml_resources/')
 
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/read.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/write.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/validate.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/discover.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/postinstall.d')
+        r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools')
+        r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools/postinstall.lock')
 
+        r.ComponentSpec('postinstall',
+            '/etc/conary/tags/postinstall'
+            '/usr/libexec/conary/tags/postinstall',
+            '%(prefix)s/lib/rpath-tools/postinstall.d',
+            '%(localstatedir)s/lib/rpath-tools/postinstall.lock',
+            )
 
         r.ComponentRequires({'python': set(('runtime',))})
 

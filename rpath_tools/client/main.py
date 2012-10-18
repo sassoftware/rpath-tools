@@ -38,7 +38,9 @@ class RpathToolsMain(mainhandler.MainHandler):
     commandList = [command.RegistrationCommand, command.HardwareCommand,
                    command.ConfigCommand, command.HelpCommand,
                    command.IConfigCommand, command.ScanCommand,
-                   command.ConfiguratorCommand, command.TmpWatchCommand, ]
+                   command.ConfiguratorCommand, command.TmpWatchCommand,
+                   command.CollectorCommand,
+                   ]
 
     setSysExcepthook = False
 

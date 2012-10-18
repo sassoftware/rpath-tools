@@ -1,0 +1,4 @@
+file /usr/libexec/conary/tags/postinstall
+implements files update
+implements files remove
+include /usr/lib/rpath-tools/postinstall.d/.[^/]*$

@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+# Copyright (c) rPath, Inc.
+#
+# chkconfig: 345 14 01
+# description: Runs post-install scripts on first boot
+### BEGIN INIT INFO
+# Provides: rpath-tools-postinstall
+# Required-Start: $local_fs $network
+# Should-Start: 
+# Required-Stop: 
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: Runs post-install scripts on first boot
+# Description: Runs post-install scripts on first boot
+### END INIT INFO
+
+. /etc/rc.status
+rc_reset
+
+scriptdir=/usr/lib/rpath-tools/postinstall.d
+lockdir=/var/lib/rpath-tools/postinstall.lock
+logfile=/var/log/rpath-tools.log
+
+start() {
+    emitted=
+    for script in "$scriptdir"/*.sh
+    do
+        name="$(basename $script)"
+        lockfile="$lockdir/$name"
+        if [ -f "$lockfile" ] || ! [ -x "$script" ]
+        then
+            continue
+        fi
+        if [ -z "$emitted" ]
+        then
+            echo -ne "Running post-install scripts..."
+            emitted=1
+        fi
+        touch "$lockfile"
+        (
+            echo $(date "+[%F %T%z]") "Running post-install script: $script"
+            "$script"
+            rc=$?
+            echo $(date "+[%F %T%z]") "script exit code: $rc"
+        ) >>"$logfile"
+    done
+    if [ -n "$emitted" ]
+    then
+        true
+        rc_status -v
+    fi
+}
+
+RETVAL=0
+
+# See how we were called.
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        ;;
+    restart)
+        ;;
+    status)
+        ;;
+    *)
+        echo $"Usage: $0 start"
+        exit 1
+esac
+
+rc_exit
+

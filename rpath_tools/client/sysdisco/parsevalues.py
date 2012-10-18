@@ -13,7 +13,7 @@
 # full details.
 #
 
-import xml.etree.cElementTree as etree
+from lxml import etree
 
 class ValuesParserError(Exception):
     "Raised when unable to read values.xml"
@@ -44,6 +44,11 @@ class ValuesParser(object):
                 name = prefix + '__' + name
 
             if element.attrib and element.attrib["list"] == "true":
+                # Remove list attrib from env var
+                try:
+                    del element.attrib["list"]
+                except:
+                    pass
                 self.values[name] = etree.tostring(element)
             elif element.getchildren():
                 self._parse(element, prefix=name)

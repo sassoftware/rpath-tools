@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2012 rPath, Inc.
+#
+
 from conary import conarycfg
 from conary import conaryclient
 from conary import trovetup
@@ -125,11 +129,13 @@ class Preview(object):
         cclient = self.conaryClient
         oldTop = self.getCurrentTop()
         trvSpecList = [ self.parseTroveSpec(x) for x in sources ]
-        if not trvSpecList and oldTop is not None:
-            # No destination was provided, so use the existing version.
-            trvSpecList = [ oldTop ]
-        else:
-            return None
+        if not trvSpecList:
+            if oldTop is not None:
+                # No destination was provided, so use the existing version.
+                trvSpecList = [ oldTop ]
+            else:
+                # During assimilation we don't have anything
+                return None
         jobList = [ (x[0], (None, None), (x[1], x[2]), True)
             for x in trvSpecList ]
         cclient.setUpdateCallback(callback)

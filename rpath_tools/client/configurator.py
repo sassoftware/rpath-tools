@@ -18,7 +18,7 @@ import sys
 
 from rpath_tools.client import config
 
-from xml.etree import cElementTree as etree
+from lxml import etree
 from rpath_tools.client.sysdisco.configurators import RunConfigurators
 from rpath_tools.client.register import LocalUuid
 from rpath_tools.client.register import GeneratedUuid
@@ -54,7 +54,7 @@ class Configurator(object):
     def run(self):
         logger.info('Attempting to run configurators on %s' % self.localUuidObj.uuid)
         configurated = self._execute()
-        if configurated:
+        if len(configurated):
             logger.info('Configurators succeeded')
             print etree.tostring(configurated)
             return True
