@@ -72,7 +72,7 @@ class Executioner(object):
         template = template.replace('__details__','Output from %s' % result.execute)
         template = template.replace('__error_code__',str(result.returncode))
         template = template.replace('__error_details__',self._sanitize(result.getdetails()))
-        template = template.replace('__error_summary__',result.name)
+        template = template.replace('__error_summary__','Error executing %s' % result.execute)
         error_xml = etree.fromstring(template)
         return error_xml
 
@@ -160,6 +160,16 @@ class Executioner(object):
                             xml.append(self._errorXml(result))
                 else:
                     xml.append(self._errorXml(result))
+        else:
+            msg = 'Missing values.xml configuration can not be applied'
+            name = 'missing_values_xml_error'
+            retcode = 70
+            err = "EX_SOFTWARE internal software error"
+
+            result = EXECUTABLE(name=name, stdout=msg, stderr=err,
+                    returncode=retcode, type=self.configurator,
+                    execute=self.values_xml)
+            xml.append(self._errorXml(result))
         return xml
 
     def tostdout(self):
