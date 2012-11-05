@@ -34,7 +34,7 @@ class ServiceInfo(object):
 
     def _checkRunning(self):
         running = 'false'
-        if 'not running' in self.status:
+        if 'not running' in self.status or 'dead' in self.status:
             running = 'false'
         elif 'running' in self.status or 'pid' in self.status:
             running = 'true'
