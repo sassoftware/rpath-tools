@@ -20,17 +20,9 @@
 # right now apifinder is used for both rpath-tools and rbuild (which has a copy of it, for lack
 # of a common module shared between the two that would be a good place to hold it). 
 
-import os
-import sys
-import time
-import StringIO
-
 from testutils import mock
 from rpath_tools.client.utils.apifinder import ApiFinder
-from rpath_toolstest.clienttest import testsetup
 from rpath_toolstest.clienttest import RpathToolsTest
-
-from rpath_models import System
 
 # The following API example was sampled from real instances running the respective
 # rBuilder versions:
@@ -131,7 +123,7 @@ class MockApiFinder(ApiFinder):
                 return EDGE_SLASH_API
              if url.endswith('/api/v1'):
                 return EDGE_SLASH_API_SLASH_V1
-        raise Exception("unmocked URL or simulation version: %s, %s" % (simulate_version, url))
+        raise Exception("unmocked URL or simulation version: %s, %s" % (self.simulate_version, url))
 
 class RegistrationTest(RpathToolsTest):
 

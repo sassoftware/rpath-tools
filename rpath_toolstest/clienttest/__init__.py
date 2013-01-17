@@ -22,7 +22,6 @@ import tempfile
 from testrunner import testhelp
 
 from rpath_toolstest.clienttest import testsetup
-from rpath_tools.client import command
 from rpath_tools.client import config
 
 

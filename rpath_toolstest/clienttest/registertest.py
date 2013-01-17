@@ -17,7 +17,6 @@
 
 
 import os
-import sys
 import time
 import StringIO
 
@@ -25,7 +24,6 @@ from testutils import mock
 
 from rpath_tools.client import register
 
-from rpath_toolstest.clienttest import testsetup
 from rpath_toolstest.clienttest import RpathToolsTest
 
 from rpath_models import System

@@ -17,14 +17,9 @@
 
 
 import os
-import tempfile
-
-from testrunner import testhelp
-
-from rpath_tools.client import command
-from rpath_tools.client import config
 
 from rpath_toolstest.clienttest import RpathToolsTest
+
 
 class ConfigTest(RpathToolsTest):
 
