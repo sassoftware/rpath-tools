@@ -6,3 +6,7 @@
 ^bin/rpath$
 ^bin/rpath-.*$
 ^.*constants.py$
+.failed
+.times
+annotate/
+.coverage
