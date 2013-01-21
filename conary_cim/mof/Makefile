@@ -15,25 +15,12 @@
 #
 
 
-import os
-import tempfile
+MOFFILES = $(wildcard *.mof)
+REGFILES = $(wildcard *.registration)
+MOFDIR = /usr/share/conary-cim
 
-from testrunner import testhelp
+install: $(DESTDIR)$(MOFDIR)
+	install -m 644 $(MOFFILES) $(REGFILES) $(DESTDIR)$(MOFDIR)/
 
-from rpath_tools.client import config
-
-
-class RpathToolsTest(testhelp.TestCase):
-
-    def _setupConfig(self):
-        self.cfg = config.RpathToolsConfiguration()
-        self.cfg.topDir = self.testPath
-        self.cfg.logFile = os.path.join(self.testPath, 'log')
-
-    def setUp(self):
-        testhelp.TestCase.setUp(self)
-        self.testPath = tempfile.mkdtemp(prefix='rpath-tools-test-')
-        self._setupConfig()
-    
-    def tearDown(self):
-        testhelp.TestCase.tearDown(self)
+$(DESTDIR)$(MOFDIR):
+	install -d -m 755 $@

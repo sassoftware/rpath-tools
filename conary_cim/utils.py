@@ -1,3 +1,4 @@
+#!/usr/bin/python2.4
 #
 # Copyright (c) SAS Institute Inc.
 #
@@ -15,25 +16,21 @@
 #
 
 
-import os
-import tempfile
+"""Python Provider for RPATH_UpdateConcreteJob
 
-from testrunner import testhelp
+Instruments the CIM class RPATH_UpdateConcreteJob
 
-from rpath_tools.client import config
+"""
 
+import time
 
-class RpathToolsTest(testhelp.TestCase):
+class Time(object):
+    timeFormat = "%%Y%%m%%d%%H%%M%%S.%06d+000"
 
-    def _setupConfig(self):
-        self.cfg = config.RpathToolsConfiguration()
-        self.cfg.topDir = self.testPath
-        self.cfg.logFile = os.path.join(self.testPath, 'log')
-
-    def setUp(self):
-        testhelp.TestCase.setUp(self)
-        self.testPath = tempfile.mkdtemp(prefix='rpath-tools-test-')
-        self._setupConfig()
-    
-    def tearDown(self):
-        testhelp.TestCase.tearDown(self)
+    @classmethod
+    def format(cls, tstamp):
+        if tstamp is None:
+            return None
+        tstamp = float(tstamp)
+        microsec = int((tstamp - int(tstamp)) * 1e6)
+        return time.strftime(cls.timeFormat % microsec, time.gmtime(tstamp))

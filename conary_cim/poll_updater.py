@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 # Copyright (c) SAS Institute Inc.
 #
@@ -15,25 +16,18 @@
 #
 
 
-import os
-import sys
+import time
 
+from rpath_tools.client import config
 
-curDir = os.path.dirname(__file__)
-for dirlevel in range(10):
-    testsuitePath = os.path.realpath(curDir + '/..' * dirlevel)
-    if os.path.exists(testsuitePath + '/testsuite.py'):
-        break
-else:
-    raise RuntimeError('Could not find testsuite.py!')
-if not testsuitePath in sys.path:
-    sys.path.insert(0, testsuitePath)
-
-
-import testsuite
-testsuite.setup()
-
-
-def main():
-    if sys._getframe(1).f_globals['__name__'] == '__main__':
-        testsuite.main()
+def updatePollFile(logger=None):
+    try:
+        rPathToolsConfig = config.RpathToolsConfiguration(readConfigFiles=True)
+        pollFile = open(rPathToolsConfig.lastPollFilePath, 'w')
+        pollFile.write(str(time.time()))
+        pollFile.close()
+    except Exception, e:
+        if logger:
+            logger.log_error('Failed updating poll file at %s' % \
+                rPathToolsConfig.lastPollFilePath)
+            logger.log_error(str(e))

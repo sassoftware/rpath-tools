@@ -16,6 +16,7 @@
 #
 
 
+import os
 import sys
 
 from testrunner import suite, testhandler
@@ -24,9 +25,13 @@ class Suite(suite.TestSuite):
     testsuite_module = sys.modules[__name__]
     suiteClass = testhandler.ConaryTestSuite
 
+    def setupPaths(self):
+        import conary_cim
+        sys.path.append(os.path.dirname(os.path.abspath(conary_cim.__file__)))
+
     def getCoverageDirs(self, *_):
-        import rpath_tools
-        return [rpath_tools]
+        import rpath_tools, conary_cim
+        return [rpath_tools, conary_cim]
 
     def getCoverageExclusions(*_):
         return ['test/.*']

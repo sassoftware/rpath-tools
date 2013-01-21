@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # Copyright (c) SAS Institute Inc.
 #
@@ -15,25 +16,6 @@
 #
 
 
-import os
-import tempfile
-
-from testrunner import testhelp
-
-from rpath_tools.client import config
-
-
-class RpathToolsTest(testhelp.TestCase):
-
-    def _setupConfig(self):
-        self.cfg = config.RpathToolsConfiguration()
-        self.cfg.topDir = self.testPath
-        self.cfg.logFile = os.path.join(self.testPath, 'log')
-
-    def setUp(self):
-        testhelp.TestCase.setUp(self)
-        self.testPath = tempfile.mkdtemp(prefix='rpath-tools-test-')
-        self._setupConfig()
-    
-    def tearDown(self):
-        testhelp.TestCase.tearDown(self)
+/usr/sbin/vmware-guestd --cmd 'info-set guestinfo.vmware.vami.version 0.1' > /dev/null
+/usr/sbin/vmware-guestd --cmd 'info-set guestinfo.vmware.vami.features SUP' > /dev/null
+/usr/sbin/vmware-guestd --cmd 'info-set guestinfo.vmware.vami.https-port 5989' > /dev/null

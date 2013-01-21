@@ -18,14 +18,16 @@
 all: all-subdirs default-all
 
 all-subdirs:
-	for d in $(MAKEALLSUBDIRS); do make -C $$d DIR=$$d || exit 1; done
+	for d in $(SUBDIRS); do make -C $$d DIR=$$d || exit 1; done
 
 export TOPDIR = $(shell pwd)
 export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
 export CFGDEVEL=rpathrc
 
 SUBDIRS=rpath_tools distro commands
-MAKEALLSUBDIRS=rpath_tools distro commands
+ifndef LIB_ONLY
+SUBDIRS+=conary_cim
+endif
 
 extra_files = \
 	Make.rules 		\

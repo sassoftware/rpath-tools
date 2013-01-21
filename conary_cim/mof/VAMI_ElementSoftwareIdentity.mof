@@ -1,0 +1,3 @@
+// The VAMI_ElementSoftwareIdentity expose status information of VAMI_SoftwareIdentity
+class VAMI_ElementSoftwareIdentity : CIM_ElementSoftwareIdentity {
+};

@@ -1,0 +1,4 @@
+// The VAMI_SoftwareIdentity represents a firmware-based Virtual Appliance version.
+// It does not indicate the current status of that version, whether is installed, available for download, etc.
+class VAMI_SoftwareIdentity : CIM_SoftwareIdentity {
+};

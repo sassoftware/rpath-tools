@@ -1,0 +1,4 @@
+class RPATH_UpdateConcreteJob : CIM_ConcreteJob {
+    [ Description("The results of running this job, serialized as strings") ]
+    string JobResults[];
+};

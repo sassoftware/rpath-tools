@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Copyright (c) SAS Institute Inc.
 #
@@ -22,7 +21,6 @@ import StringIO
 
 from testutils import mock
 
-from rpath_toolstest.clienttest import testsetup
 from rpath_toolstest.clienttest import RpathToolsTest
 
 from rpath_tools.client import register
@@ -317,6 +315,3 @@ slpMethod                 rpath-inventory
 topDir                    %TESTPATH%
 validateRemoteIdentity    True
 """
-
-if __name__ == "__main__":
-        testsetup.main()

@@ -1,0 +1,149 @@
+#
+# Copyright (c) SAS Institute Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+
+loadSuperClass('rpathpackage')
+class Ractivate(RpathPackageRecipe):
+    name = 'rpath-tools'
+    version = '2.1'
+
+    plat = 'centos'
+    platver = '6'
+
+    clearBuildRequires('xz:rpm', 'unzip:rpm')
+    buildRequires = [
+        'cmpi-bindings-conary:python',
+        'coreutils:rpm',
+        'm2crypto-conary:python',
+        'make:rpm',
+        'net-tools:rpm',
+        'python-conary:devel',
+        'pywbem-conary:python',
+        'rpath-models:python',
+        'sblim-cmpi-base-conary:lib',
+        'sblim-sfcb-conary:runtime',
+        'sblim-sfcb-schema-conary:data',
+        'smartform-conary:python',
+        'xml_resources:data',
+    ]
+
+    if (plat, platver) == ('centos', '5') or plat == 'sles':
+        buildRequires.append('util-linux:rpm')
+    elif plat == 'centos':
+        buildRequires.append('util-linux-ng:rpm')
+
+    def setup(r):
+        r.rpathSetup()
+        r.macros.bindir = '/usr/bin'
+        r.macros.pycimdir = '/usr/conary/lib/pycim'
+        if Arch.x86_64:
+           # This is a flavoring stub.  Since we're whiting out all of the 
+           # python deps, this package doesn't get flavored by default, even
+           # though the arches put files in different directories
+           pass
+
+        r.addMercurialSnapshot()
+        makeArgs = ('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s '
+                'PYTHON=%(pybin)s initdir=%(initdir)s '
+                'PYCIM_DIR=%(pycimdir)s MOFDIR=%(datadir)s/conary-cim')
+        r.Make(makeArgs)
+        r.MakeInstall(makeArgs)
+
+        r.MakeDirs('/usr/conary/share/rpath-tools/xml_resources')
+        r.Run('cp -a /usr/share/rpath_xml_resources/* %(destdir)s/usr/conary/share/rpath-tools/xml_resources/')
+
+        r.ExcludeDirectories(exceptions='/etc/conary/rpath-tools/config.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/read.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/write.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/validate.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/discover.d')
+        r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/postinstall.d')
+        r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools')
+        r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools/postinstall.lock')
+        r.ExcludeDirectories(exceptions="%(localstatedir)s/lib/conary-cim")
+        r.ExcludeDirectories(exceptions="%(localstatedir)s/lib/conary-cim/storage")
+
+        r.ComponentSpec('postinstall',
+            '/etc/conary/tags/postinstall'
+            '/usr/libexec/conary/tags/postinstall',
+            '%(prefix)s/lib/rpath-tools/postinstall.d',
+            '%(localstatedir)s/lib/rpath-tools/postinstall.lock',
+            )
+
+        r.ComponentSpec("lib",
+            r".*\.mof",
+            r".*\.registration",
+            r".*\.sh",
+            r"sfcb\.cfg",
+            )
+
+        r.PackageSpec("conary-cim-configuration",
+            ".*RPATH_Configuration.*",
+            "config_manager.*")
+        r.PackageSpec('conary-cim',
+            '%(pycimdir)s/',
+            '/etc/vmware-tools/',
+            '/opt/vmware/',
+            '%(datadir)s/conary-cim/',
+            '%(initdir)s/conary-cim',
+            '/var/lib/conary-cim.*',
+            )
+
+        # Fix init script to use the proper initdir
+        r.Replace('/etc/init.d/functions', '%(initdir)s/functions',
+            '%(initdir)s/*', allowNoChange=True)
+        if r.plat == 'sles':
+            r.Replace("^# chkconfig: 2345 15 92$", """\
+# chkconfig: 2345 15 92
+#
+### BEGIN INIT INFO
+# Provides:          conary-cim
+# Required-Start:    $network $local_fs
+# Required-Stop:
+# X-Start-Before:    sfcb-conary
+# Should-Start:      amiconfig
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: rPath Remote Update
+# Description:       rPath Remote Update
+### END INIT INFO""", "%(initdir)s/conary-cim")
+            del r.NormalizeInitscriptContents
+        r.TagSpec('initscript', '%(initdir)s/')
+        r.Config("sfcb.cfg")
+
+        r.ComponentRequires({'python': set(('runtime',))})
+
+        r.Requires('conary-cim:lib', '%(bindir)s/rpath')
+        r.Requires('sblim-cmpi-network-conary:lib', '%(bindir)s/rpath')
+        r.Requires('sblim-cmpi-devel-conary:lib', '%(bindir)s/rpath')
+        r.Requires('/usr/bin/openssl', '%(bindir)s/rpath')
+
+        # We can't do much with these python files unless we have the CMPI
+        # bindings available
+        r.Requires("cmpi-bindings-conary:python", "RPATH_.*\.py")
+        # The schema is not pulled in by anything, since we're not sure what
+        # to get
+        r.Requires("sblim-sfcb-schema-conary:data", "RPATH_.*\.py")
+
+        # Catch all other deps -- fix these later
+        r.Requires('pywbem-conary:python', 'RPATH_.*\.py')
+        r.Requires("sblim-cmpi-base-conary:lib", "RPATH_.*\.py")
+        r.Requires("sblim-cmpi-base-conary:data", "RPATH_.*\.py")
+        r.Requires("rpath-tools:runtime", "RPATH_.*\.py")
+        r.Requires("/usr/bin/openssl", '%(bindir)s/rpath')
+
+        # Don't flavor py files in /usr/lib/
+        r.Flavor(exceptions='%(pycimdir)s/')

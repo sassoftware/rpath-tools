@@ -36,11 +36,6 @@ class Ractivate(RpathPackageRecipe):
     def setup(r):
         r.rpathSetup()
         r.macros.bindir = '/usr/bin'
-        if Arch.x86_64:
-           # This is a flavoring stub.  Since we're whiting out all of the 
-           # python deps, this package doesn't get flavored by default, even
-           # though the arches put files in different directories
-           pass
 
         r.addMercurialSnapshot()
         r.Make('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s PYTHON=%(pybin)s initdir=%(initdir)s')

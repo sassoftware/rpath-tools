@@ -1,0 +1,2 @@
+class RPATH_LogEntry : CIM_LogEntry {
+};

@@ -1,0 +1,2 @@
+class RPATH_RecordLog : CIM_RecordLog {
+};

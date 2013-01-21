@@ -1,0 +1,58 @@
+/*
+Copyright (C) 2010 rPath, Inc.
+*/
+
+class RPATH_ComputerSystem : CIM_ComputerSystem
+{
+    [ Description("Local UUID") ]
+    string LocalUUID;
+
+    [ Description("Generated UUID") ]
+    string GeneratedUUID;
+
+    [ Description("Remote Registration"),
+       ValueMap { "0", "1"},
+       Values { "OK", "Failed"} ]
+    uint16 RemoteRegistration(
+        [IN,
+            Description("List of management nodes against this system will be registered")]
+        string ManagementNodeAddresses[],
+        [IN,
+            Description("The Managed System will advertise this IP address as the preferred one to be used when talking to it")
+        ]
+        string RequiredNetwork,
+        [IN,
+            Description("Event UUID that originated this registration request")
+        ]
+        string EventUUID,
+        [OUT,
+            Description("If the registration failed, this string contains a short description of the error")
+        ]
+        string errorSummary,
+        [OUT,
+            Description("If the registration failed, this string contains a detailed description of the error")
+        ]
+        string errorDetails
+    );
+
+    [ Description("Update Management Configuration"),
+       ValueMap { "0", "1"},
+       Values { "OK", "Failed"} ]
+    uint16 UpdateManagementConfiguration(
+        [IN,
+            Description("List of management nodes against this system will be registered")]
+        string ManagementNodeAddresses[],
+        [IN,
+            Description("The Managed System will advertise this IP address as the preferred one to be used when talking to it")
+        ]
+        string RequiredNetwork,
+        [OUT,
+            Description("If the call failed, this string contains a short description of the error")
+        ]
+        string errorSummary,
+        [OUT,
+            Description("If the call failed, this string contains a detailed description of the error")
+        ]
+        string errorDetails
+    );
+};
