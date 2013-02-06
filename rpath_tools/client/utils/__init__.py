@@ -20,5 +20,5 @@ def runningInEC2():
         from amiconfig import metadataservice
     except ImportError:
         return False
-    ms = metadataservice.MetadataService(debug=False)
+    ms = metadataservice.MetadataService()
     return ms.canConnect()
