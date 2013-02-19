@@ -22,23 +22,38 @@ class Ractivate(RpathPackageRecipe):
 
     plat = 'centos'
     platver = '6'
+    embedded = True
+    libonly = False
 
     clearBuildRequires('xz:rpm', 'unzip:rpm')
     buildRequires = [
-        'cmpi-bindings-conary:python',
         'coreutils:rpm',
-        'm2crypto-conary:python',
         'make:rpm',
         'net-tools:rpm',
-        'python-conary:devel',
-        'pywbem-conary:python',
         'rpath-models:python',
-        'sblim-cmpi-base-conary:lib',
-        'sblim-sfcb-conary:runtime',
-        'sblim-sfcb-schema-conary:data',
-        'smartform-conary:python',
         'xml_resources:data',
     ]
+    if embedded:
+        buildRequires += [
+            'm2crypto-conary:python',
+            'python-conary:devel',
+            'smartform-conary:python',
+            ]
+        if not libonly:
+            buildRequires += [
+                'cmpi-bindings-conary:python',
+                'pywbem-conary:python',
+                'sblim-cmpi-base-conary:lib',
+                'sblim-sfcb-conary:runtime',
+                'sblim-sfcb-schema-conary:data',
+                ]
+    else:
+        buildRequires += [
+            'm2crypto:rpm',
+            'python-devel',
+            'smartform:python',
+            ]
+        assert libonly
 
     if (plat, platver) == ('centos', '5') or plat == 'sles':
         buildRequires.append('util-linux:rpm')
@@ -46,9 +61,14 @@ class Ractivate(RpathPackageRecipe):
         buildRequires.append('util-linux-ng:rpm')
 
     def setup(r):
-        r.rpathSetup()
-        r.macros.bindir = '/usr/bin'
-        r.macros.pycimdir = '/usr/conary/lib/pycim'
+        if r.embedded:
+            r.rpathSetup()
+            r.macros.bindir = '/usr/bin'
+        else:
+            r.macros.pyroot = r.macros.prefix
+            r.macros.pybin = '%(bindir)s/python%(pyver)s'
+            r.macros.sitepkgs = '%(libdir)s/python%(pyver)s/site-packages'
+        r.macros.pycimdir = '%(pyroot)s/lib/pycim'
         if Arch.x86_64:
            # This is a flavoring stub.  Since we're whiting out all of the 
            # python deps, this package doesn't get flavored by default, even
@@ -59,11 +79,13 @@ class Ractivate(RpathPackageRecipe):
         makeArgs = ('lib=%(lib)s libdir=%(libdir)s sitedir=%(sitepkgs)s '
                 'PYTHON=%(pybin)s initdir=%(initdir)s '
                 'PYCIM_DIR=%(pycimdir)s MOFDIR=%(datadir)s/conary-cim')
+        if r.libonly:
+            makeArgs += ' LIB_ONLY=1'
         r.Make(makeArgs)
         r.MakeInstall(makeArgs)
 
-        r.MakeDirs('/usr/conary/share/rpath-tools/xml_resources')
-        r.Run('cp -a /usr/share/rpath_xml_resources/* %(destdir)s/usr/conary/share/rpath-tools/xml_resources/')
+        r.MakeDirs('%(pyroot)s/share/rpath-tools/xml_resources')
+        r.Run('cp -a /usr/share/rpath_xml_resources/* %(destdir)s%(pyroot)s/share/rpath-tools/xml_resources/')
 
         r.ExcludeDirectories(exceptions='/etc/conary/rpath-tools/config.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/read.d')

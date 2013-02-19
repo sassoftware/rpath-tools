@@ -18,7 +18,6 @@
 from conary import trovetup
 from collections import namedtuple
 from lxml import etree
-import rpm
 
 from conary import rpmhelper
 from conary import conarycfg
@@ -200,6 +199,7 @@ class RPMScanner(AbstractPackageScanner):
         if self._results:
             return self._results
 
+        import rpm
         ts = rpm.TransactionSet()
 
         mi = ts.dbMatch()
