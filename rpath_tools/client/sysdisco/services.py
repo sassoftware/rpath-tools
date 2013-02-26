@@ -133,10 +133,14 @@ class ServiceScanner(object):
         return services
 
     def _getRpm(self, init_script):
-        ts = rpm.TransactionSet()
-        mi = ts.dbMatch()
-        hdrs = [ RPMInfo.fromHeader(h) for h in mi if init_script in h['filenames'] ]
-        _results = dict((h.nevra, h) for h in hdrs)
+        try:
+            ts = rpm.TransactionSet()
+            mi = ts.dbMatch()
+            hdrs = [ RPMInfo.fromHeader(h) for h in mi if init_script in h['filenames'] ]
+            _results = dict((h.nevra, h) for h in hdrs)
+        except:
+            _results = {}
+
         return _results
 
     def _getConaryPkg(self, init_script):

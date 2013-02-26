@@ -199,13 +199,16 @@ class RPMScanner(AbstractPackageScanner):
         if self._results:
             return self._results
 
-        import rpm
-        ts = rpm.TransactionSet()
+        try:
+            import rpm
+            ts = rpm.TransactionSet()
 
-        mi = ts.dbMatch()
+            mi = ts.dbMatch()
 
-        hdrs = [ RPMInfo.fromHeader(x) for x in mi ]
-        self._results = dict((x.nevra, x) for x in hdrs)
+            hdrs = [ RPMInfo.fromHeader(x) for x in mi ]
+            self._results = dict((x.nevra, x) for x in hdrs)
+        except:
+            self._results = { }
 
         return self._results
 
@@ -327,15 +330,16 @@ class PackageScanner(object):
             conary_packages.append(node)
 
         rpm_packages = etree.Element('rpm_packages')
-        for pkg in rpms.itervalues():
-            node = pkg.toxml(self._idfactory.getId(pkg))
-            if pkg.nevra in nevraMap:
-                cnyId = nevraMap.get(pkg.nevra)
-                etree.SubElement(node, 'conary_package', dict(id=cnyId))
-                etree.SubElement(node, 'encapsulated').text = 'true'
-            else:
-                etree.SubElement(node, 'encapsulated').text = 'false'
-            rpm_packages.append(node)
+        if rpms:
+            for pkg in rpms.itervalues():
+                node = pkg.toxml(self._idfactory.getId(pkg))
+                if pkg.nevra in nevraMap:
+                    cnyId = nevraMap.get(pkg.nevra)
+                    etree.SubElement(node, 'conary_package', dict(id=cnyId))
+                    etree.SubElement(node, 'encapsulated').text = 'true'
+                else:
+                    etree.SubElement(node, 'encapsulated').text = 'false'
+                rpm_packages.append(node)
 
         return rpm_packages, conary_packages
 
