@@ -24,6 +24,7 @@ import rpm
 
 from conary import conarycfg
 from conary import conaryclient
+from conary import errors
 from conary.cmds import query
 
 
@@ -57,32 +58,30 @@ class ServiceInfo(object):
 
     def toxml(self, srv_id):
         root = etree.Element('service', id=srv_id)
-        childStatus = etree.SubElement(root, 'status').text = self.status 
-        childRunning = etree.SubElement(root, 'running').text = self.running
+        etree.SubElement(root, 'status').text = self.status # Status 
+        etree.SubElement(root, 'running').text = self.running # Running
         childServiceInfo = etree.SubElement(root, 'service_info' )
-        childName = etree.SubElement(childServiceInfo, 'name' ).text = self.name
-        childAutostart = etree.SubElement(childServiceInfo, 'autostart').text = self.autostart
+        etree.SubElement(childServiceInfo, 'name' ).text = self.name # Name
+        etree.SubElement(childServiceInfo, 
+                            'autostart').text = self.autostart # Autostart
         childRunlevels = etree.SubElement(childServiceInfo, 'runlevels')
         rls = []
         for rl in sorted(self.runlevels):
             if self.runlevels[rl] == 'on':
                 rls.append(rl )
         childRunlevels.text = ",".join(sorted(rls))     
-        #if self.rpm_pkg:
-        #    childRpmPkg.text = self.rpm_pkg.nevra
-        #if self.conary_pkg:
-        #    childConaryPkg.text = self.conary_pkg
+        # RPM PKG 
         if self.rpm_pkg_uri:
-            childRpmPkg = etree.SubElement(root, 'rpm_package', 
+            etree.SubElement(root, 'rpm_package', 
                                             dict(id=self.rpm_pkg_uri))
         else:
-            childRpmPkg = etree.SubElement(root, 'rpm_package')
-
+            etree.SubElement(root, 'rpm_package')
+        # CONARY PKG
         if self.conary_pkg_uri:
-            childConaryPkg =  etree.SubElement(root, 'conary_package', 
+            etree.SubElement(root, 'conary_package', 
                                             dict(id=self.conary_pkg_uri))
         else:
-            childConaryPkg = etree.SubElement(root, 'conary_package')
+            etree.SubElement(root, 'conary_package')
 
         return root
 
@@ -99,9 +98,10 @@ class ServiceScanner(object):
             proc = subprocess.Popen(cmd, shell=False, stdin=None, 
                         stdout=subprocess.PIPE , stderr=subprocess.PIPE)
             stdout, stderr = proc.communicate()
+            # TODO: Fix results up if we add serious logging...
             #if proc.returncode != 0:
-                # TODO: Fix results up"
-                #raise Exception("%s failed with return code %s" % (' '.join(cmd), proc.returncode))
+                #raise Exception("%s failed with return code %s" % 
+                #            (' '.join(cmd), proc.returncode))
                 #return stderr.decode("UTF8")
             return stdout.decode("UTF8")
         except Exception, ex:
@@ -128,20 +128,24 @@ class ServiceScanner(object):
                         '1:off', '2:off', '3:off', '4:off', '5:off', '6:off'] ]
         if os.path.exists(chkconfig[0]):
             stdout = self._runProcess(chkconfig)
-            services = [ [ y for y in x.split() ] for x in  stdout.split('\n') 
+            services = [ [ y for y in x.split() ] for x in stdout.split('\n') 
                             if x and 'xinetd' not in x ]
         return services
 
     def _getRpm(self, init_script):
+        rpm_list = []
         try:
             ts = rpm.TransactionSet()
             mi = ts.dbMatch()
-            hdrs = [ RPMInfo.fromHeader(h) for h in mi if init_script in h['filenames'] ]
-            _results = dict((h.nevra, h) for h in hdrs)
-        except:
-            _results = {}
-
-        return _results
+            hdrs = [ RPMInfo.fromHeader(h) for h in mi 
+                        if init_script in h['filenames'] ]
+            rpm_list = [ h.nevra for h in hdrs ]
+        except rpm.error, e:
+            # TODO: STUB FOR LOGGING
+            rpm_list = [str(e)]
+        except Exception, e:
+            rpm_list = [str(e)]
+        return rpm_list
 
     def _getConaryPkg(self, init_script):
         conary_list = []
@@ -149,9 +153,16 @@ class ServiceScanner(object):
         cfg = conarycfg.ConaryConfiguration(True)
         cli = conaryclient.ConaryClient(cfg)
         db = cli.db
-        trv = query.getTrovesToDisplay(db, troveSpecs=[], pathList=[init_script])
-        if trv[0]:
-            conary_list.append(trv[0][0])
+        try:
+            trv = query.getTrovesToDisplay(db, troveSpecs=[], 
+                                        pathList=[init_script])
+            if trv[0]:
+                conary_list.append(trv[0][0])
+        except errors.ConaryError, e:
+            # TODO: STUB FOR LOGGING
+            conary_list = [str(e)]
+        except Exception, e:
+            conary_list = [str(e)]
         return conary_list
 
 

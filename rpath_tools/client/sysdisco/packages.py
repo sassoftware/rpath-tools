@@ -207,7 +207,11 @@ class RPMScanner(AbstractPackageScanner):
 
             hdrs = [ RPMInfo.fromHeader(x) for x in mi ]
             self._results = dict((x.nevra, x) for x in hdrs)
-        except:
+        except rpm.error, e:
+            # TODO: STUB FOR LOGGING 
+            self._results = { }
+        except Exception, e:
+            # TODO: STUB FOR LOGGING 
             self._results = { }
 
         return self._results
