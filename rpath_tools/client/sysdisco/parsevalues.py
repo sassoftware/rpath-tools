@@ -18,6 +18,10 @@
 
 from lxml import etree
 
+import logging
+
+logger = logging.getLogger('client')
+
 class ValuesParserError(Exception):
     "Raised when unable to read values.xml"
 
@@ -31,6 +35,7 @@ class ValuesParser(object):
         try:
             tree = etree.ElementTree(file=values_xml)
         except Exception, e:
+            logger.error('Unable to read values.xml: %s' % str(e))
             raise ValuesParserError, e
         root = tree.getroot()
         return root

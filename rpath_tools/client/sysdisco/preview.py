@@ -23,6 +23,9 @@ from conary import versions
 
 from rpath_tools.client.utils import update_job_formatter
 
+import logging
+
+logger = logging.getLogger('client')
 
 class InstallationServiceError(Exception):
     "Base class"
@@ -102,6 +105,7 @@ class Preview(object):
             if name.startswith('group-') and name.endswith('-appliance'):
                 break
         else:
+            logger.warn('Unable to find top-level group')
             return None
         return trovetup.TroveTuple(name, version, flavor)
 
@@ -156,6 +160,7 @@ class Preview(object):
             updateJob = self._newUpdateJob(jobList, flags)
             newTop = self.getUpdatedTop(oldTop, updateJob)
         except NoUpdatesFound:
+            logger.warn('No Updates Found')
             updateJob = None
             newTop = oldTop
         fmt = update_job_formatter.Formatter(updateJob)

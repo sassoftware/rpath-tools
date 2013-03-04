@@ -28,6 +28,7 @@ from executioner import Executioner
 from executioner import BaseSlots
 
 
+
 # CONFIG VARIABLES
 valuesXmlPath = "/var/lib/rpath-tools/values.xml"
 readExtensionPath = "/usr/lib/rpath-tools/read.d/"

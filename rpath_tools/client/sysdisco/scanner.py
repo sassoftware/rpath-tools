@@ -32,6 +32,10 @@ import os
 import uuid
 import itertools
 
+import logging
+
+logger = logging.getLogger('client')
+
 class SurveyScanner(object):
     def __init__(self, origin="scanner"):
         self._serviceScanner = ServiceScanner(ServiceInfo)
@@ -89,8 +93,9 @@ class SurveyScanner(object):
         if raw_preview_xml:
             try:
                 preview_xml = etree.fromstring(raw_preview_xml)
-            except SyntaxError:
+            except SyntaxError, ex:
                 # FIX ME This is going to  go bad at some point
+                logger.error('Error with xml from preview:\n %s' % str(ex)) 
                 pass
         return preview_xml
 
@@ -120,7 +125,8 @@ class SurveyScanner(object):
                 descriptors_namespace_fix = etree.fromstring(
                     raw_desc.replace(rep, '<configuration_descriptor>'))
                 descriptors_xml.append(descriptors_namespace_fix)
-            except SyntaxError:
+            except SyntaxError, ex:
+                logger.error('Error with xml from descriptors:\n %s' % str(ex))
                 pass
             # END FIXME
         return descriptors_xml
