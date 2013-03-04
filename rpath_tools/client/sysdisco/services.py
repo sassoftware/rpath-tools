@@ -29,7 +29,7 @@ from conary.cmds import query
 
 
 from packages import RPMInfo
-from packages import ConaryInfo
+#from packages import ConaryInfo
 
 import logging
 

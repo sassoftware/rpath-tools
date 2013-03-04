@@ -30,7 +30,6 @@ import sys
 import time
 import os
 import uuid
-import itertools
 
 import logging
 
