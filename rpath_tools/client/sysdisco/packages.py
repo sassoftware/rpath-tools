@@ -22,11 +22,16 @@ from lxml import etree
 from conary import rpmhelper
 from conary import conarycfg
 from conary import conaryclient
+from conary import errors
 from conary.lib import util
 from conary.lib.sha1helper import sha256ToString
 
 from rpath_tools.client.utils.update_job_formatter import getArchFromFlavor
+from rpath_tools.client.errors import RpathToolsError
 
+import logging
+
+logger = logging.getLogger('client')
 
 
 class IDFactory(object):
@@ -208,10 +213,10 @@ class RPMScanner(AbstractPackageScanner):
             hdrs = [ RPMInfo.fromHeader(x) for x in mi ]
             self._results = dict((x.nevra, x) for x in hdrs)
         except rpm.error, e:
-            # TODO: STUB FOR LOGGING 
+            logger.warn('Failed to open rpm db: %s' % str(e))
             self._results = { }
         except Exception, e:
-            # TODO: STUB FOR LOGGING 
+            logger.warn('Failed trying to access rpm db: %s' % str(e))
             self._results = { }
 
         return self._results
@@ -226,7 +231,11 @@ class ConaryScanner(AbstractPackageScanner):
         return self._client
 
     def _getDb(self):
-        db = self.client.getDatabase()
+        try:
+            db = self.client.getDatabase()
+        except errors.ConaryError, e:
+            logger.error('Failed to open conary db: %s' % str(e))
+            raise RpathToolsError(e)
         return db
 
     def getSystemModel(self):

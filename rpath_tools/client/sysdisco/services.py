@@ -31,6 +31,10 @@ from conary.cmds import query
 from packages import RPMInfo
 from packages import ConaryInfo
 
+import logging
+
+logger = logging.getLogger('client')
+
 # ServiceInfo has to be mutable
 
 class ServiceInfo(object):
@@ -105,7 +109,9 @@ class ServiceScanner(object):
                 #return stderr.decode("UTF8")
             return stdout.decode("UTF8")
         except Exception, ex:
-            return ex
+            logger.error("%s failed: %s" % 
+                            (' '.join(cmd), str(ex)))
+            return str(ex)
 
 
     def _getRunlevel(self):
@@ -141,9 +147,10 @@ class ServiceScanner(object):
                         if init_script in h['filenames'] ]
             rpm_list = [ h.nevra for h in hdrs ]
         except rpm.error, e:
-            # TODO: STUB FOR LOGGING
+            logger.warn('Failed to open rpm db: %s' % str(e))
             rpm_list = [str(e)]
         except Exception, e:
+            logger.warn('Failed trying to access rpm db: %s' % str(e))
             rpm_list = [str(e)]
         return rpm_list
 
@@ -159,9 +166,10 @@ class ServiceScanner(object):
             if trv[0]:
                 conary_list.append(trv[0][0])
         except errors.ConaryError, e:
-            # TODO: STUB FOR LOGGING
+            logger.error('Failed to query conary db: %s' % str(e))
             conary_list = [str(e)]
         except Exception, e:
+            logger.error('Fatal: %s' % str(e))
             conary_list = [str(e)]
         return conary_list
 
