@@ -51,7 +51,7 @@ class ConaryClientFactory(object):
         return cclient
 
 class UpdateFlags(object):
-    __slots__ = [ 'migrate', 'update', 'updateall', 'test' ]
+    __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test' ]
     def __init__(self, **kwargs):
         for s in self.__slots__:
             setattr(self, s, kwargs.pop(s, None))
@@ -83,8 +83,11 @@ class InstallationService(object):
         cclient = self.conaryClient
         updateJob = cclient.newUpdateJob()
         try:
+            #suggMap = cclient.prepareUpdateJob(updateJob, applyList,
+            #   migrate = flags.migrate, test = flags.test)
+            # TODO if systemmodel...
             suggMap = cclient.prepareUpdateJob(updateJob, applyList,
-                migrate = flags.migrate, test = flags.test)
+                migrate = flags.migrate, sync = flags.sync, test = flags.test)
         except conaryclient.NoNewTrovesError:
             raise NoUpdatesFound
         except conaryclient.errors.RepositoryError, e:

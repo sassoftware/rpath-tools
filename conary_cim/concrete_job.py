@@ -197,7 +197,7 @@ def main():
     parser = optparse.OptionParser()
     parser.add_option("-t", "--test", action="store_true", dest="test")
     parser.add_option("-m", "--mode", action="store", type="choice",
-        choices=["update", "updateall", "migrate"], dest="mode")
+        choices=["update", "updateall", "migrate", "sync"], dest="mode")
     parser.add_option("-p", "--package", action="append", dest="package")
     (options, args) = parser.parse_args()
 
