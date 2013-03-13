@@ -112,6 +112,7 @@ class SystemModel(systemmodel.SystemModelFile):
         return True
 
     def debug(self):
-        import epdb;epdb.st()
+        #import epdb;epdb.st()
+        pass
 
 

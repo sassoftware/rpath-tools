@@ -456,7 +456,7 @@ class UpdateModel(object):
             upmodel.write()
             upmodel.closeSnapShot()
 
-        import epdb;epdb.st()
+        #import epdb;epdb.st()
 
 class UpdateCallback(updatecmd.UpdateCallback):
     class LogStream(object):
