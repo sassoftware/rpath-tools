@@ -183,6 +183,9 @@ class UpdateModel(object):
         model = sysmod.model
         self._cache()
         cclient = self.conaryClient
+        # Need to sync the capsule database before updating
+        if cclient.cfg.syncCapsuleDatabase:
+            cclient.syncCapsuleDatabase(callback)
         updJob = cclient.newUpdateJob()
         troveSetGraph = cclient.cmlGraph(model)
         try:
@@ -293,8 +296,8 @@ class UpdateModel(object):
         updJob, suggMap = None, {}
         model = cml.CML(cfg)
         modelFile = systemmodel.SystemModelFile(model)
-        modelFile.writeSnapshot()
         model.appendOpByName(op, args)
+        modelFile.writeSnapshot()
         try:
             updJob, suggMap = self._buildUpdateJob(model)
             #not sure i got this right... need  to just run an update
@@ -400,31 +403,54 @@ class UpdateModel(object):
         newmodel.parse(fileData=self.system_model)
         return newmodel
 
-    def _update_model(self):
+    def _update_model(self, opargs):
         '''
-        return updated model from current system model
+        Updated system model from current system model
+        @param opargs: a list of tuples of operation and a tuple
+        of packages that go with the operation
+        ie: [ ('install'('lynx', 'joe')),
+                ('remove', ('httpd')),
+                ('update', ('wget')),
+                ]
+        @type opargs: list of tuples [(op, args)]
+        @param op: a conary system model operation 'install', 'update', 'erase'
+        @type op: string
+        @param args: a tuple of conary packages for an operation 
+        @type args: ( pkg1, pkg2 )
+        @param pkg: a name of a conary package
+        @type pkg: string
+        @return: conary SystemModelFile object
         '''
+        # FIXME
+        # This should append to the current system-model
+        # need a dictionary of { op : arg } to parse
         cfg = self.conaryCfg
         model = cml.CML(cfg)
         model.setVersion(str(time.time()))
-        #model.parse(fileData=self.system_model)
+        # I think this is how it should work
+        # Take some uglies from stdin and append them
+        # to current system model 
+        # apparently in the most ugly way I can
+        for op, args in opargs.items():
+            arg = ' '.join([ x for x in args ])
+            model.appendOpByName(op, arg)
         newmodel = SystemModel(self._modelFile(model))
-        # I think this is how it works
-        newmodel.parse(fileData=self.system_model)
         return newmodel
 
     def update_model(self):
         # FIXME
         # Not sure what this is for yet...
         # Assuming public access to model for lib
-        sysmod = self._update()
+        sysmod = self._update_model()
         return sysmod
 
     def new_model(self):
         # FIXME
-        # Not sure what this is for yet...
+        # This should be the function used for to
+        # overwrite the system model using the system-model
+        # from the rbuilder
         # Assuming public access to model for lib
-        sysmod = self._new()
+        sysmod = self._new_model()
         return sysmod
 
     def sync(self):
@@ -441,9 +467,9 @@ class UpdateModel(object):
                                 update=False, updateall=False,
                                 test=True, )
         #sysmod = self._getSystemModel()
-        #newsysmod = self.new_model()
-        upmodel = self.update_model()
-        updateJob, suggMap = self._buildUpdateJob(upmodel.model)
+        #upmodel = self.update_model()
+        newmodel = self.new_model()
+        updateJob, suggMap = self._buildUpdateJob(newmodel.model)
         if flags.freeze:
             self._freezeUpdateJob(updateJob, callback)
         if flags.test:
@@ -453,8 +479,8 @@ class UpdateModel(object):
             self._applyUpdateJob(updJob, callback)
             updated = True
         if updated:
-            upmodel.write()
-            upmodel.closeSnapShot()
+            newmodel.write()
+            newmodel.closeSnapShot()
 
         #import epdb;epdb.st()
 
