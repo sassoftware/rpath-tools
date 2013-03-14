@@ -136,10 +136,12 @@ class UpdateModel(object):
             return None
         return SystemModel(self.sysmodel)
 
-    def _cleanSystemModel(self):
+    def _cleanSystemModel(self, modelFile):
         '''
         Clean up after applying the updates
         '''
+        # copy snapshot to system-model
+        self.modelFile.closeSnapshot(fileName=modelFile.snapName)
         pass
 
     def _cache(self, callback, changeSetList=None, loadTroveCache=True):
@@ -230,10 +232,11 @@ class UpdateModel(object):
 
         return updJob, suggMap
 
-    def _applyUpdateJob(self, updJob, callback):
+    def _applyUpdateJob(self, updJob, modelFile, callback):
         '''
         Apply a thawed|current update job to the system
         '''
+        updated = False
         jobs = updJob.getJobs()
         if not jobs:
             return
@@ -242,10 +245,12 @@ class UpdateModel(object):
             cclient.setUpdateCallback(callback)
             cclient.checkWriteableRoot()
             cclient.applyUpdateJob(updJob, noRestart=True)
-        except:
+            updated = True
+        except Exception, e:
             # FIXME this should puke...
-            return jobs
-        self._cleanModelFile()
+            return SystemModelServiceError, e
+        if updated:
+            self._cleanModelFile(modelFile)
         return jobs
 
     def _freezeUpdateJob(self, updateJob, model):
