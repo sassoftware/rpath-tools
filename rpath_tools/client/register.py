@@ -54,11 +54,11 @@ class Uuid(object):
     @property
     def uuid(self):
         if self._uuid is None:
-            self.read()
+            self._uuid = self.read()
         return self._uuid
 
     def read(self):
-        pass
+        return None
 
     def _readFile(cls, path):
         return file(path).readline().strip()
@@ -84,7 +84,7 @@ class GeneratedUuid(Uuid):
                 self._writeFile(self.uuidFile, uuid)
             else:
                 uuid = self._readFile(self.uuidFile)
-        self._uuid = uuid
+        return uuid
 
     @classmethod
     def _generateUuid(cls):
@@ -138,17 +138,19 @@ class LocalUuid(Uuid):
         instanceId = self.ec2InstanceId
         if instanceId is not None:
             sha = digestlib.sha1(instanceId)
-            self._uuid = GeneratedUuid.asString(sha.digest()[:16])
+            retuuid = GeneratedUuid.asString(sha.digest()[:16])
         else:
             dmidecodeUuid = self._getDmidecodeUuid().lower()
-            self._uuid = dmidecodeUuid
+            retuuid = dmidecodeUuid
 
         if os.path.exists(self.uuidFile):
             persistedUuid = self._readFile(self.uuidFile)
-            if persistedUuid.lower() != self._uuid:
-                self._writeDmidecodeUuid(self._uuid)
+            if persistedUuid.lower() != retuuid:
+                self._writeDmidecodeUuid(retuuid)
         else:
-            self._writeDmidecodeUuid(self._uuid)
+            self._writeDmidecodeUuid(retuuid)
+
+        return retuuid
 
     def _getUuidFromMac(self):
         """

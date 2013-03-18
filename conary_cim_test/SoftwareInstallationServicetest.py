@@ -19,6 +19,7 @@ import pywbem
 
 import testbaserepo
 
+from conary.lib import util
 import concrete_job
 import installation_service
 
@@ -173,12 +174,12 @@ class Test(testbaserepo.TestCase):
         for v in ["1", "2"]:
             self.addComponent("foo:runtime", v)
             self.addCollection("foo", v, [":runtime"])
-            trv = self.addCollection("group-foo", v, [ "foo" ])
+            self.addCollection("group-foo", v, [ "foo" ])
             self.addComponent("bar:runtime", v)
             self.addCollection("bar", v, [":runtime"])
-            trv = self.addCollection("group-bar", v, [ "bar" ])
+            self.addCollection("group-bar-appliance", v, [ "bar" ])
 
-        self.updatePkg(["group-foo=1", "group-bar=1"])
+        self.updatePkg(["group-foo=1", "group-bar-appliance=1"])
 
     def testInstallFromNetworkLocations(self):
         import RPATH_SoftwareInstallationService
@@ -189,8 +190,6 @@ class Test(testbaserepo.TestCase):
 
         class Popen:
             def __init__(self, *args, **kwargs):
-                import concrete_job
-                import installation_service
                 callArgs = args[0]
                 concreteJob = concrete_job.UpdateJob().new()
                 _flags = {}
@@ -271,19 +270,19 @@ class Test(testbaserepo.TestCase):
              ('bar:runtime', '/localhost@rpl:linux/1-1-1', ''),
              ('foo', '/localhost@rpl:linux/2-1-1', ''),
              ('foo:runtime', '/localhost@rpl:linux/2-1-1', ''),
-             ('group-bar', '/localhost@rpl:linux/1-1-1', ''),
+             ('group-bar-appliance', '/localhost@rpl:linux/1-1-1', ''),
              ('group-foo', '/localhost@rpl:linux/2-1-1', '')])
 
-        # Migrate group-bar
+        # Migrate group-bar-appliance
         InstallOptions = [sisProv.Values.InstallFromNetworkLocations.InstallOptions.Migrate]
         InstallOptionValues = [None]
-        sources = "group-bar=/%s/2-1-1"
+        sources = "group-bar-appliance=/%s/2-1-1"
         mode = "migrate"
         ret, params = sisProv.MI_invokeMethod(self.env, sisObjPath,
             "InstallFromNetworkLocations",
             dict(
                 ManagementNodeAddresses = ['1.1.1.1', '2.2.2.2'],
-                Sources = ["group-bar=/%s/2-1-1" % self.defLabel],
+                Sources = ["group-bar-appliance=/%s/2-1-1" % self.defLabel],
                 InstallOptions = InstallOptions,
                 InstallOptionValues = InstallOptionValues))
 
@@ -299,7 +298,7 @@ class Test(testbaserepo.TestCase):
             sorted([ (x[0], str(x[1]), str(x[2])) for x in nvfs ]),
             [('bar', '/localhost@rpl:linux/2-1-1', ''),
              ('bar:runtime', '/localhost@rpl:linux/2-1-1', ''),
-             ('group-bar', '/localhost@rpl:linux/2-1-1', ''),
+             ('group-bar-appliance', '/localhost@rpl:linux/2-1-1', ''),
             ])
 
         # Test GetError too, while we're at it
@@ -307,16 +306,16 @@ class Test(testbaserepo.TestCase):
             'GetError', {})
         self.failUnlessEqual(params, {})
         self.failUnlessEqual(ret, ('uint32', 0L))
-        import concrete_job
+
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
         job = concrete_job.AnyJob.load(jobId)
         job.concreteJob.state = 'Exception'
+        job.concreteJob.content = None
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 2L))
-        self.failUnlessEqual(params, {})
 
         job.concreteJob.content = 'Blahblah'
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
@@ -337,9 +336,9 @@ class Test(testbaserepo.TestCase):
         trvList = self._listRepos(repos, 'group-bar')
         installedTrvVersion = trvList[0][1].freeze()
 
-        modelPath = installation_service.util.joinPaths(self.cfg.root, self.cfg.modelPath)
-        installation_service.util.mkdirChain(os.path.dirname(modelPath))
-        file(modelPath, "w").write("Nothing to see here\n")
+        modelPath = util.joinPaths(self.cfg.root, self.cfg.modelPath)
+        util.mkdirChain(os.path.dirname(modelPath))
+        file(modelPath, "w").write("install conary\n")
 
         esiProv, esiObjPath = self.getProviderElementSoftwareIdentity()
         esis = [ x.properties.copy()
@@ -429,9 +428,9 @@ class Test(testbaserepo.TestCase):
         trvList = self._listRepos(repos, 'group-bar')
         installedTrvVersion = trvList[0][1].freeze()
 
-        modelPath = installation_service.util.joinPaths(self.cfg.root, self.cfg.modelPath)
-        installation_service.util.mkdirChain(os.path.dirname(modelPath))
-        file(modelPath, "w").write("Nothing to see here\n")
+        modelPath = util.joinPaths(self.cfg.root, self.cfg.modelPath)
+        util.mkdirChain(os.path.dirname(modelPath))
+        file(modelPath, "w").write("install conary\n")
 
         siProv, siObjPath = self.getProviderSoftwareIdentity()
         sis = [ x.properties.copy()

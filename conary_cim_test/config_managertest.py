@@ -79,11 +79,9 @@ class ConfigManagerTest(testbase.TestCase, ConfigTestMixin):
         self.setBinary(failed=False)
         retcode, stdout, stderr = cm.apply(config)
         self.failUnlessEqual(retcode, 0)
-        self.failUnlessEqual(stdout, "-x %s\n" %
-            config_manager.ConfigManager.ConfigFilePath)
+        self.failUnlessEqual(stdout, "write\n")
 
         self.setBinary(failed=True)
         retcode, stdout, stderr = cm.apply(config)
         self.failUnlessEqual(retcode, 1)
-        self.failUnlessEqual(stderr, "-x %s\n" %
-            config_manager.ConfigManager.ConfigFilePath)
+        self.failUnlessEqual(stderr, "write\n")

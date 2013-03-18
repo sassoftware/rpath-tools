@@ -124,6 +124,9 @@ class BaseStoredObject(object):
     def _setContent(self, content):
         assert self.keyId is not None
         self._setUpdated()
+        if content is None:
+            self.storage.delete((self.keyId, 'content'))
+            return None
         return self.storage.set((self.keyId, 'content'), content)
 
     def _getContent(self):

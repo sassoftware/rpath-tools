@@ -179,6 +179,7 @@ class RegistrationCommandTest(RpathToolsCommandTest):
 
         self.mock(hardware, 'HardwareData', mock.MockObject())
         hardware.HardwareData._mock.setDefaultReturn(mockHardwareData)
+        self.mock(self.command, 'scanSystem', lambda *args, **kw: None)
 
         self.cfg.requiredNetwork = '3.3.3.3'
         rc = self.discardOutput(self.command.runCommand, self.cfg,
@@ -207,12 +208,12 @@ class RegistrationCommandTest(RpathToolsCommandTest):
         system.serialize(sio)
         self.assertXMLEquals(sio.getvalue(),
             systemXmlAvailable.replace('<required>true</required>',
-            '').replace('<event_uuid>uuid007</event_uuid', ''))
+            '').replace('<event_uuid>uuid007</event_uuid>', ''))
 
         # Test boot
-        bootUuidFile = os.path.join(self.testPath, "boot-uuid")
+        bootUuidFile = self.cfg.bootUuidFilePath
         file(bootUuidFile, "w").write(" JeanValjean \n")
-        self.mock(self.command, 'BOOT_UUID_FILE', bootUuidFile)
+
         rc = self.discardOutput(self.command.runCommand,
             self.cfg, dict(boot=True), [])
         self.assertEquals(rc, 0)
@@ -223,7 +224,7 @@ class RegistrationCommandTest(RpathToolsCommandTest):
         system.serialize(sio)
         self.assertXMLEquals(sio.getvalue(),
             systemXmlAvailable.replace('<required>true</required>',
-            '').replace('<event_uuid>uuid007</event_uuid',
+            '').replace('<event_uuid>uuid007</event_uuid>',
                 '<boot_uuid>JeanValjean</boot_uuid>'))
         # The boot uuid file should be gone now
         self.failIf(os.path.exists(bootUuidFile))
@@ -287,6 +288,7 @@ systemXmlAvailable = """\
 
 configDisplay = """\
 bootRegistration          1
+bootUuidFile              boot-uuid
 conaryProxyFilePath       /etc/conary/config.d/rpath-tools-conaryProxy
 contactTimeoutInterval    3
 debugMode                 False
