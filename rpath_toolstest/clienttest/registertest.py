@@ -155,7 +155,7 @@ class RegistrationTest(RpathToolsTest):
 
         # Munge cert, make sure it gets re-done
         file(certPath, "w").write("Blah!")
-        ret = self.discardOutput(self.reg.registerDirect, systemXml)
+        self.discardOutput(self.reg.registerDirect, systemXml)
         self.failUnless(file(certPath).read().startswith(
             "-----BEGIN CERTIFICATE-----"))
 
