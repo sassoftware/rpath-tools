@@ -66,6 +66,14 @@ class UpdateFlags(object):
 
 class UpdateModel(object):
     def __init__(self, sysmod=None, callback=None):
+        '''
+        sysmod is a system-model string that will over write the current
+        system-model.
+        @param sysmod: A string representing the contents of a system-model file
+        @type sysmod: String
+        @param callback: A callback for messaging can be None
+        @type callback: object like updatecmd.Callback
+        '''
         self.conaryClientFactory = ConaryClientFactory
         self._sysmodel = None
         self._client = None
@@ -394,14 +402,34 @@ class UpdateModel(object):
         '''
         return systemmodel.SystemModelFile(model)
 
-    def _new_model(self):
+    def _new_new_model(self):
         '''
-        return a new model started using a blank config
+        return a new model started using a blank conary config
         '''
         # TODO
         # Use this for converting a classic to systemmodel?
         # Use this during assimilation?
         model = self._startNew()
+        model.setVersion(str(time.time()))
+
+        # DON'T DO THIS... to low level
+        #model.parse(fileData=self._newSystemModel, context=None)
+        newmodel = SystemModel(self._modelFile(model))
+        newmodel.parse(fileData=self.system_model)
+        return newmodel
+
+    def _new_model(self):
+        '''
+        return a new model started using existing conary config
+        '''
+        # TODO
+        # Use this for converting a classic to systemmodel?
+        # Use this during assimilation?
+        #model = self._startNew()
+        cfg = self.conaryCfg
+        model = cml.CML(cfg)
+        model.setVersion(str(time.time()))
+
         # DON'T DO THIS... to low level
         #model.parse(fileData=self._newSystemModel, context=None)
         newmodel = SystemModel(self._modelFile(model))
@@ -471,10 +499,13 @@ class UpdateModel(object):
         flags = UpdateFlags(sync=True, freeze=True, migrate=False,
                                 update=False, updateall=False,
                                 test=True, )
-        #sysmod = self._getSystemModel()
-        #upmodel = self.update_model()
-        newmodel = self.new_model()
-        updateJob, suggMap = self._buildUpdateJob(newmodel.model)
+        # Current System Model
+        #model = self._getSystemModel()
+        # Updated Current model Not implemented yet
+        #model = self.update_model()
+        # New System Model
+        model = self.new_model()
+        updateJob, suggMap = self._buildUpdateJob(model.model)
         if flags.freeze:
             self._freezeUpdateJob(updateJob, callback)
         if flags.test:
@@ -484,8 +515,8 @@ class UpdateModel(object):
             self._applyUpdateJob(updJob, callback)
             updated = True
         if updated:
-            newmodel.write()
-            newmodel.closeSnapShot()
+            model.write()
+            model.closeSnapShot()
 
         #import epdb;epdb.st()
 
