@@ -41,6 +41,8 @@ import stored_objects
 
 logger = logging.getLogger(name = '__name__')
 
+from conary.lib import debugger as epdb
+
 class SystemModelServiceError(Exception):
     "Base class"
 
@@ -53,7 +55,13 @@ class RepositoryError(SystemModelServiceError):
 class ConaryClientFactory(object):
     def getClient(self, modelFile=None):
         ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        cclient = conaryclient.ConaryClient(ccfg, modelFile=modelFile)
+        ccfg.initializeFlavors()
+        if modelFile:
+            cclient = conaryclient.ConaryClient(ccfg, modelFile=modelFile)
+        else:
+            model = cml.CML(ccfg)
+            modelFile = systemmodel.SystemModelFile(model)
+            cclient = conaryclient.ConaryClient(ccfg)
         callback = updatecmd.callbacks.UpdateCallback()
         cclient.setUpdateCallback(callback)
         return cclient
@@ -80,7 +88,7 @@ class UpdateModel(object):
         self._newSystemModel = None
         self._contents = sysmod
         if self._contents:
-            self._newSystemModel = [ x for x in
+            self._newSystemModel = [ x + '\n' for x in
                                         self._contents.split('\n') if x ]
         self._manifest = None
         self._cfg = conarycfg.ConaryConfiguration(True)
@@ -117,19 +125,18 @@ class UpdateModel(object):
                             (' '.join(cmd), str(ex)))
             return str(ex)
 
-    def _getClient(self, force=False):
-        modelFile = None
+    def _getClient(self, modelfile=None, force=False):
         if self._client is None or force:
             if self._system_model_exists():
-                modelFile = '/etc/conary/system-model'
-            self._client = self.conaryClientFactory().getClient(
-                                            modelFile=modelFile)
+                self._client = self.conaryClientFactory().getClient(
+                                            modelFile=modelfile)
         return self._client
 
     conaryClient = property(_getClient)
 
     def _getCfg(self):
         self._cfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
+        self._cfg.initializeFlavors()
         return self._cfg
 
     conaryCfg = property(_getCfg)
@@ -152,11 +159,12 @@ class UpdateModel(object):
         self.modelFile.closeSnapshot(fileName=modelFile.snapName)
         pass
 
-    def _cache(self, callback, changeSetList=None, loadTroveCache=True):
+    def _cache(self, callback, changeSetList=[], loadTroveCache=True):
         '''
         Create a model cache to use for updates
         '''
         cclient = self.conaryClient
+        cclient.cfg.initializeFlavors()
         cfg = cclient.cfg
         try:
             self._model_cache = modelupdate.CMLTroveCache(
@@ -173,9 +181,9 @@ class UpdateModel(object):
                                     self._model_cache_path)
                     callback.loadingModelCache()
                     self._model_cache.load(self._model_cache_path)
-            return True
+            return self._model_cache
         except:
-            return False
+            return None
 
     def _troves(self):
         troves = self._model_cache.getTroves(
@@ -191,8 +199,8 @@ class UpdateModel(object):
         '''
 
         model = sysmod.model
-        self._cache()
-        cclient = self.conaryClient
+        cache = self._cache(callback)
+        cclient = self._getClient(modelfile=sysmod)
         # Need to sync the capsule database before updating
         if cclient.cfg.syncCapsuleDatabase:
             cclient.syncCapsuleDatabase(callback)
@@ -200,8 +208,9 @@ class UpdateModel(object):
         troveSetGraph = cclient.cmlGraph(model)
         try:
             suggMap = cclient._updateFromTroveSetGraph(updJob,
-                            troveSetGraph, self._model_cache)
-        except errors.TroveSpecsNotFound:
+                            troveSetGraph, cache)
+        except errors.TroveSpecsNotFound, e:
+            print "FAILED %s" % str(e)
             callback.close()
             cclient.close()
             return updJob, {}
@@ -240,7 +249,7 @@ class UpdateModel(object):
 
         return updJob, suggMap
 
-    def _applyUpdateJob(self, updJob, modelFile, callback):
+    def _applyUpdateJob(self, updJob, callback):
         '''
         Apply a thawed|current update job to the system
         '''
@@ -251,28 +260,27 @@ class UpdateModel(object):
         try:
             cclient = self.conaryClient
             cclient.setUpdateCallback(callback)
+            epdb.st()
             cclient.checkWriteableRoot()
+            epdb.st()
             cclient.applyUpdateJob(updJob, noRestart=True)
+            epdb.st()
             updated = True
         except Exception, e:
             # FIXME this should puke...
             return SystemModelServiceError, e
-        if updated:
-            self._cleanModelFile(modelFile)
-        return jobs
+            epdb.st()
+        return updated
 
     def _freezeUpdateJob(self, updateJob, model):
         '''
         freeze an update job and store it on the filesystem
         '''
         us = UpdateSet().new()
+        key = us.keyId
         freezeDir = us.updateJobDir
         updateJob.freeze(freezeDir)
-        # FIXME
-        # Store the system model with the updJob
-        fileName = os.path.join(freezeDir, 'system-model')
-        model.writeSnapshot(fileName=fileName)
-        return us
+        return us, key
 
     def _thawUpdateJob(self, instanceId=None):
         if instanceId:
@@ -285,11 +293,6 @@ class UpdateModel(object):
         cclient = self.conaryClient
         updateJob = cclient.newUpdateJob()
         updateJob.thaw(job.updateJobDir)
-        # TODO: system-model
-        # I need to dig up  the  model here...
-        # create a model from the system-model file
-        # in the frozen directory return it so
-        # we can write it after update succeeds
         return keyId, updateJob, job
 
     # FUTURE USE CODE.
@@ -436,6 +439,17 @@ class UpdateModel(object):
         newmodel.parse(fileData=self.system_model)
         return newmodel
 
+    def _load_model_from_file(self, modelpath=None):
+        cfg = self.conaryCfg
+        if modelpath:
+            cfg.modelPath = modelpath
+        model = cml.CML(cfg)
+        model.setVersion(str(time.time()))
+        # DON'T DO THIS... to low level
+        #model.parse(fileData=self._newSystemModel, context=None)
+        newmodel = SystemModel(self._modelFile(model))
+        return newmodel
+
     def _update_model(self, opargs):
         '''
         Updated system model from current system model
@@ -495,6 +509,7 @@ class UpdateModel(object):
         return results
 
     def debug(self):
+        updated = False
         callback = self._callback
         flags = UpdateFlags(sync=True, freeze=True, migrate=False,
                                 update=False, updateall=False,
@@ -505,18 +520,44 @@ class UpdateModel(object):
         #model = self.update_model()
         # New System Model
         model = self.new_model()
-        updateJob, suggMap = self._buildUpdateJob(model.model)
+        updateJob, suggMap = self._buildUpdateJob(model, callback)
+        epdb.st()
         if flags.freeze:
-            self._freezeUpdateJob(updateJob, callback)
+            us, key = self._freezeUpdateJob(updateJob, callback)
+            epdb.st()
+            # FIXME
+            # Store the system model with the updJob
+            fileName = os.path.join(os.path.dirname(us.updateJobDir),
+                                            'system-model.%s' % key)
+            model.write(fileName=fileName)
+            epdb.st()
         if flags.test:
             pass
         if flags.sync:
-            updJob = self._thawUpdateJob(updateJob, callback)
-            self._applyUpdateJob(updJob, callback)
-            updated = True
+            instanceId = 'updates:%s' % key
+            keyId, updJob, updateSet = self._thawUpdateJob(instanceId=instanceId)
+            epdb.st()
+            try:
+                updateSet.state = "Applying"
+                self._fixSignals()
+                self._applyUpdateJob(updJob, callback)
+                updated = True
+            except Exception, e:
+                print "FAILED: %s" % str(e)
+                updated = False
         if updated:
-            model.write()
-            model.closeSnapShot()
+            # TODO: system-model
+            # I need to dig up  the  model here...
+            # create a model from the system-model file
+            # in the frozen directory return it so
+            # we can write it after update succeeds
+            # Load the system-model from storage
+            fileName = os.path.join(os.path.dirname(job.updateJobDir),
+                                            'system-model.%s' % job.keyId)
+            epdb.st()
+            updated_model = self._load_model_from_file(modelFile=fileName)
+            epdb.st()
+            updated_model.write(modelFile='/etc/conary/system-model')
 
         #import epdb;epdb.st()
 
@@ -572,6 +613,10 @@ class UpdateSet(object):
             raise NoUpdatesFound
         return update
 
+    def _getKeyId(self):
+        return self.updateSet.keyId
+
+    keyId = property(_getKeyId)
 
     def _getUpdateJobDir(self):
         return self.updateSet.updateJobDir
