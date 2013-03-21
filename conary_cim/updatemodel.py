@@ -41,7 +41,7 @@ import stored_objects
 
 logger = logging.getLogger(name = '__name__')
 
-from conary.lib import debugger as epdb
+#from conary.lib import debugger as epdb
 
 class SystemModelServiceError(Exception):
     "Base class"
@@ -260,16 +260,12 @@ class UpdateModel(object):
         try:
             cclient = self.conaryClient
             cclient.setUpdateCallback(callback)
-            epdb.st()
             cclient.checkWriteableRoot()
-            epdb.st()
             cclient.applyUpdateJob(updJob, noRestart=True)
-            epdb.st()
             updated = True
         except Exception, e:
             # FIXME this should puke...
             return SystemModelServiceError, e
-            epdb.st()
         return updated
 
     def _freezeUpdateJob(self, updateJob, model):
@@ -521,22 +517,18 @@ class UpdateModel(object):
         # New System Model
         model = self.new_model()
         updateJob, suggMap = self._buildUpdateJob(model, callback)
-        epdb.st()
         if flags.freeze:
             us, key = self._freezeUpdateJob(updateJob, callback)
-            epdb.st()
             # FIXME
             # Store the system model with the updJob
             fileName = os.path.join(os.path.dirname(us.updateJobDir),
                                             'system-model.%s' % key)
             model.write(fileName=fileName)
-            epdb.st()
         if flags.test:
             pass
         if flags.sync:
             instanceId = 'updates:%s' % key
             keyId, updJob, updateSet = self._thawUpdateJob(instanceId=instanceId)
-            epdb.st()
             try:
                 updateSet.state = "Applying"
                 self._fixSignals()
@@ -554,9 +546,7 @@ class UpdateModel(object):
             # Load the system-model from storage
             fileName = os.path.join(os.path.dirname(job.updateJobDir),
                                             'system-model.%s' % job.keyId)
-            epdb.st()
             updated_model = self._load_model_from_file(modelFile=fileName)
-            epdb.st()
             updated_model.write(modelFile='/etc/conary/system-model')
 
         #import epdb;epdb.st()
