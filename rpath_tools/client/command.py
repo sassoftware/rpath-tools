@@ -51,8 +51,6 @@ class RegistrationCommand(RpathToolsCommand):
     help = 'register the system with rBuilder'
     requireConfig = True
 
-    BOOT_UUID_FILE = "/etc/conary/rpath-tools/boot-uuid"
-
     def addParameters(self, argDef):
         RpathToolsCommand.addParameters(self, argDef)
         argDef['check'] = options.NO_PARAM
@@ -213,25 +211,7 @@ class RegistrationCommand(RpathToolsCommand):
                 device_name=ip.device)
             networks.add_network(network)
 
-        try:
-            logger.info("Running system scan...")
-            survey = scan.scanner.SurveyScanner(origin="registration").toxml()
-        except Exception, e:
-            logger.info("System scan failed: %s", str(e))
-            # Save the exception
-            excInfo = sys.exc_info()
-            try:
-                sio = StringIO.StringIO()
-                util.formatTrace(*excInfo, stream=sio, withLocals=False)
-                logger.info("Details: %s", sio.getvalue())
-
-                survey = scan.etree.Element("survey")
-                error = scan.etree.SubElement(survey, "error")
-                scan.etree.SubElement(error, "text").text = str(e)
-                scan.etree.SubElement(error, "details").text = sio.getvalue()
-            except Exception, e:
-                logger.info("Error reporting failed: %s", str(e))
-                survey = None
+        survey = self.scanSystem()
 
         current_state = CurrentState(name=state)
         management_interface = ManagementInterface(name='cim')
@@ -244,8 +224,9 @@ class RegistrationCommand(RpathToolsCommand):
                         event_uuid=self.event_uuid,
                         management_interface=management_interface,
                         survey=Survey(survey))
-        if self.boot and os.path.exists(self.BOOT_UUID_FILE):
-            bootUuid = file(self.BOOT_UUID_FILE).read().strip()
+        bootUuidFilePath = cfg.bootUuidFilePath
+        if self.boot and os.path.exists(bootUuidFilePath):
+            bootUuid = file(bootUuidFilePath).read().strip()
             system.set_boot_uuid(bootUuid)
         if registration.targetSystemId:
             system.set_target_system_id(registration.targetSystemId)
@@ -261,9 +242,31 @@ class RegistrationCommand(RpathToolsCommand):
         logger.info("Registration complete")
         return 0
 
+    def scanSystem(self):
+        try:
+            logger.info("Running system scan...")
+            return scan.scanner.SurveyScanner(origin="registration").toxml()
+        except Exception, e:
+            logger.info("System scan failed: %s", str(e))
+            # Save the exception
+            excInfo = sys.exc_info()
+            try:
+                sio = StringIO.StringIO()
+                util.formatTrace(*excInfo, stream=sio, withLocals=False)
+                logger.info("Details: %s", sio.getvalue())
+
+                survey = scan.etree.Element("survey")
+                error = scan.etree.SubElement(survey, "error")
+                scan.etree.SubElement(error, "text").text = str(e)
+                scan.etree.SubElement(error, "details").text = sio.getvalue()
+                return survey
+            except Exception, e:
+                logger.info("Error reporting failed: %s", str(e))
+                return None
+
     def _cleanup(self):
-        if self.boot and os.path.exists(self.BOOT_UUID_FILE):
-            os.unlink(self.BOOT_UUID_FILE)
+        if self.boot and os.path.exists(self.cfg.bootUuidFilePath):
+            os.unlink(self.cfg.bootUuidFilePath)
 
 class HardwareCommand(RpathToolsCommand):
     commands = ['hardware']

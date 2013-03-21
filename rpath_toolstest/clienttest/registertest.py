@@ -125,7 +125,7 @@ class RegistrationTest(RpathToolsTest):
         system.ssl_client_certificate = certificate_selfSigned
         system.ssl_client_key = None
 
-        remote = '1.1.1.1:443'
+        self.cfg.configLine('directMethod 1.1.1.1:443')
 
         regclientClass = mock.MockObject()
         regclient = mock.MockObject()
@@ -137,17 +137,17 @@ class RegistrationTest(RpathToolsTest):
 
         certPath = os.path.join(self.testPath, "clients/c688bead.0")
         self.failIf(os.path.exists(certPath))
-        ret = self.discardOutput(self.reg._register, remote, systemXml)
+        ret = self.discardOutput(self.reg.registerDirect, systemXml)
         self.failUnless(os.path.exists(certPath))
         self.failUnless(os.path.exists(os.path.join(self.testPath, 'rpath-tools-conaryProxy')))
         proxy = open(os.path.join(self.testPath, 'rpath-tools-conaryProxy'))
-        self.assertEquals(proxy.read(), 'conaryProxy https://1.1.1.1\n')
+        self.assertEquals(proxy.read(), 'proxyMap * conarys://1.1.1.1\n')
         proxy.close()
 
         st = os.stat(certPath)
 
         # Running the code again should not overwrite
-        ret = self.discardOutput(self.reg._register, remote, systemXml)
+        ret = self.discardOutput(self.reg.registerDirect, systemXml)
         st2 = os.stat(certPath)
         self.failUnlessEqual(
             (st.st_dev, st.st_ino),
@@ -155,7 +155,7 @@ class RegistrationTest(RpathToolsTest):
 
         # Munge cert, make sure it gets re-done
         file(certPath, "w").write("Blah!")
-        ret = self.discardOutput(self.reg._register, remote, systemXml)
+        self.discardOutput(self.reg.registerDirect, systemXml)
         self.failUnless(file(certPath).read().startswith(
             "-----BEGIN CERTIFICATE-----"))
 
@@ -169,7 +169,7 @@ class RegistrationTest(RpathToolsTest):
 
         certPath = os.path.join(self.testPath, "clients/01081fc7.0")
         self.failIf(os.path.exists(certPath))
-        ret = self.discardOutput(self.reg._register, remote, systemXml)
+        self.discardOutput(self.reg.registerDirect, systemXml)
         self.failUnless(os.path.exists(certPath))
         # We don't remove the LG CA just yet, since a CIM call may be running
         #self.failIf(os.path.exists(issuerCertPath))

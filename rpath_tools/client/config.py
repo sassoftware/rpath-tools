@@ -21,6 +21,7 @@ from conary.lib import cfg
 
 class RpathToolsConfiguration(cfg.ConfigFile):
     bootRegistration = (cfg.CfgBool, 1)
+    bootUuidFile = (cfg.CfgString, "boot-uuid")
     conaryProxyFilePath = (cfg.CfgString, 
         '/etc/conary/config.d/rpath-tools-conaryProxy')
     contactTimeoutInterval = (cfg.CfgInt, 3)
@@ -68,6 +69,10 @@ class RpathToolsConfiguration(cfg.ConfigFile):
             self.read(root + os.environ["HOME"] + "/" + ".rpathrc",
                       exception=False)
         self.read('rpathrc', exception=False)
+
+    @property
+    def bootUuidFilePath(self):
+        return os.path.join(self.topDir, self.bootUuidFile)
 
     @property
     def generatedUuidFilePath(self):

@@ -180,13 +180,15 @@ class RPATH_ComputerSystem(stubClass):
         except ImportError:
             return (rval, out_params)
 
-        registration = helper_rpath_tools.Registration()
+        registration = helper_rpath_tools.Registration(event_uuid=param_eventuuid)
         registration.setManagementNodes(param_managementnodeaddresses)
         registration.setConaryProxy(param_managementnodeaddresses)
         registration.setRequiredNetwork(param_requirednetwork)
-        a = helper_rpath_tools.Registration(event_uuid=param_eventuuid)
+        # We've now changed the configuration, reset the object to
+        # make the configuration visible
+        registration.reset()
         try:
-            a.run()
+            registration.run()
         except:
             exc = sys.exc_info()
             import traceback

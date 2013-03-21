@@ -30,7 +30,7 @@ from rpath_tools.client import main
 logger = logging.getLogger('client')
 
 class Registration(object):
-    CONFIG_D_DIRECTORY = "/etc/conary/rpath-tools/config.d"
+    CONFIG_D_DIRECTORY = "config.d"
 
     def __init__(self, configFile=None, event_uuid=None):
         self.event_uuid = event_uuid
@@ -45,6 +45,10 @@ class Registration(object):
         deviceName = self.hwData.getDeviceName(localIp)
         self.registration.setDeviceName(deviceName)
 
+    def reset(self):
+        self.cfg.configLine("includeConfigFile %s/%s/*" % (self.cfg.topDir,
+            self.CONFIG_D_DIRECTORY))
+
     @property
     def generatedUuid(self):
         return self.registration.generatedUuid
@@ -54,7 +58,7 @@ class Registration(object):
         return self.registration.localUuid
 
     def setManagementNodes(self, managementNodes):
-        configFilePath = os.path.join(self.CONFIG_D_DIRECTORY, "directMethod")
+        configFilePath = os.path.join(self.cfg.topDir, self.CONFIG_D_DIRECTORY, "directMethod")
         f = file(configFilePath, "w")
         f.write("directMethod []\n")
         for n in managementNodes:
@@ -87,7 +91,7 @@ class Registration(object):
             print >> f, 'proxyMap *', ' '.join(sorted(proxies))
 
     def setRequiredNetwork(self, requiredNetwork):
-        configFilePath = os.path.join(self.CONFIG_D_DIRECTORY, "requiredNetwork")
+        configFilePath = os.path.join(self.cfg.topDir, self.CONFIG_D_DIRECTORY, "requiredNetwork")
         if requiredNetwork is None:
             if os.path.exists(configFilePath):
                 os.unlink(configFilePath)

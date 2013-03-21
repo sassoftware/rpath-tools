@@ -194,7 +194,7 @@ class InstallationService(object):
             fmt.addObservedVersion(oldTop)
             return fmt.toxml()
         self._fixSignals()
-        cclient.applyUpdateJob(updateJob, test=flags.test)
+        cclient.applyUpdateJob(updateJob, test=bool(flags.test))
         actualTop = previewer.getCurrentTop()
         fmt.addObservedVersion(actualTop)
         return fmt.toxml()
