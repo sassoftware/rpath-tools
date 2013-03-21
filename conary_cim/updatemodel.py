@@ -544,8 +544,8 @@ class UpdateModel(object):
             # in the frozen directory return it so
             # we can write it after update succeeds
             # Load the system-model from storage
-            fileName = os.path.join(os.path.dirname(job.updateJobDir),
-                                            'system-model.%s' % job.keyId)
+            fileName = os.path.join(os.path.dirname(updJob.updateJobDir),
+                                            'system-model.%s' % updJob.keyId)
             updated_model = self._load_model_from_file(modelFile=fileName)
             updated_model.write(modelFile='/etc/conary/system-model')
 
