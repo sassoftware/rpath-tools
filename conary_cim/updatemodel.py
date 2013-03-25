@@ -20,7 +20,7 @@ from conary import callbacks
 from conary import updatecmd
 #from conary import command
 from conary import conarycfg
-#from coanry import constants
+#from conary import constants
 from conary import conaryclient
 from conary import errors
 from conary.conaryclient import cml
@@ -41,7 +41,10 @@ import stored_objects
 
 logger = logging.getLogger(name = '__name__')
 
-#from conary.lib import debugger as epdb
+DEBUG=1
+
+if DEBUG:
+    from conary.lib import debugger as epdb
 
 class SystemModelServiceError(Exception):
     "Base class"
@@ -104,13 +107,71 @@ class UpdateModel(object):
     def system_model(self):
         return self._newSystemModel
 
+    def storeInFile(self, data, fileName):
+        '''
+        Writes data to the specified file
+        overwrites the specified file if file exists.
+        @param data: Text to be stored in file
+        @type data: string
+        @param filename: name of file to which to write the data
+        @type filename: string
+        '''
+        import tempfile, stat
+
+        if os.path.exists(fileName):
+            fileMode = stat.S_IMODE(os.stat(fileName)[stat.ST_MODE])
+        else:
+            fileMode = 0644
+
+        dirName = os.path.dirname(fileName)
+        fd, tmpName = tempfile.mkstemp(prefix='stored', dir=dirName)
+        try:
+            f = os.fdopen(fd, 'w')
+            f.write(str(data))
+            os.chmod(tmpName, fileMode)
+            os.rename(tmpName, fileName)
+        except Exception, e:
+            #FIXME
+            return Exception, str(e)
+        return True, fileName
+
+    def readStoredFile(self, fileName):
+        '''
+        Read a stored file and return its contents in a string
+        @param fileName: Name of the file to read
+        @type fileName: string
+        '''
+        blob = ""
+        try:
+            with open(fileName) as f:
+                blob = f.read()
+        except EnvironmentError, e:
+            #FIXME
+            return str(e)
+        return blob
+
+    def readStoredSystemModel(self, fileName):
+        '''
+        Read a stored system-model file and return its contents in a list
+        @param fileName: Name of the file to read
+        @type fileName: string
+        '''
+        data = []
+        try:
+            with open(fileName) as f:
+                data = f.readlines()
+        except EnvironmentError, e:
+            #FIXME
+            return [ EnvironmentError, str(e) ]
+        return data
+
     def _runProcess(self, cmd):
         '''cmd @ [ '/sbin/service', 'name', 'status' ]'''
         try:
-            proc = subprocess.Popen(    cmd, 
-                                        shell=False, 
-                                        stdin=None, 
-                                        stdout=subprocess.PIPE, 
+            proc = subprocess.Popen(    cmd,
+                                        shell=False,
+                                        stdin=None,
+                                        stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE
                                     )
             stdout, stderr = proc.communicate()
@@ -156,8 +217,8 @@ class UpdateModel(object):
         Clean up after applying the updates
         '''
         # copy snapshot to system-model
-        self.modelFile.closeSnapshot(fileName=modelFile.snapName)
-        pass
+        #self.modelFile.closeSnapshot(fileName=modelFile.snapName)
+        raise NotImplementedError
 
     def _cache(self, callback, changeSetList=[], loadTroveCache=True):
         '''
@@ -265,7 +326,7 @@ class UpdateModel(object):
             updated = True
         except Exception, e:
             # FIXME this should puke...
-            return SystemModelServiceError, e
+            raise SystemModelServiceError, e
         return updated
 
     def _freezeUpdateJob(self, updateJob, model):
@@ -294,6 +355,13 @@ class UpdateModel(object):
     # FUTURE USE CODE.
     # Implement conary update, updateall, install, erase as it
     # correlates to a system model
+
+    def _getTopLevelItems(self):
+        return sorted(self.conaryClient.getUpdateItemList())
+
+    def _getTransactionCount(self):
+        db = self.conaryClient.getDatabase()
+        return db.getTransactionCounter()
 
     def _system_model_update(self, cfg, op, args, callback, dry_run=False):
         '''
@@ -374,7 +442,6 @@ class UpdateModel(object):
                                  dry_run)
 
 
-
     def _startNew(self):
         '''
         Start a new model with a mostly blank cfg
@@ -436,14 +503,25 @@ class UpdateModel(object):
         return newmodel
 
     def _load_model_from_file(self, modelpath=None):
+        '''
+        Load model from /etc/conary/system-model unless modelpath
+        is specified. If modelpath specified load file contents in
+        the model before returning
+        @param modelpath: Load a new model from a file location other
+        than /etc/conary/system-model
+        @type string
+        '''
+        contents = []
         cfg = self.conaryCfg
         if modelpath:
-            cfg.modelPath = modelpath
+            contents = self.readStoredSystemModel(modelpath)
         model = cml.CML(cfg)
         model.setVersion(str(time.time()))
         # DON'T DO THIS... to low level
         #model.parse(fileData=self._newSystemModel, context=None)
         newmodel = SystemModel(self._modelFile(model))
+        if contents:
+            newmodel.parse(fileData=contents)
         return newmodel
 
     def _update_model(self, opargs):
@@ -515,28 +593,60 @@ class UpdateModel(object):
         # Updated Current model Not implemented yet
         #model = self.update_model()
         # New System Model
+        tcount = self._getTransactionCount()
+        print "Conary DB Transaction Counter: %s" % tcount
+
+        topLevelItems = self._getTopLevelItems()
+        print "Top Level Items"
+        for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
+
         model = self.new_model()
+        ##epdb.st()
         updateJob, suggMap = self._buildUpdateJob(model, callback)
+        ##epdb.st()
         if flags.freeze:
             us, key = self._freezeUpdateJob(updateJob, callback)
+            ##epdb.st()
             # FIXME
             # Store the system model with the updJob
-            fileName = os.path.join(os.path.dirname(us.updateJobDir),
-                                            'system-model.%s' % key)
+            dirName = os.path.dirname(us.updateJobDir)
+            fileName = os.path.join(dirName, 'system-model.%s' % key)
             model.write(fileName=fileName)
+            tcountFile = os.path.join(dirName, 'transactionCounter.%s' % key)
+            results, fd = self.storeInFile(tcount, tcountFile)
+            ##epdb.st()
         if flags.test:
             pass
         if flags.sync:
             instanceId = 'updates:%s' % key
             keyId, updJob, updateSet = self._thawUpdateJob(instanceId=instanceId)
+            #epdb.st()
             try:
                 updateSet.state = "Applying"
-                self._fixSignals()
-                self._applyUpdateJob(updJob, callback)
-                updated = True
+
+                fileName = os.path.join(os.path.dirname(updateSet.updateJobDir),
+                                            'system-model.%s' % keyId)
+                #epdb.st()
+                updated_model = self._load_model_from_file(modelpath=fileName)
+                updated_model.writeSnapshot()
+                # NEED THIS  LATER 
+                #self._fixSignals()
+                #epdb.st()
+                # SILLY CODE FOR MISA
+                storedTcount = self.readStoredFile(tcountFile)
+                currentTcount = self._getTransactionCount()
+
+                #epdb.st()
+                if int(storedTcount.strip()) == currentTcount:
+                    self._applyUpdateJob(updJob, callback)
+                    updated = True
+                else:
+                    print "Transaction count changed!!!"
+                    updated = False
             except Exception, e:
                 print "FAILED: %s" % str(e)
                 updated = False
+        #epdb.st()
         if updated:
             # TODO: system-model
             # I need to dig up  the  model here...
@@ -544,12 +654,9 @@ class UpdateModel(object):
             # in the frozen directory return it so
             # we can write it after update succeeds
             # Load the system-model from storage
-            fileName = os.path.join(os.path.dirname(updJob.updateJobDir),
-                                            'system-model.%s' % updJob.keyId)
-            updated_model = self._load_model_from_file(modelFile=fileName)
-            updated_model.write(modelFile='/etc/conary/system-model')
+            updated_model.closeSnapshot()
 
-        #import epdb;epdb.st()
+        #import epdb;##epdb.st()
 
 class UpdateCallback(updatecmd.UpdateCallback):
     class LogStream(object):
