@@ -41,10 +41,10 @@ import stored_objects
 
 logger = logging.getLogger(name = '__name__')
 
-DEBUG=1
+#DEBUG=1
 
-if DEBUG:
-    from conary.lib import debugger as epdb
+#if DEBUG:
+    #from conary.lib import debugger as epdb
 
 class SystemModelServiceError(Exception):
     "Base class"
