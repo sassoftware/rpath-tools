@@ -34,6 +34,7 @@ from rpath_tools.client.sysdisco import puppet
 
 from rpath_tools.client.utils.tmpwatcher import TmpWatcher
 from rpath_tools.client.utils.collector import Collector
+from rpath_tools.client.utils.informer import Informer
 
 logger = logging.getLogger('client')
 
@@ -380,3 +381,17 @@ class CollectorCommand(RpathToolsCommand):
         collector = Collector()
         results = collector.collect()
         return results
+
+class InformerCommand(RpathToolsCommand):
+    commands = ['informer', 'top', 'updates', 'counter' ]
+    help = "Gather information about the local host"
+    requireConfig = True
+
+    def runCommand(self, *args, **kw):
+        self.cfg = args[0]
+        self.command_types = [ 'top', 'updates', 'counter', ]
+        self.values = [ x for x in args[-1] if x in self.command_types ]
+        informer = Informer()
+        results = informer.inform(self.values)
+        return results
+
