@@ -33,6 +33,7 @@ all: default-all
 	install -m755 rpath-configurator $(TOPDIR)/bin/rpath-configurator
 	install -m755 rpath-tmpwatch $(TOPDIR)/bin/rpath-tmpwatch
 	install -m755 rpath-collector $(TOPDIR)/bin/rpath-collector
+	install -m755 rpath-informer $(TOPDIR)/bin/rpath-informer
 
 install:
 ifndef LIB_ONLY
