@@ -384,14 +384,14 @@ class CollectorCommand(RpathToolsCommand):
 
 class InformerCommand(RpathToolsCommand):
     commands = ['informer', 'top', 'updates', 'counter' ]
-    help = "Gather information about the local host"
+    help = "Gather conary nformation about the local host"
     requireConfig = True
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
         self.command_types = [ 'top', 'updates', 'counter', ]
         self.values = [ x for x in args[-1] if x in self.command_types ]
-        informer = Informer()
-        results = informer.inform(self.values)
+        informer = Informer(self.values)
+        results = informer.inform()
         return results
 
