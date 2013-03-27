@@ -333,7 +333,8 @@ class ScanCommand(RpathToolsCommand):
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
-        scan.main(self.cfg)
+        results = scan.main(self.cfg)
+        return results
 
 class ConfiguratorCommand(RpathToolsCommand):
     commands = ['configurator', 'read', 'write', 'validate', 'discover']

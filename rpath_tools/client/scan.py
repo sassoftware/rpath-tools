@@ -129,6 +129,10 @@ class Scanner(object):
         start = time.time()
         start_proc = time.clock()
         surveyed = self._scanner([])
+        results = { 'SurveyFile' : None,
+                    'ScanTime'   : None,
+                    'ProvessTime' : None,
+                  }
         if surveyed:
             proctime = time.clock() - start_proc
             scantime = time.time() - start
@@ -136,10 +140,14 @@ class Scanner(object):
                         '        Survey File   : %s\n'
                         '        Scan Time     : %s\n'
                         '        Process Time  : %s\n' %
-                            (surveyed, scantime,proctime)
+                            (surveyed, scantime, proctime)
                         )
-            return True
-        return False
+            results = { 'SurveyFile' : surveyed,
+                        'ScanTime'   : scantime,
+                        'ProvessTime' : proctime,
+                  }
+        return results
+
 
     def scanSystemCIM(self, desiredTopLevelItems):
         '''use this from CIM as it removes prints'''
