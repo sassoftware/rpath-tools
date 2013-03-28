@@ -616,5 +616,5 @@ if __name__ == '__main__':
     except EnvironmentError:
         print 'oops'
 
-    sysmod = UpdateModel(blob)
+    sysmod = Updater(blob)
     sysmod.debug()

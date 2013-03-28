@@ -145,8 +145,7 @@ class UpdateModel(object):
     conaryClient = property(_getClient)
 
     def _getCfg(self):
-        self._cfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        self._cfg.initializeFlavors()
+        self._cfg = self.conaryClientFactory.getCfg()
         return self._cfg
 
     conaryCfg = property(_getCfg)
