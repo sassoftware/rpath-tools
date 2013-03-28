@@ -38,8 +38,8 @@ def main(cfg=None):
         cfg = config.RpathToolsConfiguration()
         cfg.topDir = '/etc/conary'
     r = Scanner(cfg)
-    r.scanSystem()
-    return r.surveyScanner.uuid, r.surveyPath
+    results = r.scanSystem()
+    return results
 
 
 class Scanner(object):
@@ -130,6 +130,7 @@ class Scanner(object):
         start_proc = time.clock()
         surveyed = self._scanner([])
         results = { 'SurveyFile' : None,
+                    'LocalUuid'  : self.localUuidObj.uuid,
                     'ScanTime'   : None,
                     'ProvessTime' : None,
                   }
@@ -143,6 +144,7 @@ class Scanner(object):
                             (surveyed, scantime, proctime)
                         )
             results = { 'SurveyFile' : surveyed,
+                        'LocalUuid'  : self.localUuidObj.uuid,
                         'ScanTime'   : scantime,
                         'ProvessTime' : proctime,
                   }
