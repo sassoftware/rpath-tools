@@ -16,7 +16,7 @@
 #
 
 
-from rpath_tools.lib import storage_objects
+from rpath_tools.lib import stored_objects
 from rpath_tools.lib.errors import NoUpdatesFound
 
 import logging
