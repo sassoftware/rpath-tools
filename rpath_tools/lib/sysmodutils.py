@@ -16,6 +16,8 @@
 #
 
 
+from conary import conarycfg
+
 from conary.conaryclient import cml
 from conary.conaryclient import systemmodel
 from conary.conaryclient import modelupdate
