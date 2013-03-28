@@ -31,8 +31,7 @@ logger = logging.getLogger(name = '__name__')
 
 class ConaryClientFactory(object):
     def getClient(self, modelFile=None, model=True):
-        ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        ccfg.initializeFlavors()
+        ccfg = self.getCfg
         if model:
             if not modelFile:
                 model = cml.CML(ccfg)
@@ -44,3 +43,8 @@ class ConaryClientFactory(object):
         cclient.setUpdateCallback(callback)
         return cclient
 
+    def getCfg(self, readconfig=True, initflv=True):
+        ccfg = conarycfg.ConaryConfiguration(readConfigFiles=readconfig)
+        if initflv:
+            ccfg.initializeFlavors()
+        return ccfg
