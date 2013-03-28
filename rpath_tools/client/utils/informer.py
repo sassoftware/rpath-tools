@@ -205,7 +205,7 @@ class Informer(object):
 
     def readStoredFileList(self, fileName):
         '''
-        Read a stored system-model file and return its contents in a list
+        Read a stored file and return its contents in a list
         @param fileName: Name of the file to read
         @type fileName: string
         '''

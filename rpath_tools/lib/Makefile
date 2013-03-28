@@ -15,9 +15,9 @@
 #
 
 
-python_files =	$(wildcard *.py)
+python_files =  $(wildcard *.py)
 
-SUBDIRS	=	client lib
+SUBDIRS = 
 
 all: default-subdirs default-all
 
@@ -27,5 +27,5 @@ dist: default-dist
 
 clean: clean-subdirs default-clean
 
-include ../Make.rules
-include ../Make.defs
+include ../../../Make.rules
+include ../../../Make.defs

@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #
 # Copyright (c) SAS Institute Inc.
 #
@@ -15,17 +16,23 @@
 #
 
 
-python_files =	$(wildcard *.py)
 
-SUBDIRS	=	client lib
 
-all: default-subdirs default-all
+import logging
 
-install: all install-subdirs pyfiles-install default-install
+logger = logging.getLogger(name = '__name__')
 
-dist: default-dist
 
-clean: clean-subdirs default-clean
+class SystemModelServiceError(Exception):
+    "Base class"
 
-include ../Make.rules
-include ../Make.defs
+class InstallationServiceError(Exception):
+    "Base class"
+
+class NoUpdatesFound(InstallationServiceError):
+    "Raised when no updates are available"
+
+class RepositoryError(InstallationServiceError):
+    "Raised when a repository error is caught"
+
+
