@@ -43,21 +43,16 @@ class RepositoryError(InformerError):
     "Raised when a repository error is caught"
 
 
-class ComplexEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, complex):
-            return [obj.errors, obj.extensions, obj.name, obj.success]
-        return json.JSONEncoder.default(self, obj)
-
 class ConaryClientFactory(object):
-    def getClient(self, modelFile=None):
+    def getClient(self, modelFile=None, model=True):
         ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
         ccfg.initializeFlavors()
-        if modelFile:
+        if model:
+            if not modelFile:
+                model = cml.CML(ccfg)
+                modelFile = systemmodel.SystemModelFile(model)
             cclient = conaryclient.ConaryClient(ccfg, modelFile=modelFile)
         else:
-            model = cml.CML(ccfg)
-            modelFile = systemmodel.SystemModelFile(model)
             cclient = conaryclient.ConaryClient(ccfg)
         callback = updatecmd.callbacks.UpdateCallback()
         cclient.setUpdateCallback(callback)
@@ -114,6 +109,9 @@ class Informer(object):
             if self._system_model_exists():
                 self._client = self.conaryClientFactory().getClient(
                                             modelFile=modelfile)
+            else:
+                self._client = self.conaryClientFactory().getClient(
+                                            model=False)
         return self._client
 
     conaryClient = property(_getClient)
