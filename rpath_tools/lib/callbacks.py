@@ -16,7 +16,6 @@
 #
 
 
-from conary import callbacks
 from conary import updatecmd
 
 
