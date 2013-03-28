@@ -20,8 +20,7 @@ from conary import callbacks
 from conary import updatecmd
 #from conary import command
 from conary import conarycfg
-#from conary import constants
-from conary import conaryclient
+#from conary import constant
 from conary import errors
 from conary.conaryclient import cml
 from conary.conaryclient import systemmodel
@@ -30,21 +29,17 @@ from conary.conaryclient import modelupdate
 #from conary.errors import TroveSpecsNotFound
 from conary.lib import util
 
-from sysmodel import SystemModel
+from rpath_tools.lib.clientfactory import ConaryClientFactory
 
 import copy
 import time
 import os
-import subprocess
 import logging
 import stored_objects
 
 logger = logging.getLogger(name = '__name__')
 
-#DEBUG=1
 
-#if DEBUG:
-    #from conary.lib import debugger as epdb
 
 class SystemModelServiceError(Exception):
     "Base class"
@@ -55,20 +50,6 @@ class NoUpdatesFound(SystemModelServiceError):
 class RepositoryError(SystemModelServiceError):
     "Raised when a repository error is caught"
 
-class ConaryClientFactory(object):
-    def getClient(self, modelFile=None, model=True):
-        ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        ccfg.initializeFlavors()
-        if model:
-            if not modelFile:
-                model = cml.CML(ccfg)
-                modelFile = systemmodel.SystemModelFile(model)
-            cclient = conaryclient.ConaryClient(ccfg, modelFile=modelFile)
-        else:
-            cclient = conaryclient.ConaryClient(ccfg)
-        callback = updatecmd.callbacks.UpdateCallback()
-        cclient.setUpdateCallback(callback)
-        return cclient
 
 class UpdateFlags(object):
     __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test', 'freeze' ]
@@ -76,7 +57,7 @@ class UpdateFlags(object):
         for s in self.__slots__:
             setattr(self, s, kwargs.pop(s, None))
 
-class UpdateModel(object):
+class Updater(object):
     def __init__(self, sysmod=None, callback=None):
         '''
         sysmod is a system-model string that will over write the current
@@ -95,14 +76,13 @@ class UpdateModel(object):
             self._newSystemModel = [ x + '\n' for x in
                                         self._contents.split('\n') if x ]
         self._manifest = None
-        self._cfg = conarycfg.ConaryConfiguration(True)
+        self._cfg = self.conaryClientFactory.getCfg()
         self._callback = callback
         if not callback:
             self._callback = callbacks.UpdateCallback(
                                 trustThreshold=self._cfg.trustThreshold)
         else:
             self._callback.setTrustThreshold(self._cfg.trustThreshold)
-        #self._client = conaryclient.ConaryClient(self._cfg)
 
     @property
     def system_model(self):
@@ -166,27 +146,6 @@ class UpdateModel(object):
             return [ EnvironmentError, str(e) ]
         return data
 
-    def _runProcess(self, cmd):
-        '''cmd @ [ '/sbin/service', 'name', 'status' ]'''
-        try:
-            proc = subprocess.Popen(    cmd,
-                                        shell=False,
-                                        stdin=None,
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE
-                                    )
-            stdout, stderr = proc.communicate()
-            # TODO: Fix results up if we add serious logging...
-            #if proc.returncode != 0:
-                #raise Exception("%s failed with return code %s" %
-                #            (' '.join(cmd), proc.returncode))
-                #return stderr.decode("UTF8")
-            return stdout.decode("UTF8")
-        except Exception, ex:
-            logger.error("%s failed: %s" %
-                            (' '.join(cmd), str(ex)))
-            return str(ex)
-
     def _getClient(self, modelfile=None, force=False):
         if self._client is None or force:
             if self._system_model_exists():
@@ -200,8 +159,7 @@ class UpdateModel(object):
     conaryClient = property(_getClient)
 
     def _getCfg(self):
-        self._cfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        self._cfg.initializeFlavors()
+        self._cfg = self.conaryClientFactory.getCfg()
         return self._cfg
 
     conaryCfg = property(_getCfg)
@@ -214,7 +172,7 @@ class UpdateModel(object):
         self.sysmodel = cclient.getSystemModel()
         if self.sysmodel is None:
             return None
-        return SystemModel(self.sysmodel)
+        return self.sysmodel
 
     def _cleanSystemModel(self, modelFile):
         '''
@@ -367,84 +325,6 @@ class UpdateModel(object):
         db = self.conaryClient.getDatabase()
         return db.getTransactionCounter()
 
-    def _system_model_update(self, cfg, op, args, callback, dry_run=False):
-        '''
-        conary update action for a system model
-        op can be 'update'||'updateall'||'install'||'erase'.
-        args is a list of packages.
-
-        dry_run == True, return UpdateJob, suggMap
-        '''
-
-        updated = False
-        updJob, suggMap = None, {}
-        model = cml.CML(cfg)
-        modelFile = systemmodel.SystemModelFile(model)
-        model.appendOpByName(op, args)
-        modelFile.writeSnapshot()
-        try:
-            updJob, suggMap = self._buildUpdateJob(model)
-            #not sure i got this right... need  to just run an update
-            #_model_build_update_job(cfg, model, modelFile, callback)
-            if not dry_run:
-                self._applyUpdateJob(updJob, callback)
-                updated = True
-        except:
-            pass
-        if updated:
-            modelFile.write()
-            modelFile.closeSnapshot()
-        return updJob, suggMap
-
-    def _base_update(self, arg, pkglist, callback, dry_run):
-        '''
-        update helper so I don't have to repeat code
-        '''
-        cfg = self.conaryCfg
-        updJob, suggMap = None, {}
-        if self._using_system_model():
-            updJob, suggMap = self._system_model_update(cfg,
-                                arg, pkglist, callback, dry_run)
-        return updJob, suggMap
-
-    def update(self, pkglist, callback, dry_run=False):
-        '''
-        conary install for system model
-        '''
-        cfg = self.conaryCfg
-        updJob, suggMap = None, {}
-        if self._using_system_model():
-            updJob, suggMap = self._system_model_update(cfg,
-                                'update', pkglist,
-                    callback, dry_run)
-        return updJob, suggMap
-
-
-    def install(self, pkglist, callback, dry_run=False):
-        '''
-        conary install for system model
-        return updJob, suggMap
-        '''
-        return self._base_updater('install', pkglist,
-                                callback, dry_run)
-
-
-    def erase(self, pkglist, callback, dry_run=False):
-        '''
-        conary erase for system model
-        return updJob, suggMap
-        '''
-        return self._base_updater('erase', pkglist,
-                                callback, dry_run)
-
-    def updateall(self, pkglist=[], dry_run=False):
-        '''
-        conary updateall for system model
-        return updJob, suggMap
-        '''
-        return self._base_updater('updateall', pkglist,
-                                 dry_run)
-
 
     def _startNew(self):
         '''
@@ -484,7 +364,7 @@ class UpdateModel(object):
 
         # DON'T DO THIS... to low level
         #model.parse(fileData=self._newSystemModel, context=None)
-        newmodel = SystemModel(self._modelFile(model))
+        newmodel = self._modelFile(model)
         newmodel.parse(fileData=self.system_model)
         return newmodel
 
@@ -502,7 +382,7 @@ class UpdateModel(object):
 
         # DON'T DO THIS... to low level
         #model.parse(fileData=self._newSystemModel, context=None)
-        newmodel = SystemModel(self._modelFile(model))
+        newmodel = self._modelFile(model)
         newmodel.parse(fileData=self.system_model)
         return newmodel
 
@@ -523,7 +403,7 @@ class UpdateModel(object):
         model.setVersion(str(time.time()))
         # DON'T DO THIS... to low level
         #model.parse(fileData=self._newSystemModel, context=None)
-        newmodel = SystemModel(self._modelFile(model))
+        newmodel = self._modelFile(model)
         if contents:
             newmodel.parse(fileData=contents)
         return newmodel
@@ -559,7 +439,7 @@ class UpdateModel(object):
         for op, args in opargs.items():
             arg = ' '.join([ x for x in args ])
             model.appendOpByName(op, arg)
-        newmodel = SystemModel(self._modelFile(model))
+        newmodel = self._modelFile(model)
         return newmodel
 
     def update_model(self):
