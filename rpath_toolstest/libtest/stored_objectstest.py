@@ -15,14 +15,10 @@
 #
 
 import os
-import sys
 import time
-
-from conary.lib import util
 
 from .. import testbase
 
-from rpath_tools.lib import storage
 from rpath_tools.lib import stored_objects
 
 class StorageTest(testbase.TestCase):

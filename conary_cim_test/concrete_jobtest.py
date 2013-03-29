@@ -15,24 +15,20 @@
 #
 
 import os
-import sys
-import time
-
-from conary.lib import util
 
 import testbaserepo
 
 import concrete_job
-import installation_service 
+import installation_service
 
 class ConcreteJobTest(testbaserepo.TestCase):
     def setUp(self):
         testbaserepo.TestCase.setUp(self)
-        repos = self.openRepository()
+        self.openRepository()
         for v in ["1", "2"]:
             self.addComponent("foo:runtime", v)
             self.addCollection("foo", v, [":runtime"])
-            trv = self.addCollection("group-bar", v, [ "foo" ])
+            self.addCollection("group-bar", v, [ "foo" ])
 
         self.updatePkg(["group-bar=1"])
 

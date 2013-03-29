@@ -258,9 +258,9 @@ def main():
         sources = options.package
         concreteJob = startUpdateOperation(sources, flags)
     elif options.systemModelPath:
-        concreteJob = ConcreteJob.previewSyncOperation(systemModelPath, flags)
+        concreteJob = UpdateJob.previewSyncOperation(options.systemModelPath, flags)
     elif options.updateId:
-        concreteJob = ConcreteJob.applySyncOperation(updateId, flags)
+        concreteJob = UpdateJob.applySyncOperation(options.updateId, flags)
     print concreteJob.get_job_id()
     sys.exit()
 

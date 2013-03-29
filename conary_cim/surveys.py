@@ -15,10 +15,6 @@
 # limitations under the License.
 #
 
-
-import os
-import uuid
-
 from rpath_tools.lib import stored_objects
 
 class Survey(stored_objects.FlatStoredObject):

@@ -18,7 +18,6 @@
 
 import collections
 import os
-import sys
 import uuid
 
 from conary.lib import util
