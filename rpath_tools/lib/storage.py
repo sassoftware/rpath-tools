@@ -19,6 +19,7 @@
 import collections
 import os
 import sys
+import uuid
 
 from conary.lib import util
 
@@ -37,10 +38,8 @@ class BaseStorage(object):
     """
     Persistance class.
     cvar separator: separator between the class prefix and the key
-    cvar keyLength: length of a key (not counting the optional prefix)
     """
     separator = ','
-    keyLength = 16
 
     def __getitem__(self, key):
         """Get the value for the specified key.
@@ -98,10 +97,10 @@ class BaseStorage(object):
             return default
         return self.__getitem__(key)
 
-    def newCollection(self, key = None, keyPrefix = None, keyLength = None):
+    def newCollection(self, key = None, keyPrefix = None):
         """Create collection"""
         if key is None:
-            key = self.newKey(keyPrefix = keyPrefix, keyLength = keyLength)
+            key = self.newKey(keyPrefix = keyPrefix)
         else:
             key = self._sanitizeKey(key)
         self._real_new_collection(key)
@@ -138,15 +137,13 @@ class BaseStorage(object):
         key = self._sanitizeKey(key)
         return self._real_is_collection(key)
 
-    def newKey(self, keyPrefix = None, keyLength = None):
-        if keyLength is None:
-            keyLength = self.keyLength
+    def newKey(self, keyPrefix = None):
         if isinstance(keyPrefix, tuple):
             keyPrefix = list(keyPrefix)
         elif keyPrefix is not None:
             keyPrefix = [ keyPrefix ]
         for i in range(5):
-            newKey = self._generateString(keyLength)
+            newKey = self._generateString()
             if keyPrefix is not None:
                 key = self.separator.join(keyPrefix +  [newKey])
             else:
@@ -192,17 +189,12 @@ class BaseStorage(object):
         """
 
     #{ Methods that could be overwritten in subclasses
-    def _generateString(self, length):
+    def _generateString(self):
         """Generate a string
-        @param length: length of the string to be generated
-        @type length: C{int}
-        @rtype: C{int}
+        @rtype: C{str}
         @return: The new string
         """
-        randByteCount = int(round(length / 2.0))
-        bytes = file("/dev/urandom").read(randByteCount)
-        bytes = ''.join('%02x' % ord(x) for x in bytes)
-        return bytes[:length]
+        return str(uuid.uuid4())
     #}
 
     #{ Methods that should be overwritten in subclasses

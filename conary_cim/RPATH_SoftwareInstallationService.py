@@ -25,6 +25,7 @@ Instruments the CIM class RPATH_SoftwareInstallationService
 import os
 import subprocess
 import pywbem
+import tempfile
 from mixin_computersystem import MixInComputerSystem
 import stub_RPATH_SoftwareInstallationService
 import RPATH_UpdateConcreteJob
@@ -290,7 +291,7 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
         out_params = []
         out_params.append(pywbem.CIMParameter('job', type='reference',
                       value=job))
-        rval = self.Values.CheckAvailableUpdates.Method_Parameters_Checked___Job_Started
+        rval = self.Values.InstallFromSoftwareIdentity.Method_Parameters_Checked___Job_Started
         return (rval, out_params)
 
     def cim_method_installfromnetworklocations(self, env, object_name,
@@ -404,7 +405,90 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
         out_params = []
         out_params.append(pywbem.CIMParameter('job', type='reference',
                       value=job))
-        rval = self.Values.CheckAvailableUpdates.Method_Parameters_Checked___Job_Started
+        rval = self.Values.InstallFromNetworkLocations.Method_Parameters_Checked___Job_Started
+        return (rval, out_params)
+
+    def cim_method_updatefromsystemmodel(self, env, object_name,
+                                         param_managementnodeaddresses=None,
+                                         param_systemmodel=None,
+                                         param_installoptions=None,
+                                         param_target=None):
+        """Implements RPATH_SoftwareInstallationService.UpdateFromSystemModel()
+
+        Start a job to synchronize software ManagedElement (Target),based
+        on a system model.
+        
+        Keyword arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
+            specifying the object on which the method UpdateFromSystemModel() 
+            should be invoked.
+        param_managementnodeaddresses --  The input parameter ManagementNodeAddresses (type [unicode,]) 
+            List of management nodes against this system will be registered
+            
+        param_systemmodel --  The input parameter SystemModel (type unicode) 
+            System model
+            
+        param_installoptions --  The input parameter InstallOptions (type [pywbem.Uint16,] self.Values.UpdateFromSystemModel.InstallOptions) 
+            Installation options
+            
+        param_target --  The input parameter Target (type REF (pywbem.CIMInstanceName(classname='CIM_ManagedElement', ...)) 
+            The installation target.
+            
+
+        Returns a two-tuple containing the return value (type pywbem.Uint32 self.Values.UpdateFromSystemModel)
+        and a list of CIMParameter objects representing the output parameters
+
+        Output parameters:
+        Job -- (type REF (pywbem.CIMInstanceName(classname='RPATH_UpdateConcreteJob', ...)) 
+            Reference to the job (may be null if job completed).
+            
+
+        Possible Errors:
+        CIM_ERR_ACCESS_DENIED
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, 
+            unrecognized or otherwise incorrect parameters)
+        CIM_ERR_NOT_FOUND (the target CIM Class or instance does not 
+            exist in the specified namespace)
+        CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor 
+            the invocation request)
+        CIM_ERR_FAILED (some other unspecified error occurred)
+
+        """
+
+        logger = env.get_logger()
+        logger.log_debug('Entering %s.cim_method_updatefromsystemmodel()' \
+                % self.__class__.__name__)
+
+        tmpf = tempfile.NamedTemporaryFile(delete=False)
+        tmpf.write(param_systemmodel)
+        tmpf.flush()
+        tmpf.close()
+
+        execPath = os.path.join(os.path.dirname(concrete_job.__file__), 'concrete_job.py')
+        args = [ pythonPath, execPath, '--system-model-path', tmpf.name, '--mode', 'sync' ]
+
+        # Use subprocess to start the update job.  concrete_job double forks,
+        # so the wait will return almost immediately.
+        concreteJobProc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        concreteJobProc.wait()
+        # job id is printed to standard out
+        stdoutdata, stderrdata = concreteJobProc.communicate()
+        concreteJobId = stdoutdata.strip('\n')
+
+        # The concrete job should have picked up the file by now, get
+        # rid of it
+        os.unlink(tmpf.name)
+
+        job = pywbem.CIMInstanceName(classname='RPATH_UpdateConcreteJob',
+            keybindings = dict(
+                InstanceID = RPATH_UpdateConcreteJob.RPATH_UpdateConcreteJob.createInstanceID(concreteJobId)),
+                namespace = "root/cimv2")
+
+        out_params = []
+        out_params.append(pywbem.CIMParameter('job', type='reference',
+                      value=job))
+        rval = self.Values.UpdateFromSystemModel.Method_Parameters_Checked___Job_Started
         return (rval, out_params)
 
     def cim_method_checkavailableupdates(self, env, object_name,

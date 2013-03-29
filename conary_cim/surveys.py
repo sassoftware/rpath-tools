@@ -19,7 +19,7 @@
 import os
 import uuid
 
-import stored_objects
+from rpath_tools.lib import stored_objects
 
 class Survey(stored_objects.FlatStoredObject):
     prefix = "surveys"

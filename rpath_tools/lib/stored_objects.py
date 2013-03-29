@@ -189,6 +189,19 @@ class ConcreteUpdateJob(StoredObject):
 
     pid = property(_getPid, _setPid)
 
+    @property
+    def frozenUpdateJobDir(self):
+        downloadDir = self.storage.newCollection((self.keyId, "frozen-update-job"))
+        return self.storage.getFileFromKey(downloadDir)
+
+    def _getSystemModel(self):
+        return self.storage.get((self.keyId, "systemModel"))
+
+    def _setSystemModel(self, systemModel):
+        return self.storage.set((self.keyId, "systemModel"), systemModel)
+
+    systemModel = property(_getSystemModel, _setSystemModel)
+
 class ConcreteSurveyJob(ConcreteUpdateJob):
     keyPrefix = "surveys"
 

@@ -20,10 +20,10 @@ import time
 
 from conary.lib import util
 
-import testbase
+from .. import testbase
 
-import storage
-import stored_objects
+from rpath_tools.lib import storage
+from rpath_tools.lib import stored_objects
 
 class StorageTest(testbase.TestCase):
     def testUpdateSetFactory(self):

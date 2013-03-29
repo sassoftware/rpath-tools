@@ -25,8 +25,7 @@ from conary import versions
 
 from rpath_tools.client.sysdisco import preview as rt_preview
 from rpath_tools.client.utils import update_job_formatter
-
-import stored_objects
+from rpath_tools.lib import stored_objects
 
 import sys
 # log.syslog.command() attempts to use sys.argv

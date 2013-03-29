@@ -558,3 +558,161 @@ class Test(testbaserepo.TestCase):
         error = self.failUnlessRaises(pywbem.CIMError,
             siProv.MI_deleteInstance, self.env, siObjPath)
         self.failUnlessEqual(error.args, (7, ))
+
+    def setupSyncOperation(self):
+        import RPATH_SoftwareInstallationService
+        RPATH_SoftwareInstallationService.pythonPath = "/usr/bin/python"
+
+        class Popen:
+            def __init__(self, *args, **kwargs):
+                idx = args[0].index('--system-model-path')
+                tmpf = args[0][idx+1]
+                # Flags are meaningless for now
+                flags = installation_service.UpdateFlags()
+                concreteJob = concrete_job.UpdateJob.previewSyncOperation(
+                        tmpf, flags)
+
+                self.jobId = concreteJob.get_job_id()
+
+            def wait(self):
+                return None
+
+            def communicate(self):
+                return self.jobId, None
+
+        self.mock(RPATH_SoftwareInstallationService.subprocess, "Popen", Popen)
+
+        self._setupRepo()
+        _, siObjPath = self.getProviderSoftwareIdentity()
+
+        sisProv, sisObjPath = self.getProviderSoftwareInstallationService()
+
+        # Update
+        InstallOptions = []
+        sources = "group-foo=/%s/2-1-1"
+        systemModel = "install %s" % sources
+        ret, params = sisProv.MI_invokeMethod(self.env, sisObjPath,
+            "UpdateFromSystemModel",
+            dict(
+                ManagementNodeAddresses = ['1.1.1.1', '2.2.2.2'],
+                SystemModel = systemModel % self.defLabel,
+                InstallOptions = InstallOptions))
+
+        self.failUnlessEqual(ret[1], 4096)
+
+        jobObjectPath = params['job'][1]
+        return sisProv, sisObjPath, jobObjectPath
+
+    def testUpdateFromSystemModel(self):
+        sisProv, sisObjPath, jobObjectPath = self.setupSyncOperation()
+
+        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
+        self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
+
+        # Make sure we've saved the system model
+        jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
+        jobId = jobId.split('/', 1)[-1]
+        job = concrete_job.UpdateJob().load(jobId)
+        self.assertEquals(job.concreteJob.systemModel, "install group-foo=/localhost@rpl:linux/2-1-1")
+
+        rlProv, rlObjectPath = self.getProviderRecordLog()
+        rlObjectPath['InstanceId'] = jobObjectPath['InstanceId']
+        recordLogInst = rlProv.MI_getInstance(self.env, rlObjectPath, None)
+        from testrunner import testcase
+        raise testcase.SkipTestException("To be fixed when we wire in system-model bits")
+        # Make sure we got some logs here
+        self.failUnlessEqual(
+            recordLogInst.properties['CurrentNumberOfRecords'].value,
+            31)
+
+        rleProv, rleObjectPath = self.getProviderLogEntry()
+        logEntryContents = []
+        for leInst in rleProv.MI_enumInstances(self.env, rleObjectPath, []):
+            logEntryContents.append(leInst.properties['RecordData'].value)
+        logId = leInst.properties['LogInstanceID'].value
+        self.failUnlessEqual(len(logEntryContents), 31)
+        self.failUnlessEqual(logEntryContents[-1], "Done")
+
+        ruolProv, ruolObjectPath = self.getProviderUseOfLog()
+        ret = []
+        for uol in ruolProv.MI_enumInstances(self.env, ruolObjectPath, []):
+            left = uol.properties['Antecedent'].value
+            right = uol.properties['Dependent'].value
+            ret.append((left.classname, left.keybindings['InstanceID'],
+                right.classname, right.keybindings['InstanceID']))
+        self.failUnlessEqual(len(ret), 1)
+        self.failUnlessEqual(ret[0][0], 'RPATH_RecordLog')
+        self.failUnlessEqual(ret[0][2], 'RPATH_UpdateConcreteJob')
+        self.failUnlessEqual(ret[0][1].replace('recordLogs', 'jobs'),
+            ret[0][3])
+        self.failUnlessEqual(ret[0][1], logId)
+
+        nvfs = [ x for x in self.getConaryClient().db.iterAllTroves() ]
+        self.failUnlessEqual(
+            sorted([ (x[0], str(x[1]), str(x[2])) for x in nvfs ]),
+            [('bar', '/localhost@rpl:linux/1-1-1', ''),
+             ('bar:runtime', '/localhost@rpl:linux/1-1-1', ''),
+             ('foo', '/localhost@rpl:linux/2-1-1', ''),
+             ('foo:runtime', '/localhost@rpl:linux/2-1-1', ''),
+             ('group-bar-appliance', '/localhost@rpl:linux/1-1-1', ''),
+             ('group-foo', '/localhost@rpl:linux/2-1-1', '')])
+
+        # Migrate group-bar-appliance
+        InstallOptions = [sisProv.Values.InstallFromNetworkLocations.InstallOptions.Migrate]
+        InstallOptionValues = [None]
+        ret, params = sisProv.MI_invokeMethod(self.env, sisObjPath,
+            "InstallFromNetworkLocations",
+            dict(
+                ManagementNodeAddresses = ['1.1.1.1', '2.2.2.2'],
+                Sources = ["group-bar-appliance=/%s/2-1-1" % self.defLabel],
+                InstallOptions = InstallOptions,
+                InstallOptionValues = InstallOptionValues))
+
+        self.failUnlessEqual(ret[1], 4096)
+
+        jobObjectPath = params['job'][1]
+
+        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
+        self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
+
+        nvfs = [ x for x in self.getConaryClient().db.iterAllTroves() ]
+        self.failUnlessEqual(
+            sorted([ (x[0], str(x[1]), str(x[2])) for x in nvfs ]),
+            [('bar', '/localhost@rpl:linux/2-1-1', ''),
+             ('bar:runtime', '/localhost@rpl:linux/2-1-1', ''),
+             ('group-bar-appliance', '/localhost@rpl:linux/2-1-1', ''),
+            ])
+
+        # Test GetError too, while we're at it
+        ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
+            'GetError', {})
+        self.failUnlessEqual(params, {})
+        self.failUnlessEqual(ret, ('uint32', 0L))
+
+        jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
+        jobId = jobId.split('/', 1)[-1]
+        job = concrete_job.AnyJob.load(jobId)
+        job.concreteJob.state = 'Exception'
+        job.concreteJob.content = None
+
+        ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
+            'GetError', {})
+        self.failUnlessEqual(ret, ('uint32', 2L))
+
+        job.concreteJob.content = 'Blahblah'
+        ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
+            'GetError', {})
+        self.failUnlessEqual(ret, ('uint32', 0L))
+        self.failUnlessEqual(params['Error'][1].properties['Message'].value,
+            'Blahblah')
+
+    def testApplyUpdate(self):
+        sisProv, sisObjPath, jobObjectPath = self.setupSyncOperation()
+
+        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
+        self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
+
+        ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
+            'ApplyUpdate', {})
+        self.failUnlessEqual(params, {})
+        self.failUnlessEqual(ret, ('uint16', 0L))

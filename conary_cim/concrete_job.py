@@ -22,7 +22,8 @@ import os
 import sys
 import traceback
 
-import stored_objects
+from rpath_tools.lib import stored_objects
+
 import surveys
 import installation_service
 
@@ -147,6 +148,44 @@ class UpdateJob(BaseJob):
         else:
             job.state = "Completed"
 
+    @classmethod
+    def previewSyncOperation(cls, systemModelPath, flags=None):
+        concreteJob = cls().new()
+        concreteJob._previewSyncOperation(systemModelPath, flags)
+        return concreteJob
+
+    def _previewSyncOperation(self, systemModelPath, flags):
+        job = self.concreteJob
+        job.state = "Running"
+        job.systemModel = file(systemModelPath).read()
+        self.background_run(self._previewSyncOperationProcess, flags)
+
+    def _previewSyncOperationProcess(self, flags):
+        self.concreteJob.state = "Completed"
+        # XXX FIXME
+        fname = "/tmp/system-model.new"
+        file(fname, "w").write(self.concreteJob.systemModel)
+
+    @classmethod
+    def applySyncOperation(cls, updateId, flags=None):
+        concreteJob = cls()
+        concreteJob.load(updateId)
+        concreteJob._applySyncOperation(flags)
+        return concreteJob
+
+    def _applySyncOperation(self, flags):
+        job = self.concreteJob
+        job.state = "Running"
+        self.background_run(self._applySyncOperationProcess, flags)
+
+    def _applySyncOperationProcess(self, flags):
+        self.concreteJob.state = "Completed"
+        # XXX FIXME
+        fname = "/tmp/system-model"
+        if os.path.exists("%s.new" % fname):
+            os.unlink("%s.new" % fname)
+        file(fname, "w").write(self.concreteJob.systemModel)
+
 class SurveyJob(BaseJob):
     storagePath = installation_service.UpdateSet.storagePath
     factory = stored_objects.ConcreteSurveyJobFactory
@@ -199,6 +238,8 @@ def main():
     parser.add_option("-m", "--mode", action="store", type="choice",
         choices=["update", "updateall", "migrate", "sync"], dest="mode")
     parser.add_option("-p", "--package", action="append", dest="package")
+    parser.add_option("--system-model-path", action="store", dest="systemModelPath")
+    parser.add_option("--update-id", action="store", dest="updateId")
     (options, args) = parser.parse_args()
 
     kwargs = {}
@@ -206,16 +247,20 @@ def main():
     if not options.mode:
         sys.exit(-1)
 
-    if not options.package:
+    if not options.package and not options.systemModelPath and not options.updateId:
         sys.exit(-1)
 
     kwargs[options.mode] = True
     kwargs['test'] = bool(options.test)
     
     flags = installation_service.UpdateFlags(**kwargs)
-    sources = options.package
-    
-    concreteJob = startUpdateOperation(sources, flags)
+    if options.package:
+        sources = options.package
+        concreteJob = startUpdateOperation(sources, flags)
+    elif options.systemModelPath:
+        concreteJob = ConcreteJob.previewSyncOperation(systemModelPath, flags)
+    elif options.updateId:
+        concreteJob = ConcreteJob.applySyncOperation(updateId, flags)
     print concreteJob.get_job_id()
     sys.exit()
 

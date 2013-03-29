@@ -49,6 +49,54 @@ class RPATH_UpdateConcreteJob(baseConcreteJobProvider.ConcreteJobMixIn, stubClas
         model['JobResults'] =  pywbem.CIMProperty('JobResults',
             [ job.content ])
 
+    def cim_method_applyupdate(self, env, object_name):
+        """Implements RPATH_UpdateConcreteJob.ApplyUpdate()
+
+        Apply an update job.
+        
+        Keyword arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
+            specifying the object on which the method ApplyUpdate() 
+            should be invoked.
+
+        Returns a two-tuple containing the return value (type pywbem.Uint16 self.Values.ApplyUpdate)
+        and a list of CIMParameter objects representing the output parameters
+
+        Output parameters: none
+
+        Possible Errors:
+        CIM_ERR_ACCESS_DENIED
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, 
+            unrecognized or otherwise incorrect parameters)
+        CIM_ERR_NOT_FOUND (the target CIM Class or instance does not 
+            exist in the specified namespace)
+        CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor 
+            the invocation request)
+        CIM_ERR_FAILED (some other unspecified error occurred)
+
+        """
+
+        logger = env.get_logger()
+        logger.log_debug('Entering %s.cim_method_applyupdate()' \
+                % self.__class__.__name__)
+
+        key = object_name.keybindings.get('InstanceID')
+        if not key:
+            rval = self.Values.ApplyUpdate.Failed
+            return (rval, [])
+
+        key = self.fromInstanceID(key)
+        self.concreteJob = concrete_job.UpdateJob.applySyncOperation(key)
+
+        cuJob = self.concreteJob.concreteJob
+        if cuJob.state != "Exception":
+            rval = self.Values.ApplyUpdate.OK
+            return (rval, [])
+
+        rval = self.Values.ApplyUpdate.Failed
+        return (rval, [])
+
 ## get_providers() for associating CIM Class Name to python provider class name
 
 def get_providers(env):

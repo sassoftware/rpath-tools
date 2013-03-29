@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-
 """Python Provider for RPATH_UpdateConcreteJob
 
 Instruments the CIM class RPATH_UpdateConcreteJob
@@ -82,6 +81,7 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
         #model['InstallDate'] = pywbem.CIMDateTime() # TODO 
         #model['JobInParameters'] = '' # TODO 
         #model['JobOutParameters'] = '' # TODO 
+        #model['JobResults'] = ['',] # TODO 
         #model['JobRunTimes'] = pywbem.Uint32(1) # TODO 
         #model['JobState'] = self.Values.JobState.<VAL> # TODO 
         #model['JobStatus'] = '' # TODO 
@@ -289,6 +289,44 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
         #rval = # TODO (type pywbem.Uint32 self.Values.RequestStateChange)
         return (rval, out_params)
         
+    def cim_method_applyupdate(self, env, object_name):
+        """Implements RPATH_UpdateConcreteJob.ApplyUpdate()
+
+        Apply an update job.
+        
+        Keyword arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
+            specifying the object on which the method ApplyUpdate() 
+            should be invoked.
+
+        Returns a two-tuple containing the return value (type pywbem.Uint16 self.Values.ApplyUpdate)
+        and a list of CIMParameter objects representing the output parameters
+
+        Output parameters: none
+
+        Possible Errors:
+        CIM_ERR_ACCESS_DENIED
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, 
+            unrecognized or otherwise incorrect parameters)
+        CIM_ERR_NOT_FOUND (the target CIM Class or instance does not 
+            exist in the specified namespace)
+        CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor 
+            the invocation request)
+        CIM_ERR_FAILED (some other unspecified error occurred)
+
+        """
+
+        logger = env.get_logger()
+        logger.log_debug('Entering %s.cim_method_applyupdate()' \
+                % self.__class__.__name__)
+
+        # TODO do something
+        raise pywbem.CIMError(pywbem.CIM_ERR_METHOD_NOT_AVAILABLE) # Remove to implemented
+        out_params = []
+        #rval = # TODO (type pywbem.Uint16 self.Values.ApplyUpdate)
+        return (rval, out_params)
+        
     def cim_method_geterror(self, env, object_name):
         """Implements RPATH_UpdateConcreteJob.GetError()
 
@@ -398,7 +436,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             Supporting_Entity_in_Error = pywbem.Uint16(5)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Not Available', 1: 'No Additional Information', 2: 'Stressed', 3: 'Predictive Failure', 4: 'Non-Recoverable Error', 5: 'Supporting Entity in Error'}
 
         class Status(object):
             OK = 'OK'
@@ -424,7 +461,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             Critical_failure = pywbem.Uint16(25)
             Non_recoverable_error = pywbem.Uint16(30)
             # DMTF_Reserved = ..
-            _reverse_map = {0: 'Unknown', 5: 'OK', 10: 'Degraded/Warning', 15: 'Minor failure', 20: 'Major failure', 25: 'Critical failure', 30: 'Non-recoverable error'}
 
         class JobState(object):
             New = pywbem.Uint16(2)
@@ -440,7 +476,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             Query_Pending = pywbem.Uint16(12)
             # DMTF_Reserved = 13..32767
             # Vendor_Reserved = 32768..65535
-            _reverse_map = {2: 'New', 3: 'Starting', 4: 'Running', 5: 'Suspended', 6: 'Shutting Down', 7: 'Completed', 8: 'Terminated', 9: 'Killed', 10: 'Exception', 11: 'Service', 12: 'Query Pending'}
 
         class KillJob(object):
             Success = pywbem.Uint32(0)
@@ -471,7 +506,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             Continue_With_Next_Job = pywbem.Uint16(3)
             Re_run_Job = pywbem.Uint16(4)
             Run_Recovery_Job = pywbem.Uint16(5)
-            _reverse_map = {0: 'Unknown', 1: 'Other', 2: 'Do Not Continue', 3: 'Continue With Next Job', 4: 'Re-run Job', 5: 'Run Recovery Job'}
 
         class RunDayOfWeek(object):
             _Saturday = pywbem.Sint8(-7)
@@ -489,7 +523,10 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             Thursday = pywbem.Sint8(5)
             Friday = pywbem.Sint8(6)
             Saturday = pywbem.Sint8(7)
-            _reverse_map = {0: 'ExactDayOfMonth', 1: 'Sunday', 2: 'Monday', 3: 'Tuesday', 4: 'Wednesday', 5: 'Thursday', 6: 'Friday', 7: 'Saturday', -1: '-Sunday', -7: '-Saturday', -6: '-Friday', -5: '-Thursday', -4: '-Wednesday', -3: '-Tuesday', -2: '-Monday'}
+
+        class ApplyUpdate(object):
+            OK = pywbem.Uint16(0)
+            Failed = pywbem.Uint16(1)
 
         class RunMonth(object):
             January = pywbem.Uint8(0)
@@ -504,7 +541,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             October = pywbem.Uint8(9)
             November = pywbem.Uint8(10)
             December = pywbem.Uint8(11)
-            _reverse_map = {0: 'January', 1: 'February', 2: 'March', 3: 'April', 4: 'May', 5: 'June', 6: 'July', 7: 'August', 8: 'September', 9: 'October', 10: 'November', 11: 'December'}
 
         class CommunicationStatus(object):
             Unknown = pywbem.Uint16(0)
@@ -514,7 +550,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             No_Contact = pywbem.Uint16(4)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'Not Available', 2: 'Communication OK', 3: 'Lost Communication', 4: 'No Contact'}
 
         class OperationalStatus(object):
             Unknown = pywbem.Uint16(0)
@@ -538,7 +573,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             Power_Mode = pywbem.Uint16(18)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'Other', 2: 'OK', 3: 'Degraded', 4: 'Stressed', 5: 'Predictive Failure', 6: 'Error', 7: 'Non-Recoverable Error', 8: 'Starting', 9: 'Stopping', 10: 'Stopped', 11: 'In Service', 12: 'No Contact', 13: 'Lost Communication', 14: 'Aborted', 15: 'Dormant', 16: 'Supporting Entity in Error', 17: 'Completed', 18: 'Power Mode'}
 
         class OperatingStatus(object):
             Unknown = pywbem.Uint16(0)
@@ -560,12 +594,10 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             In_Service = pywbem.Uint16(16)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'Not Available', 2: 'Servicing', 3: 'Starting', 4: 'Stopping', 5: 'Stopped', 6: 'Aborted', 7: 'Dormant', 8: 'Completed', 9: 'Migrating', 10: 'Emigrating', 11: 'Immigrating', 12: 'Snapshotting', 13: 'Shutting Down', 14: 'In Test', 15: 'Transitioning', 16: 'In Service'}
 
         class LocalOrUtcTime(object):
             Local_Time = pywbem.Uint16(1)
             UTC_Time = pywbem.Uint16(2)
-            _reverse_map = {1: 'Local Time', 2: 'UTC Time'}
 
         class RequestStateChange(object):
             Completed_with_No_Error = pywbem.Uint32(0)
@@ -598,7 +630,6 @@ class RPATH_UpdateConcreteJob(CIMProvider2):
             Error = pywbem.Uint16(3)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'OK', 2: 'Degraded', 3: 'Error'}
 
 ## end of class RPATH_UpdateConcreteJobProvider
     

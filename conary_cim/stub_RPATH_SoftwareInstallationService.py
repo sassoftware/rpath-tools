@@ -634,6 +634,66 @@ class RPATH_SoftwareInstallationService(CIMProvider2):
         #rval = # TODO (type pywbem.Uint16 self.Values.SetRepositoryAddress)
         return (rval, out_params)
         
+    def cim_method_updatefromsystemmodel(self, env, object_name,
+                                         param_managementnodeaddresses=None,
+                                         param_systemmodel=None,
+                                         param_installoptions=None,
+                                         param_target=None):
+        """Implements RPATH_SoftwareInstallationService.UpdateFromSystemModel()
+
+        Start a job to synchronize software ManagedElement (Target),based
+        on a system model.
+        
+        Keyword arguments:
+        env -- Provider Environment (pycimmb.ProviderEnvironment)
+        object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
+            specifying the object on which the method UpdateFromSystemModel() 
+            should be invoked.
+        param_managementnodeaddresses --  The input parameter ManagementNodeAddresses (type [unicode,]) 
+            List of management nodes against this system will be registered
+            
+        param_systemmodel --  The input parameter SystemModel (type unicode) 
+            System model
+            
+        param_installoptions --  The input parameter InstallOptions (type [pywbem.Uint16,] self.Values.UpdateFromSystemModel.InstallOptions) 
+            Installation options
+            
+        param_target --  The input parameter Target (type REF (pywbem.CIMInstanceName(classname='CIM_ManagedElement', ...)) 
+            The installation target.
+            
+
+        Returns a two-tuple containing the return value (type pywbem.Uint32 self.Values.UpdateFromSystemModel)
+        and a list of CIMParameter objects representing the output parameters
+
+        Output parameters:
+        Job -- (type REF (pywbem.CIMInstanceName(classname='RPATH_UpdateConcreteJob', ...)) 
+            Reference to the job (may be null if job completed).
+            
+
+        Possible Errors:
+        CIM_ERR_ACCESS_DENIED
+        CIM_ERR_INVALID_PARAMETER (including missing, duplicate, 
+            unrecognized or otherwise incorrect parameters)
+        CIM_ERR_NOT_FOUND (the target CIM Class or instance does not 
+            exist in the specified namespace)
+        CIM_ERR_METHOD_NOT_AVAILABLE (the CIM Server is unable to honor 
+            the invocation request)
+        CIM_ERR_FAILED (some other unspecified error occurred)
+
+        """
+
+        logger = env.get_logger()
+        logger.log_debug('Entering %s.cim_method_updatefromsystemmodel()' \
+                % self.__class__.__name__)
+
+        # TODO do something
+        raise pywbem.CIMError(pywbem.CIM_ERR_METHOD_NOT_AVAILABLE) # Remove to implemented
+        out_params = []
+        #out_params+= [pywbem.CIMParameter('job', type='reference', 
+        #                   value=pywbem.CIMInstanceName(classname='RPATH_UpdateConcreteJob', ...))] # TODO
+        #rval = # TODO (type pywbem.Uint32 self.Values.UpdateFromSystemModel)
+        return (rval, out_params)
+        
     def cim_method_setautomaticupdates(self, env, object_name,
                                        param_automaticupdates=None):
         """Implements RPATH_SoftwareInstallationService.SetAutomaticUpdates()
@@ -790,10 +850,10 @@ class RPATH_SoftwareInstallationService(CIMProvider2):
         
     def cim_method_installfromnetworklocations(self, env, object_name,
                                                param_managementnodeaddresses=None,
-                                               param_sources=None,
                                                param_installoptions=None,
                                                param_target=None,
-                                               param_installoptionvalues=None):
+                                               param_installoptionvalues=None,
+                                               param_sources=None):
         """Implements RPATH_SoftwareInstallationService.InstallFromNetworkLocations()
 
         Start a job to update or migrate software on a ManagedElement
@@ -804,17 +864,20 @@ class RPATH_SoftwareInstallationService(CIMProvider2):
         object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
             specifying the object on which the method InstallFromNetworkLocations() 
             should be invoked.
-        param_sources --  The input parameter Sources (type [unicode,]) 
-            References to the locations
+        param_managementnodeaddresses --  The input parameter ManagementNodeAddresses (type [unicode,]) 
+            List of management nodes against this system will be registered
             
         param_installoptions --  The input parameter InstallOptions (type [pywbem.Uint16,] self.Values.InstallFromNetworkLocations.InstallOptions) 
-            blah
+            Installation options
             
         param_target --  The input parameter Target (type REF (pywbem.CIMInstanceName(classname='CIM_ManagedElement', ...)) 
             The installation target.
             
         param_installoptionvalues --  The input parameter InstallOptionValues (type [unicode,]) 
-            blah
+            Installation option values
+            
+        param_sources --  The input parameter Sources (type [unicode,]) 
+            References to the locations
             
 
         Returns a two-tuple containing the return value (type pywbem.Uint32 self.Values.InstallFromNetworkLocations)
@@ -1160,6 +1223,33 @@ class RPATH_SoftwareInstallationService(CIMProvider2):
             # Method_Reserved = 4109..32767
             # Vendor_Specific = 32768..65535
 
+        class UpdateFromSystemModel(object):
+            Job_Completed_with_No_Error = pywbem.Uint32(0)
+            Not_Supported = pywbem.Uint32(1)
+            Unspecified_Error = pywbem.Uint32(2)
+            Timeout = pywbem.Uint32(3)
+            Failed = pywbem.Uint32(4)
+            Invalid_Parameter = pywbem.Uint32(5)
+            Target_In_Use = pywbem.Uint32(6)
+            # DMTF_Reserved = ..
+            Method_Parameters_Checked___Job_Started = pywbem.Uint32(4096)
+            Unsupported_TargetType = pywbem.Uint32(4097)
+            Unattended_silent_installation_not_supported = pywbem.Uint32(4098)
+            Downgrade_reinstall_not_supported = pywbem.Uint32(4099)
+            Not_enough_memory = pywbem.Uint32(4100)
+            Not_enough_swap_space = pywbem.Uint32(4101)
+            Unsupported_version_transition = pywbem.Uint32(4102)
+            Not_enough_disk_space = pywbem.Uint32(4103)
+            Software_and_target_operating_system_mismatch = pywbem.Uint32(4104)
+            Missing_dependencies = pywbem.Uint32(4105)
+            Not_applicable_to_target = pywbem.Uint32(4106)
+            No_supported_path_to_image = pywbem.Uint32(4107)
+            Cannot_add_to_Collection = pywbem.Uint32(4108)
+            # Method_Reserved = 4109..32767
+            # Vendor_Specific = 32768..65535
+            class InstallOptions(object):
+                Test = pywbem.Uint16(1)
+
         class CommunicationStatus(object):
             Unknown = pywbem.Uint16(0)
             Not_Available = pywbem.Uint16(1)
@@ -1400,6 +1490,28 @@ class RPATH_SoftwareInstallationService(CIMProvider2):
 
         class InstallFromNetworkLocations(object):
             Job_Completed_with_No_Error = pywbem.Uint32(0)
+            Not_Supported = pywbem.Uint32(1)
+            Unspecified_Error = pywbem.Uint32(2)
+            Timeout = pywbem.Uint32(3)
+            Failed = pywbem.Uint32(4)
+            Invalid_Parameter = pywbem.Uint32(5)
+            Target_In_Use = pywbem.Uint32(6)
+            # DMTF_Reserved = ..
+            Method_Parameters_Checked___Job_Started = pywbem.Uint32(4096)
+            Unsupported_TargetType = pywbem.Uint32(4097)
+            Unattended_silent_installation_not_supported = pywbem.Uint32(4098)
+            Downgrade_reinstall_not_supported = pywbem.Uint32(4099)
+            Not_enough_memory = pywbem.Uint32(4100)
+            Not_enough_swap_space = pywbem.Uint32(4101)
+            Unsupported_version_transition = pywbem.Uint32(4102)
+            Not_enough_disk_space = pywbem.Uint32(4103)
+            Software_and_target_operating_system_mismatch = pywbem.Uint32(4104)
+            Missing_dependencies = pywbem.Uint32(4105)
+            Not_applicable_to_target = pywbem.Uint32(4106)
+            No_supported_path_to_image = pywbem.Uint32(4107)
+            Cannot_add_to_Collection = pywbem.Uint32(4108)
+            # Method_Reserved = 4109..32767
+            # Vendor_Specific = 32768..65535
             class InstallOptions(object):
                 Update = pywbem.Uint16(1)
                 Migrate = pywbem.Uint16(2)

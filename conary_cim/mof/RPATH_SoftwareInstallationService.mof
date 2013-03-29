@@ -65,10 +65,23 @@ class RPATH_SoftwareInstallationService : CIM_SoftwareInstallationService
     [Description (
         "Start a job to update or migrate software on a "
         "ManagedElement (Target)."),
-     ValueMap { "0"
-         },
-     Values { "Job Completed with No Error"
-         }]
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096",
+          "4097", "4098", "4099", "4100", "4101", "4102", "4103",
+          "4104", "4105", "4106", "4107", "4108", "4109..32767",
+          "32768..65535" },
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unspecified Error", "Timeout", "Failed",
+          "Invalid Parameter", "Target In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started",
+          "Unsupported TargetType",
+          "Unattended/silent installation not supported",
+          "Downgrade/reinstall not supported", "Not enough memory",
+          "Not enough swap-space", "Unsupported version transition",
+          "Not enough disk space",
+          "Software and target operating system mismatch",
+          "Missing dependencies", "Not applicable to target",
+          "No supported path to image", "Cannot add to Collection",
+          "Method Reserved", "Vendor Specific" }]
     uint32 InstallFromNetworkLocations(
         [IN ( false ), OUT, Description (
             "Reference to the job (may be null if job completed).")]
@@ -97,5 +110,51 @@ class RPATH_SoftwareInstallationService : CIM_SoftwareInstallationService
         [IN, Description("Installation option values"),
             ArrayType ( "Indexed" )]
         string InstallOptionValues[]
+    );
+
+    [Description (
+        "Start a job to synchronize software ManagedElement (Target),"
+        "based on a system model."),
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096",
+          "4097", "4098", "4099", "4100", "4101", "4102", "4103",
+          "4104", "4105", "4106", "4107", "4108", "4109..32767",
+          "32768..65535" },
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unspecified Error", "Timeout", "Failed",
+          "Invalid Parameter", "Target In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started",
+          "Unsupported TargetType",
+          "Unattended/silent installation not supported",
+          "Downgrade/reinstall not supported", "Not enough memory",
+          "Not enough swap-space", "Unsupported version transition",
+          "Not enough disk space",
+          "Software and target operating system mismatch",
+          "Missing dependencies", "Not applicable to target",
+          "No supported path to image", "Cannot add to Collection",
+          "Method Reserved", "Vendor Specific" }]
+    uint32 UpdateFromSystemModel(
+        [IN ( false ), OUT, Description (
+            "Reference to the job (may be null if job completed).")]
+        RPATH_UpdateConcreteJob REF Job,
+
+        [IN,
+            Description("List of management nodes against this system will be registered")]
+        string ManagementNodeAddresses[],
+
+        [IN, Description("System model")]
+        string SystemModel,
+
+        [IN, Description ("The installation target.")]
+        CIM_ManagedElement REF Target,
+
+        [IN, Description("Installation options"),
+            ValueMap {
+                "1"
+                },
+            Values {
+                "Test"
+                },
+            ArrayType ( "Indexed" )]
+        uint16 InstallOptions[]
     );
 };
