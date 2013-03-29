@@ -44,3 +44,13 @@ class Ractivate(PackageRecipe):
 
         # Copy data from xml_resources
         r.Run('cp -a %(datadir)s/rpath_xml_resources/* %(destdir)s%(datadir)s/rpath-tools/xml_resources/')
+
+        r.macros.pybin = '%(bindir)s/python%(pyver)s'
+        r.NormalizePythonInterpreterVersion(
+            versionMap=(('/usr/bin/python', '%(pybin)s'),
+                        ('python', '%(pybin)s'),
+                        ('/usr/bin/python2.4', '%(pybin)s'),
+                        ('/usr/bin/python2.5', '%(pybin)s'),
+                        ('/usr/bin/python2.6', '%(pybin)s'),
+                        ('/usr/conary/bin/python2.6', '%(pybin)s'),
+                        ))
