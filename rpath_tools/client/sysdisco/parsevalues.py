@@ -1,4 +1,4 @@
-#!/usr/conary/bin/python2.6
+#!/usr/bin/python
 #
 # Copyright (c) SAS Institute Inc.
 #
