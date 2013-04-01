@@ -39,7 +39,8 @@ logger = logging.getLogger(name = '__name__')
 
 
 class UpdateFlags(object):
-    __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test', 'freeze' ]
+    __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test',
+                    'freeze', 'thaw', 'iid' ]
     def __init__(self, **kwargs):
         for s in self.__slots__:
             setattr(self, s, kwargs.pop(s, None))
@@ -396,9 +397,6 @@ class UpdateModel(object):
         Start a new model with a mostly blank cfg
         '''
         # TODO
-        # DO we really need this?
-        newFileExt = '.new'
-        fileName = self._cfg.modelPath + newFileExt
         self._new_cfg = conarycfg.ConaryConfiguration(False)
         self._new_cfg.initializeFlavors()
         self._new_cfg.dbPath = self._cfg.dbPath
@@ -406,7 +404,7 @@ class UpdateModel(object):
         self._new_cfg.configLine('updateThreshold 1')
         self._new_cfg.buildLabel = self._cfg.buildLabel
         self._new_cfg.installLabelPath = self._cfg.installLabelPath
-        self._new_cfg.modelPath = fileName
+        self._new_cfg.modelPath = '/etc/conary/system-model'
         model = cml.CML(self._new_cfg)
         model.setVersion(str(time.time()))
         return model
@@ -507,11 +505,11 @@ class UpdateModel(object):
         newmodel = self._modelFile(model)
         return newmodel
 
-    def update_model(self):
+    def update_model(self, opargs):
         # FIXME
         # Not sure what this is for yet...
         # Assuming public access to model for lib
-        sysmod = self._update_model()
+        sysmod = self._update_model(opargs)
         return sysmod
 
     def new_model(self):
@@ -524,14 +522,91 @@ class UpdateModel(object):
         return sysmod
 
     def sync(self):
-        # FIXME: REMOVE AT SOME POINT
-        # Nasty command line call for testing and debug
-        # Try not to ever usee this
-        cmd = [ 'conary' , 'sync' ]
-        results = self._runProcess(cmd)
-        return results
+        updated = False
+        callback = self._callback
+        flags = UpdateFlags(sync=True)
+        instanceId, newTopLevelItems = self._prepareUpdateJob(flags)
 
-    def debug(self):
+    def freezeUpdateJob(self, updateJob, callback):
+        us, key = self._freezeUpdateJob(updateJob, callback)
+        instanceId = 'updates:%s' % key
+        ##epdb.st()
+        # FIXME
+        # Store the system model with the updJob
+        dirName = os.path.dirname(us.updateJobDir)
+        fileName = os.path.join(dirName, 'system-model.%s' % key)
+        model.write(fileName=fileName)
+        tcountFile = os.path.join(dirName, 'transactionCounter.%s' % key)
+        results, fd = self.storeInFile(tcount, tcountFile)
+        ##epdb.st()
+        return us, instanceId
+
+    def _prepareUpdateJob(self, flags):
+        updated = False
+        callback = self._callback
+        # New System Model
+        tcount = self._getTransactionCount()
+        model = self.new_model()
+        ##epdb.st()
+        updateJob, suggMap = self._buildUpdateJob(model, callback)
+        ##epdb.st()
+        if flags.sync:
+            flags.freeze = True
+            flags.test = False
+            flags.thaw = True
+
+        if flags.freeze:
+            us, instanceId = self.freezeUpdateJob(updateJob, callback)
+            if flags.sync:
+                flags.iid = instanceId
+
+        if flags.test:
+            return us, instanceId
+
+        if flags.thaw:
+            instanceId = None
+            # FIXME
+            # PROBABLY SHOULD FIX THIS IN _thawUpdateJob 
+            # So we only need the keyid 
+            if flags.iid:
+                instanceId = flags.iid
+
+            keyId, updJob, updateSet = self._thawUpdateJob(instanceId=instanceId)
+            #epdb.st()
+            try:
+                updateSet.state = "Applying"
+
+                fileName = os.path.join(os.path.dirname(updateSet.updateJobDir),
+                                            'system-model.%s' % keyId)
+                #epdb.st()
+                updated_model = self._load_model_from_file(modelpath=fileName)
+                updated_model.writeSnapshot()
+                # NEED THIS  LATER·WHEN INVOKED BY CIM
+                #self._fixSignals()
+                #epdb.st()
+                # SILLY CODE FOR MISA
+                storedTcount = self.readStoredFile(tcountFile)
+                currentTcount = self._getTransactionCount()
+
+                if int(storedTcount.strip()) == currentTcount:
+                    self._applyUpdateJob(updJob, callback)
+                    updated = True
+                else:
+                    print "Transaction count changed!!!"
+                    updated = False
+            except Exception, e:
+                print "FAILED: %s" % str(e)
+                updated = False
+        if updated:
+            updated_model.closeSnapshot()
+
+            newTopLevelItems = self._getTopLevelItems()
+            print "New Top Level Items"
+            for n,v,f in newTopLevelItems: print "%s %s %s" % (n,v,f)
+
+            return instanceId, newTopLevelItems
+
+    debug(self):
         updated = False
         callback = self._callback
         flags = UpdateFlags(sync=True, freeze=True, migrate=False,
