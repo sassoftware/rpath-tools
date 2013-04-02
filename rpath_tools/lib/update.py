@@ -28,8 +28,10 @@ from rpath_tools.lib import errors
 from rpath_tools.lib import clientfactory
 from rpath_tools.lib import callbacks
 from rpath_tools.lib import updateset
+from rpath_tools.lib import formatter
 
 import copy
+import types
 import time
 import os
 import logging
@@ -45,7 +47,9 @@ class UpdateFlags(object):
         for s in self.__slots__:
             setattr(self, s, kwargs.pop(s, None))
 
-class UpdateModel(object):
+
+
+class SystemModel(object):
     def __init__(self, sysmod=None, callback=None):
         '''
         sysmod is a system-model string that will over write the current
@@ -60,10 +64,12 @@ class UpdateModel(object):
         self._client = None
         self._newSystemModel = None
         self._contents = sysmod
+        # FIXME
         if self._contents:
             self._newSystemModel = [ x + '\n' for x in
                                         self._contents.split('\n') if x ]
         self._manifest = None
+        self._model_cache = None
         self._cfg = self.conaryClientFactory.getCfg()
         self._callback = callback
         if not callback:
@@ -72,9 +78,68 @@ class UpdateModel(object):
         else:
             self._callback.setTrustThreshold(self._cfg.trustThreshold)
 
-    @property
-    def system_model(self):
+    def _getSystemModelContents(self):
         return self._newSystemModel
+
+    def _setSystemModelContents(self, contents):
+        if isinstance(contents, types.StringTypes):
+            contents = [ x + '\n' for x in
+                                contents.split('\n') if x ]
+        self._newSystemModel = contents
+
+    system_model = property(_getSystemModelContents, _setSystemModelContents)
+
+
+    def _getClient(self, modelfile=None, force=False):
+        if self._client is None or force:
+            if self._system_model_exists():
+                self._client = self.conaryClientFactory().getClient(
+                                            modelFile=modelfile)
+            else:
+                self._client = self.conaryClientFactory().getClient(
+                                            model=False)
+        return self._client
+
+    conaryClient = property(_getClient)
+
+    def _getCfg(self):
+        self._cfg = self.conaryClientFactory.getCfg()
+        return self._cfg
+
+    conaryCfg = property(_getCfg)
+
+    def _cache(self, callback, changeSetList=[], loadTroveCache=True):
+        '''
+        Create a model cache to use for updates
+        '''
+        cclient = self.conaryClient
+        cclient.cfg.initializeFlavors()
+        cfg = cclient.cfg
+        try:
+            self._model_cache = modelupdate.CMLTroveCache(
+                cclient.getDatabase(),
+                cclient.getRepos(),
+                callback = callback,
+                changeSetList = changeSetList,
+                )
+            if loadTroveCache:
+                self._model_cache_path = ''.join([cfg.root,
+                                    cfg.dbPath, '/modelcache'])
+                if os.path.exists(self._model_cache_path):
+                    logger.info("loading model cache from %s",
+                                    self._model_cache_path)
+                    callback.loadingModelCache()
+                    self._model_cache.load(self._model_cache_path)
+            return self._model_cache
+        except:
+            return None
+
+    def _troves(self):
+        troves = self._model_cache.getTroves(
+                [ x[0] for x in self._manifest ])
+        return troves
+
+    # BASIC UTILS
 
     def storeInFile(self, data, fileName):
         '''
@@ -135,33 +200,86 @@ class UpdateModel(object):
         return data
 
 
-    def _getClient(self, modelfile=None, force=False):
-        if self._client is None or force:
-            if self._system_model_exists():
-                self._client = self.conaryClientFactory().getClient(
-                                            modelFile=modelfile)
-            else:
-                self._client = self.conaryClientFactory().getClient(
-                                            model=False)
-        return self._client
-
-    conaryClient = property(_getClient)
-
-    def _getCfg(self):
-        self._cfg = self.conaryClientFactory.getCfg()
-        return self._cfg
-
-    conaryCfg = property(_getCfg)
+    # SYSTEM MODEL FUNCTIONS
 
     def _system_model_exists(self):
         return os.path.isfile('/etc/conary/system-model')
 
     def _getSystemModel(self):
+        '''
+        get current system model from system
+        '''
         cclient = self.conaryClient
         self.sysmodel = cclient.getSystemModel()
         if self.sysmodel is None:
             return None
         return self.sysmodel
+
+    def _modelFile(self, model):
+        '''
+        helper to return a SystemModelFile object
+        '''
+        return systemmodel.SystemModelFile(model)
+
+    def _start_new_model(self):
+        '''
+        Start a new model with a mostly blank cfg
+        '''
+        # TODO
+        self._new_cfg = conarycfg.ConaryConfiguration(False)
+        self._new_cfg.initializeFlavors()
+        self._new_cfg.dbPath = self._cfg.dbPath
+        self._new_cfg.flavor = self._cfg.flavor
+        self._new_cfg.configLine('updateThreshold 1')
+        self._new_cfg.buildLabel = self._cfg.buildLabel
+        self._new_cfg.installLabelPath = self._cfg.installLabelPath
+        self._new_cfg.modelPath = '/etc/conary/system-model'
+        model = cml.CML(self._new_cfg)
+        model.setVersion(str(time.time()))
+        newmodel = self._modelFile(model)
+        return newmodel
+
+    def _update_model(self, model, contents):
+        '''
+        Needs to be a system-model not a cml model
+        '''
+        self.system_model = contents
+        model.parse(fileData=self.system_model)
+        return model
+
+    def _new_model(self):
+        '''
+        return a new model started using existing conary config
+        '''
+        cfg = self.conaryCfg
+        model = cml.CML(cfg)
+        model.setVersion(str(time.time()))
+        newmodel = self._modelFile(model)
+        return newmodel
+
+    def _load_model_from_file(self, modelpath=None):
+        '''
+        Load model from /etc/conary/system-model unless modelpath
+        is specified. If modelpath specified load file contents in
+        the model before returning
+        @param modelpath: Load a new model from a file location other
+        than /etc/conary/system-model
+        @type string
+        '''
+        contents = []
+        if modelpath and os.path.exists(modelpath):
+            contents = self.readStoredSystemModel(modelpath)
+        model = self._new_model()
+        if contents:
+            model = self._update_model(model, contents)
+        return model
+
+    def _load_model_from_string(self, modelData=None):
+        model = self._new_model()
+        if modelData:
+            model = self._update_model(model, modelData)
+        return model
+
 
     def _cleanSystemModel(self, modelFile):
         '''
@@ -171,36 +289,6 @@ class UpdateModel(object):
         #self.modelFile.closeSnapshot(fileName=modelFile.snapName)
         raise NotImplementedError
 
-    def _cache(self, callback, changeSetList=[], loadTroveCache=True):
-        '''
-        Create a model cache to use for updates
-        '''
-        cclient = self.conaryClient
-        cclient.cfg.initializeFlavors()
-        cfg = cclient.cfg
-        try:
-            self._model_cache = modelupdate.CMLTroveCache(
-                cclient.getDatabase(),
-                cclient.getRepos(),
-                callback = callback,
-                changeSetList = changeSetList,
-                )
-            if loadTroveCache:
-                self._model_cache_path = ''.join([cfg.root,
-                                    cfg.dbPath, '/modelcache'])
-                if os.path.exists(self._model_cache_path):
-                    logger.info("loading model cache from %s",
-                                    self._model_cache_path)
-                    callback.loadingModelCache()
-                    self._model_cache.load(self._model_cache_path)
-            return self._model_cache
-        except:
-            return None
-
-    def _troves(self):
-        troves = self._model_cache.getTroves(
-                [ x[0] for x in self._manifest ])
-        return troves
 
     def _buildUpdateJob(self, sysmod, callback):
         '''
@@ -230,13 +318,13 @@ class UpdateModel(object):
         # LIFTED FROM updatecmd.py
         # TODO Remove the logger statements???
         finalModel = copy.deepcopy(model)
-        if model.suggestSimplifications(self._model_cache, troveSetGraph.g):
+        if model.suggestSimplifications(cache, troveSetGraph.g):
             logger.info("possible system model simplifications found")
             troveSetGraph2 = cclient.cmlGraph(model)
             updJob2 = cclient.newUpdateJob()
             try:
                 suggMap2 = cclient._updateFromTroveSetGraph(updJob2,
-                                    troveSetGraph2, self._model_cache)
+                                    troveSetGraph2, cache)
             except errors.TroveNotFound:
                 logger.info("bad model generated; bailing")
                 pass
@@ -253,10 +341,10 @@ class UpdateModel(object):
         model = finalModel
         sysmod.model = finalModel
 
-        if self._model_cache.cacheModified():
+        if cache.cacheModified():
             logger.info("saving model cache to %s", self._model_cache_path)
             callback.savingModelCache()
-            self._model_cache.save(self._model_cache_path)
+            cache.save(self._model_cache_path)
             callback.done()
 
         return updJob, suggMap
@@ -302,16 +390,87 @@ class UpdateModel(object):
         updateJob.thaw(job.updateJobDir)
         return updateJob, job, keyId
 
-    # FUTURE USE CODE.
-    # Implement conary update, updateall, install, erase as it
-    # correlates to a system model
-
     def _getTopLevelItems(self):
         return sorted(self.conaryClient.getUpdateItemList())
 
     def _getTransactionCount(self):
         db = self.conaryClient.getDatabase()
         return db.getTransactionCounter()
+
+    # OVERWRITE THESE FUNCTIONS
+
+    def install(self):
+        raise NotImplementedError
+
+    def update(self):
+        raise NotImplementedError
+
+    def updateall(self):
+        raise NotImplementedError
+
+    def erase(self):
+        raise NotImplementedError
+
+    def preview(self):
+        raise NotImplementedError
+
+    def apply(self):
+        raise NotImplementedError
+
+
+def UpdateModel(SystemModel):
+    '''
+    Update the current system-model non destructive
+    '''
+    def __init__(self, preview=False, apply=False,
+                        modelfile=None, instanceid=None):
+        super(SystemModel, self).__init__()
+        self._newSystemModel = None
+        self._model = None
+        self.preview = preview
+        self.apply = apply
+        self.iid = instanceid
+        self.thaw = False
+        if self.iid:
+            self.thaw = True
+        # Setup flags
+        self.flags = UpdateFlags(apply=self.apply, preview=self.preview,
+                freeze=True, thaw=self.thaw, iid=self.iid)
+            # New System Model
+
+    def _load_model_with_list_of_tuples(self, opargs):
+        '''
+        Updated system model from current system model
+        @param opargs: a list of tuples of operation and a tuple
+        of packages that go with the operation
+        ie: [ ('install'('lynx', 'joe')),
+                ('remove', ('httpd')),
+                ('update', ('wget')),
+                ]
+        @type opargs: list of tuples [(op, args)]
+        @param op: a conary system model operation 'install', 'update', 'erase'
+        @type op: string
+        @param args: a tuple of conary packages for an operation 
+        @type args: ( pkg1, pkg2 )
+        @param pkg: a name of a conary package
+        @type pkg: string
+        @return: conary SystemModelFile object
+        '''
+        # FIXME
+        # This should append to the current system-model
+        # need a dictionary of { op : arg } to parse
+        cfg = self.conaryCfg
+        model = cml.CML(cfg)
+        model.setVersion(str(time.time()))
+        # I think this is how it should work
+        # Take some uglies from stdin and append them
+        # to current system model 
+        # apparently in the most ugly way I can
+        for op, args in opargs.items():
+            arg = ' '.join([ x for x in args ])
+            model.appendOpByName(op, arg)
+        newmodel = self._modelFile(model)
+        return newmodel
 
     def _system_model_update(self, cfg, op, args, callback, dry_run=False):
         '''
@@ -392,151 +551,23 @@ class UpdateModel(object):
                                  dry_run)
 
 
-    def _startNew(self):
-        '''
-        Start a new model with a mostly blank cfg
-        '''
-        # TODO
-        self._new_cfg = conarycfg.ConaryConfiguration(False)
-        self._new_cfg.initializeFlavors()
-        self._new_cfg.dbPath = self._cfg.dbPath
-        self._new_cfg.flavor = self._cfg.flavor
-        self._new_cfg.configLine('updateThreshold 1')
-        self._new_cfg.buildLabel = self._cfg.buildLabel
-        self._new_cfg.installLabelPath = self._cfg.installLabelPath
-        self._new_cfg.modelPath = '/etc/conary/system-model'
-        model = cml.CML(self._new_cfg)
-        model.setVersion(str(time.time()))
-        return model
-
-    def _modelFile(self, model):
-        '''
-        helper to return a SystemModelFile object
-        '''
-        return systemmodel.SystemModelFile(model)
-
-    def _new_new_model(self):
-        '''
-        return a new model started using a blank conary config
-        '''
-        # TODO
-        # Use this for converting a classic to systemmodel?
-        # Use this during assimilation?
-        model = self._startNew()
-        model.setVersion(str(time.time()))
-
-        # DON'T DO THIS... to low level
-        #model.parse(fileData=self._newSystemModel, context=None)
-        newmodel = self._modelFile(model)
-        newmodel.parse(fileData=self.system_model)
-        return newmodel
-
-    def _new_model(self):
-        '''
-        return a new model started using existing conary config
-        '''
-        # TODO
-        # Use this for converting a classic to systemmodel?
-        # Use this during assimilation?
-        #model = self._startNew()
-        cfg = self.conaryCfg
-        model = cml.CML(cfg)
-        model.setVersion(str(time.time()))
-
-        # DON'T DO THIS... to low level
-        #model.parse(fileData=self._newSystemModel, context=None)
-        newmodel = self._modelFile(model)
-        newmodel.parse(fileData=self.system_model)
-        return newmodel
-
-    def _load_model_from_file(self, modelpath=None):
-        '''
-        Load model from /etc/conary/system-model unless modelpath
-        is specified. If modelpath specified load file contents in
-        the model before returning
-        @param modelpath: Load a new model from a file location other
-        than /etc/conary/system-model
-        @type string
-        '''
-        contents = []
-        cfg = self.conaryCfg
-        if modelpath:
-            contents = self.readStoredSystemModel(modelpath)
-        model = cml.CML(cfg)
-        model.setVersion(str(time.time()))
-        # DON'T DO THIS... to low level
-        #model.parse(fileData=self._newSystemModel, context=None)
-        newmodel = self._modelFile(model)
-        if contents:
-            newmodel.parse(fileData=contents)
-        return newmodel
-
-    def _update_model(self, opargs):
-        '''
-        Updated system model from current system model
-        @param opargs: a list of tuples of operation and a tuple
-        of packages that go with the operation
-        ie: [ ('install'('lynx', 'joe')),
-                ('remove', ('httpd')),
-                ('update', ('wget')),
-                ]
-        @type opargs: list of tuples [(op, args)]
-        @param op: a conary system model operation 'install', 'update', 'erase'
-        @type op: string
-        @param args: a tuple of conary packages for an operation 
-        @type args: ( pkg1, pkg2 )
-        @param pkg: a name of a conary package
-        @type pkg: string
-        @return: conary SystemModelFile object
-        '''
-        # FIXME
-        # This should append to the current system-model
-        # need a dictionary of { op : arg } to parse
-        cfg = self.conaryCfg
-        model = cml.CML(cfg)
-        model.setVersion(str(time.time()))
-        # I think this is how it should work
-        # Take some uglies from stdin and append them
-        # to current system model 
-        # apparently in the most ugly way I can
-        for op, args in opargs.items():
-            arg = ' '.join([ x for x in args ])
-            model.appendOpByName(op, arg)
-        newmodel = self._modelFile(model)
-        return newmodel
-
-    def update_model(self, opargs):
-        # FIXME
-        # Not sure what this is for yet...
-        # Assuming public access to model for lib
-        sysmod = self._update_model(opargs)
-        return sysmod
-
-    def new_model(self):
-        # FIXME
-        # This should be the function used for to
-        # overwrite the system model using the system-model
-        # from the rbuilder
-        # Assuming public access to model for lib
-        sysmod = self._new_model()
-        return sysmod
-
     def sync(self):
-        updated = False
-        callback = self._callback
-        flags = UpdateFlags(sync=True)
-        instanceId, newTopLevelItems = self._prepareUpdateJob(flags)
+        return NotImplementedError
 
     def preview(self):
-        return
+        return NotImplementedError
 
     def apply(self):
-        return
+        return NotImplementedError
 
 
-class SyncModel(UpdateModel):
-    def __init__(self, preview=False, apply=False, modelfile=None, instanceid=None):
-        super(UpdateModel, self).__init__()
+class SyncModel(SystemModel):
+    '''
+    Sync to system-model destructive
+    '''
+    def __init__(self, modelfile=None, instanceid=None,
+                    preview=False, apply=False):
+        super(SystemModel, self).__init__()
         self._newSystemModel = None
         self._model = None
         self.preview = preview
@@ -548,68 +579,73 @@ class SyncModel(UpdateModel):
         # Setup flags
         self.flags = UpdateFlags(apply=self.apply, preview=self.preview,
                 freeze=True, thaw=self.thaw, iid=self.iid)
+
+    def _getNewModel(self, modelfile):
         if modelfile and os.path.exists(modelfile):
-            self._newSystemModel = self.readStoredSystemModel(modelfile)
-            # New System Model
-            self._model = self.new_model()
+            modelfile = '/etc/conary/system-model'
+        return self._load_model_from_file(modelfile)
 
-
-    def tcountFile(self, key):
-        return os.path.join(dirName, 'transactionCounter.%s' % key)
+    def modelFilePath(self, dir, key):
+        return os.path.join(os.path.dirname(dir),
+                                            'system-model.%s' % key)
+    def tcountFilePath(self, dir, key):
+        return os.path.join(os.path.dirname(dir),
+                                        'transactionCounter.%s' % key)
 
     def thawSyncUpdateJob(self, instanceid):
         updateJob, updateSet, key = self._thawUpdateJob(instanceId=instanceid)
-        fileName = os.path.join(os.path.dirname(updateSet.updateJobDir),
-                                            'system-model.%s' % key)
+        fileName = self.modelFilePath(updateSet.updateJobDir, key)
         model = self._load_model_from_file(modelpath=fileName)
-        tcountFile = os.path.join(dirName, 'transactionCounter.%s' % key)
+        tcountFile = self.tcountFilePath(updateSet.updateJobDir, key)
         tcount = self.readStoredFile(tcountFile)
         return updateJob, updateSet, model, tcount
 
     def freezeSyncUpdateJob(self, updateJob, model, tcount, callback):
-        us, key = self._freezeUpdateJob(updateJob, callback)
+        updateSet, key = self._freezeUpdateJob(updateJob, callback)
         instanceId = 'updates:%s' % key
         ##epdb.st()
         # FIXME
         # Store the system model with the updJob
-        dirName = os.path.dirname(us.updateJobDir)
-        fileName = os.path.join(dirName, 'system-model.%s' % key)
+        fileName = self.modelFilePath(updateSet.updateJobDir, key)
         model.write(fileName=fileName)
-        tcountFile = os.path.join(dirName, 'transactionCounter.%s' % key)
+        tcountFile = self.tcountFilePath(updateSet.updateJobDir, key)
         results, fd = self.storeInFile(tcount, tcountFile)
         ##epdb.st()
-        return us, instanceId
+        return updateSet, instanceId
 
-    def _prepareSyncUpdateJob(self):
+    def _prepareSyncUpdateJob(self, modelfile=None):
         '''
         Used to create an update job to make a preview from
         '''
         preview = None
         callback = self._callback
+
         # Transaction Counter
         tcount = self._getTransactionCount()
-        print "Conary DB Transaction Counter: %s" % tcount
+        logger.info("Conary DB Transaction Counter: %s" % tcount)
 
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
-        print "Top Level Items"
-        for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
+        logger.info("Top Level Items")
+        for n,v,f in topLevelItems:
+            logger.info("%s %s %s" % (n,v,f))
 
         updateSet = {}
 
-        ##epdb.st()
+        model = self._getModel(modelfile)
+
         updateJob, suggMap = self._buildUpdateJob(model, callback)
-        ##epdb.st()
 
         if self.flags.freeze:
             updateSet, instanceId = self.freezeUpdateJob(updateJob, model,
                                                     tcount, callback)
 
         if self.flags.preview:
-            preview = fmt.toxml(updateJob)
-        #else:
-            # FIXME
-            #preview = topLevelItems.toxml(tcount)
+            newTopLevelItems = self._getTopLevelItemsFromUpdate(updateJob)
+            preview = formatter.Formatter(updateJob)
+            preview.format()
+            preview.addDesiredVersion(newTopLevelItems)
+            preview.addObservedVersion(topLevelItems)
 
         return updateJob, updateSet, instanceId, preview
 
@@ -647,10 +683,10 @@ class SyncModel(UpdateModel):
                     self._applyUpdateJob(updJob, callback)
                     updated = True
                 else:
-                    print "Transaction count changed!!!"
+                    logger.error("Transaction count changed!!!")
                     updated = False
             except Exception, e:
-                print "FAILED: %s" % str(e)
+                logger.error("FAILED: %s" % str(e))
                 updated = False
         if updated:
             model.closeSnapshot()
@@ -660,15 +696,18 @@ class SyncModel(UpdateModel):
 
         return instanceid, topLevelItems
 
-    def previewSyncOperation(self, modelfile=None, preview=None):
-        if modelfile and os.path.exists(modelfile):
-            self._newSystemModel = self.readStoredSystemModel(modelfile)
+    def preview(self, modelfile=None, preview=True):
+        '''
+        return updateJob, updateSet, instanceId, preview
+        '''
         if preview:
             self.flags.preview = preview
-        updateJob, updateSet, instanceId, preview = self._prepareSyncUpdateJob()
-        return updateJob, updateSet, instanceId, preview
+        return self._prepareSyncUpdateJob(modelfile)
 
-    def applySyncOperation(self, instanceid=None):
+    def apply(self, instanceid=None):
+        '''
+        returns instanceid, topLevelItems
+        '''
         instanceid, topLevelItems = self._applySyncUpdateJob(instanceid)
         return instanceid, topLevelItems
 
@@ -687,5 +726,6 @@ if __name__ == '__main__':
     except EnvironmentError:
         print 'oops'
 
-    sysmod = SyncModel(fileName)
-    sysmod.debug()
+    op = SyncModel()
+    updateJob, updateSet, instanceId, preview = op.preview(fileName)
+    instanceid, topLevelItems = op.apply(instanceId)
