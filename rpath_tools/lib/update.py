@@ -300,7 +300,7 @@ class UpdateModel(object):
         cclient = self.conaryClient
         updateJob = cclient.newUpdateJob()
         updateJob.thaw(job.updateJobDir)
-        return keyId, updateJob, job
+        return updateJob, job, keyId
 
     # FUTURE USE CODE.
     # Implement conary update, updateall, install, erase as it
@@ -527,7 +527,46 @@ class UpdateModel(object):
         flags = UpdateFlags(sync=True)
         instanceId, newTopLevelItems = self._prepareUpdateJob(flags)
 
-    def freezeUpdateJob(self, updateJob, callback):
+    def preview(self):
+        return
+
+    def apply(self):
+        return
+
+
+class SyncModel(UpdateModel):
+    def __init__(self, preview=False, apply=False, modelfile=None, instanceid=None):
+        super(UpdateModel, self).__init__()
+        self._newSystemModel = None
+        self._model = None
+        self.preview = preview
+        self.apply = apply
+        self.iid = instanceid
+        self.thaw = False
+        if self.iid:
+            self.thaw = True
+        # Setup flags
+        self.flags = UpdateFlags(apply=self.apply, preview=self.preview,
+                freeze=True, thaw=self.thaw, iid=self.iid)
+        if modelfile and os.path.exists(modelfile):
+            self._newSystemModel = self.readStoredSystemModel(modelfile)
+            # New System Model
+            self._model = self.new_model()
+
+
+    def tcountFile(self, key):
+        return os.path.join(dirName, 'transactionCounter.%s' % key)
+
+    def thawSyncUpdateJob(self, instanceid):
+        updateJob, updateSet, key = self._thawUpdateJob(instanceId=instanceid)
+        fileName = os.path.join(os.path.dirname(updateSet.updateJobDir),
+                                            'system-model.%s' % key)
+        model = self._load_model_from_file(modelpath=fileName)
+        tcountFile = os.path.join(dirName, 'transactionCounter.%s' % key)
+        tcount = self.readStoredFile(tcountFile)
+        return updateJob, updateSet, model, tcount
+
+    def freezeSyncUpdateJob(self, updateJob, model, tcount, callback):
         us, key = self._freezeUpdateJob(updateJob, callback)
         instanceId = 'updates:%s' % key
         ##epdb.st()
@@ -541,127 +580,70 @@ class UpdateModel(object):
         ##epdb.st()
         return us, instanceId
 
-    def _prepareUpdateJob(self, flags):
-        updated = False
+    def _prepareSyncUpdateJob(self):
+        '''
+        Used to create an update job to make a preview from
+        '''
+        preview = None
         callback = self._callback
-        # New System Model
-        tcount = self._getTransactionCount()
-        model = self.new_model()
-        ##epdb.st()
-        updateJob, suggMap = self._buildUpdateJob(model, callback)
-        ##epdb.st()
-        if flags.sync:
-            flags.freeze = True
-            flags.test = False
-            flags.thaw = True
-
-        if flags.freeze:
-            us, instanceId = self.freezeUpdateJob(updateJob, callback)
-            if flags.sync:
-                flags.iid = instanceId
-
-        if flags.test:
-            return us, instanceId
-
-        if flags.thaw:
-            instanceId = None
-            # FIXME
-            # PROBABLY SHOULD FIX THIS IN _thawUpdateJob 
-            # So we only need the keyid 
-            if flags.iid:
-                instanceId = flags.iid
-
-            keyId, updJob, updateSet = self._thawUpdateJob(instanceId=instanceId)
-            #epdb.st()
-            try:
-                updateSet.state = "Applying"
-
-                fileName = os.path.join(os.path.dirname(updateSet.updateJobDir),
-                                            'system-model.%s' % keyId)
-                #epdb.st()
-                updated_model = self._load_model_from_file(modelpath=fileName)
-                updated_model.writeSnapshot()
-                # NEED THIS  LATER·WHEN INVOKED BY CIM
-                #self._fixSignals()
-                #epdb.st()
-                # SILLY CODE FOR MISA
-                storedTcount = self.readStoredFile(tcountFile)
-                currentTcount = self._getTransactionCount()
-
-                if int(storedTcount.strip()) == currentTcount:
-                    self._applyUpdateJob(updJob, callback)
-                    updated = True
-                else:
-                    print "Transaction count changed!!!"
-                    updated = False
-            except Exception, e:
-                print "FAILED: %s" % str(e)
-                updated = False
-        if updated:
-            updated_model.closeSnapshot()
-
-            newTopLevelItems = self._getTopLevelItems()
-            print "New Top Level Items"
-            for n,v,f in newTopLevelItems: print "%s %s %s" % (n,v,f)
-
-            return instanceId, newTopLevelItems
-
-    debug(self):
-        updated = False
-        callback = self._callback
-        flags = UpdateFlags(sync=True, freeze=True, migrate=False,
-                                update=False, updateall=False,
-                                test=True, )
-        # Current System Model
-        #model = self._getSystemModel()
-        # Updated Current model Not implemented yet
-        #model = self.update_model()
-        # New System Model
+        # Transaction Counter
         tcount = self._getTransactionCount()
         print "Conary DB Transaction Counter: %s" % tcount
 
+        # Top Level Items
         topLevelItems = self._getTopLevelItems()
         print "Top Level Items"
         for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
 
-        model = self.new_model()
+        updateSet = {}
+
         ##epdb.st()
         updateJob, suggMap = self._buildUpdateJob(model, callback)
         ##epdb.st()
-        if flags.freeze:
-            us, key = self._freezeUpdateJob(updateJob, callback)
-            ##epdb.st()
+
+        if self.flags.freeze:
+            updateSet, instanceId = self.freezeUpdateJob(updateJob, model,
+                                                    tcount, callback)
+
+        if self.flags.preview:
+            preview = fmt.toxml(updateJob)
+        #else:
             # FIXME
-            # Store the system model with the updJob
-            dirName = os.path.dirname(us.updateJobDir)
-            fileName = os.path.join(dirName, 'system-model.%s' % key)
-            model.write(fileName=fileName)
-            tcountFile = os.path.join(dirName, 'transactionCounter.%s' % key)
-            results, fd = self.storeInFile(tcount, tcountFile)
-            ##epdb.st()
-        if flags.test:
-            pass
-        if flags.sync:
-            instanceId = 'updates:%s' % key
-            keyId, updJob, updateSet = self._thawUpdateJob(instanceId=instanceId)
+            #preview = topLevelItems.toxml(tcount)
+
+        return updateJob, updateSet, instanceId, preview
+
+    def _applySyncUpdateJob(self, instanceid=None):
+        '''
+        Used to apply a frozen job
+        '''
+        updated = False
+        callback = self._callback
+        # Top Level Items
+        topLevelItems = self._getTopLevelItems()
+        print "Top Level Items"
+        for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
+
+        if instanceid:
+            self.flags.iid = instanceid
+        elif self.flags.iid:
+            instanceid = self.flags.iid
+
+        # FIXME
+        # This is always going to be true
+        if self.flags.thaw:
+            updJob, updateSet, model, tcount = self.thawSyncUpdateJob(instanceid)
             #epdb.st()
             try:
                 updateSet.state = "Applying"
-
-                fileName = os.path.join(os.path.dirname(updateSet.updateJobDir),
-                                            'system-model.%s' % keyId)
-                #epdb.st()
-                updated_model = self._load_model_from_file(modelpath=fileName)
-                updated_model.writeSnapshot()
-                # NEED THIS  LATER 
+                model.writeSnapshot()
+                # NEED THIS  LATER·WHEN INVOKED BY CIM
                 #self._fixSignals()
                 #epdb.st()
                 # SILLY CODE FOR MISA
-                storedTcount = self.readStoredFile(tcountFile)
-                currentTcount = self._getTransactionCount()
+                ctcount = self._getTransactionCount()
 
-                #epdb.st()
-                if int(storedTcount.strip()) == currentTcount:
+                if str(tcount.strip()) == str(ctcount):
                     self._applyUpdateJob(updJob, callback)
                     updated = True
                 else:
@@ -670,16 +652,29 @@ class UpdateModel(object):
             except Exception, e:
                 print "FAILED: %s" % str(e)
                 updated = False
-        #epdb.st()
         if updated:
-            # TODO: system-model
-            # I need to dig up  the  model here...
-            # create a model from the system-model file
-            # in the frozen directory return it so
-            # we can write it after update succeeds
-            # Load the system-model from storage
-            updated_model.closeSnapshot()
+            model.closeSnapshot()
+            topLevelItems = self._getTopLevelItems()
+            print "New Top Level Items"
+            for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
 
+        return instanceid, topLevelItems
+
+    def previewSyncOperation(self, modelfile=None, preview=None):
+        if modelfile and os.path.exists(modelfile):
+            self._newSystemModel = self.readStoredSystemModel(modelfile)
+        if preview:
+            self.flags.preview = preview
+        updateJob, updateSet, instanceId, preview = self._prepareSyncUpdateJob()
+        return updateJob, updateSet, instanceId, preview
+
+    def applySyncOperation(self, instanceid=None):
+        instanceid, topLevelItems = self._applySyncUpdateJob(instanceid)
+        return instanceid, topLevelItems
+
+    def debug(self):
+        #epdb.st()
+        pass
 
 if __name__ == '__main__':
     import sys
@@ -692,5 +687,5 @@ if __name__ == '__main__':
     except EnvironmentError:
         print 'oops'
 
-    sysmod = UpdateModel(blob)
+    sysmod = SyncModel(fileName)
     sysmod.debug()
