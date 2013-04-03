@@ -280,7 +280,10 @@ class SystemModel(object):
         '''
         contents = []
         if modelpath and os.path.exists(modelpath):
-            contents = self.readStoredSystemModel(modelpath)
+            try:
+                contents = self.readStoredSystemModel(modelpath)
+            except Exception, e:
+                logger.error("FAILED TO READ MODEL : %s" % str(e))
         model = self._new_model()
         if contents:
             model = self._update_model(model, contents)
@@ -289,7 +292,11 @@ class SystemModel(object):
     def _load_model_from_string(self, modelData=None):
         model = self._new_model()
         if modelData:
-            model = self._update_model(model, modelData)
+            try:
+                model = self._update_model(model, modelData)
+            except Exception, e:
+                #FIXME : Use a nice error...
+                raise Exception, str(e)
         return model
 
 
@@ -625,37 +632,35 @@ class SyncModel(SystemModel):
         self.flags = UpdateFlags(apply=self.apply, preview=self.preview,
                 freeze=True, thaw=self.thaw, iid=self.iid)
 
-    def _getNewModel(self, modelfile):
+    def _getNewModelFromFile(self, modelfile):
         if modelfile and os.path.exists(modelfile):
             modelfile = '/etc/conary/system-model'
         return self._load_model_from_file(modelfile)
 
-    def modelFilePath(self, dir, key):
-        return os.path.join(os.path.dirname(dir),
-                                            'system-model.%s' % key)
-    def tcountFilePath(self, dir, key):
-        return os.path.join(os.path.dirname(dir),
-                                        'transactionCounter.%s' % key)
+    def _getNewModelFromString(self, modelstring):
+        return self._load_model_from_string(modelstring)
+
+    def modelFilePath(self, dir):
+        return os.path.join(os.path.dirname(dir), 'system-model')
 
     def thawSyncUpdateJob(self, instanceid):
         updateJob, updateSet, key = self._thawUpdateJob(instanceId=instanceid)
         fileName = self.modelFilePath(updateSet.updateJobDir, key)
-        model = self._load_model_from_file(modelpath=fileName)
-        tcountFile = self.tcountFilePath(updateSet.updateJobDir, key)
-        tcount = self.readStoredFile(tcountFile)
-        return updateJob, updateSet, model, tcount
+        model = self._getModelFromFile(fileName)
+        return updateJob, updateSet, model
 
-    def freezeSyncUpdateJob(self, updateJob, model, tcount, callback):
+    def freezeSyncUpdateJob(self, updateJob, model):
+        callback = self._callback
         updateSet, key = self._freezeUpdateJob(updateJob, callback)
+        # FIXME : This is going to be something from updateSet
         instanceId = 'updates:%s' % key
         # Store the system model with the updJob
         fileName = self.modelFilePath(updateSet.updateJobDir, key)
         model.write(fileName=fileName)
-        tcountFile = self.tcountFilePath(updateSet.updateJobDir, key)
-        results, fd = self.storeInFile(tcount, tcountFile)
         return updateSet, instanceId
 
-    def _prepareSyncUpdateJob(self, modelfile=None):
+    def _prepareSyncUpdateJob(self, storagepath=None, instanceid=None,
+                                modelstring=None, modelfile=None):
         '''
         Used to create an update job to make a preview from
         '''
@@ -672,18 +677,24 @@ class SyncModel(SystemModel):
         for n,v,f in topLevelItems:
             logger.info("%s %s %s" % (n,v,f))
 
-        updateSet = {}
+        updateSet = None
 
-        model = self._getModel(modelfile)
+        if modelstring:
+            model = self._getModelFromString(modelstring)
+        else:
+            # IF and I mean IF you were silly enough to invoke this 
+            # without a modelblah you will get the default system-model
+            model = self._getModelFromFile(modelfile)
 
         updateJob, suggMap = self._buildUpdateJob(model, callback)
 
         if self.flags.freeze:
             updateSet, instanceId = self.freezeUpdateJob(updateJob, model,
-                                                    tcount, callback)
+                                                            callback)
 
         if self.flags.preview:
-            newTopLevelItems = self._getTopLevelItemsFromUpdate(updateJob)
+            newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
+                                                                    updateJob)
             preview = formatter.Formatter(updateJob)
             preview.format()
             preview.addDesiredVersion(newTopLevelItems)
@@ -691,7 +702,7 @@ class SyncModel(SystemModel):
 
         return updateJob, updateSet, instanceId, preview
 
-    def _applySyncUpdateJob(self, instanceid=None):
+    def _applySyncUpdateJob(self, storagedir=None, instanceid=None):
         '''
         Used to apply a frozen job
         '''
@@ -710,22 +721,15 @@ class SyncModel(SystemModel):
         # FIXME
         # This is always going to be true
         if self.flags.thaw:
-            updJob, updateSet, model, tcount = self.thawSyncUpdateJob(instanceid)
+            updJob, updateSet, model = self.thawSyncUpdateJob(instanceid)
             try:
                 updateSet.state = "Applying"
                 model.writeSnapshot()
                 self._fixSignals()
-                # BEGIN Panaphobic error checking
-                ctcount = self._getTransactionCount()
-                # As if we don't trust conary
-                if str(tcount.strip()) == str(ctcount):
-                    logger.info("Applying update jobfrom  %s"
+                logger.info("Applying update jobfrom  %s"
                                         % updateSet.updateDir)
-                    self._applyUpdateJob(updJob, callback)
-                    updated = True
-                else:
-                    logger.error("Transaction count changed!!!")
-                    updated = False
+                self._applyUpdateJob(updJob, callback)
+                updated = True
             except Exception, e:
                 logger.error("FAILED: %s" % str(e))
                 updated = False
@@ -737,20 +741,15 @@ class SyncModel(SystemModel):
 
         return instanceid, topLevelItems
 
-    def preview(self, modelfile=None, preview=True):
+    def preview(self, storagedir, instanceid, modelstring=None, preview=True):
         '''
-        return updateJob, updateSet, instanceId, preview
+        return preview, instanceid
         '''
-        # FIXME
-        # How many ways should I let you set the modelfile???
-        # modelfile = None will use cfg.modelPath
-        if not modelfile and self._modelfile:
-            modelfile = self._modelfile
         # Always run a preview when calling preview
         # unless you mean not run a preview
         if preview:
             self.flags.preview = preview
-        return self._prepareSyncUpdateJob(modelfile)
+        return self._prepareSyncUpdateJob(storagedir, instanceid, modelstring)
 
     def apply(self, instanceid=None):
         '''
