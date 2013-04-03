@@ -28,7 +28,7 @@ from conary.lib import util
 from rpath_tools.lib import errors
 from rpath_tools.lib import clientfactory
 from rpath_tools.lib import callbacks
-from rpath_tools.lib import updateset
+from rpath_tools.lib import stored_objects
 from rpath_tools.lib import formatter
 
 import copy
@@ -41,7 +41,7 @@ logger = logging.getLogger(name = '__name__')
 
 
 
-class UpdateFlags(object):
+class SystemModelFlags(object):
     __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test',
                     'freeze', 'thaw', 'iid' ]
     def __init__(self, **kwargs):
@@ -386,28 +386,26 @@ class SystemModel(object):
             raise errors.SystemModelServiceError, e
         return updated
 
-    def _freezeUpdateJob(self, updateJob, model):
+    def _freezeUpdateJob(self, updateJob, path):
         '''
         freeze an update job and store it on the filesystem
         '''
-        us = updateset.UpdateSet().new()
-        key = us.keyId
-        freezeDir = us.updateJobDir
-        updateJob.freeze(freezeDir)
-        return us, key
+        try:
+            updateJob.freeze(path)
+        except Exception, e:
+            # FIXME
+            raise errors.FrozenJobPathMissing
+        return
 
-    def _thawUpdateJob(self, instanceId=None):
-        if instanceId:
-            keyId = instanceId.split(':')[1]
-            job = updateset.UpdateSet().load(keyId)
+    def _thawUpdateJob(self, path):
+        if os.path.exists(path):
+            cclient = self.conaryClient
+            updateJob = cclient.newUpdateJob()
+            updateJob.thaw(path)
         else:
-            job = updateset.UpdateSet().latest()
-            keyId = job.keyId
-
-        cclient = self.conaryClient
-        updateJob = cclient.newUpdateJob()
-        updateJob.thaw(job.updateJobDir)
-        return updateJob, job, keyId
+            # FIXME
+            raise errors.FrozenJobPathMissing
+        return updateJob
 
     def _getTopLevelItems(self):
         return sorted(self.conaryClient.getUpdateItemList())
@@ -487,7 +485,7 @@ def UpdateModel(SystemModel):
         self.iid = instanceid
         self.thaw = True
         # Setup flags
-        self.flags = UpdateFlags(apply=self.apply, preview=self.preview,
+        self.flags = SystemModelFlags(apply=self.apply, preview=self.preview,
                 freeze=True, thaw=self.thaw, iid=self.iid)
             # New System Model
 
@@ -629,7 +627,7 @@ class SyncModel(SystemModel):
         if self.iid:
             self.thaw = True
         # Setup flags
-        self.flags = UpdateFlags(apply=self.apply, preview=self.preview,
+        self.flags = SystemModelFlags(apply=self.apply, preview=self.preview,
                 freeze=True, thaw=self.thaw, iid=self.iid)
 
     def _getNewModelFromFile(self, modelfile):
@@ -643,30 +641,22 @@ class SyncModel(SystemModel):
     def modelFilePath(self, dir):
         return os.path.join(os.path.dirname(dir), 'system-model')
 
-    def thawSyncUpdateJob(self, instanceid):
-        updateJob, updateSet, key = self._thawUpdateJob(instanceId=instanceid)
-        fileName = self.modelFilePath(updateSet.updateJobDir, key)
-        model = self._getModelFromFile(fileName)
-        return updateJob, updateSet, model
+    def thawSyncUpdateJob(self, concreteJob):
+        updateJob = self._thawUpdateJob(concreteJob)
+        model = self._getModelFromString(concreteJob.model)
+        return updateJob, model
 
-    def freezeSyncUpdateJob(self, updateJob, model):
+    def freezeSyncUpdateJob(self, updateJob, concreteJob):
         callback = self._callback
-        updateSet, key = self._freezeUpdateJob(updateJob, callback)
-        # FIXME : This is going to be something from updateSet
-        instanceId = 'updates:%s' % key
-        # Store the system model with the updJob
-        fileName = self.modelFilePath(updateSet.updateJobDir, key)
-        model.write(fileName=fileName)
-        return updateSet, instanceId
+        results = self._freezeUpdateJob(updateJob, concreteJob.dir, callback)
+        return results
 
-    def _prepareSyncUpdateJob(self, storagepath=None, instanceid=None,
-                                modelstring=None, modelfile=None):
+    def _prepareSyncUpdateJob(self, concreteJob):
         '''
         Used to create an update job to make a preview from
         '''
-        preview = None
+        preview = "<preview/>"
         callback = self._callback
-
         # Transaction Counter
         tcount = self._getTransactionCount()
         logger.info("Conary DB Transaction Counter: %s" % tcount)
@@ -677,21 +667,21 @@ class SyncModel(SystemModel):
         for n,v,f in topLevelItems:
             logger.info("%s %s %s" % (n,v,f))
 
-        updateSet = self._newUpdateSet(storagepath, instanceid)
-
-        if modelstring:
-            model = self._getModelFromString(modelstring)
-        else:
-            # IF and I mean IF you were silly enough to invoke this
-            # without a modelblah you will get the default system-model
-            # because the function handles None way up the stack
-            model = self._getModelFromFile(modelfile)
+        model = self._getModelFromString(concreteJob.model)
 
         updateJob, suggMap = self._buildUpdateJob(model, callback)
 
+        # TODO : REVIEW if self.flags helps...
+        # SILLY AS IT IS ALWAYS TRUE
+        # And with returning a concreteJob I have to freeze the update
         if self.flags.freeze:
-            updateSet = self.freezeUpdateJob( updateJob, model, callback)
-
+            try:
+                self.freezeUpdateJob(updateJob, concreteJob)
+            except Exception, e:
+                # FIXME
+                raise errors.FrozenUpdateJobError, str(e)
+        # SILLY AS IT IS ALWAYS TRUE
+        # I should probably remove self.flags cause it is overkill
         if self.flags.preview:
             newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
                                                                     updateJob)
@@ -699,10 +689,11 @@ class SyncModel(SystemModel):
             preview.format()
             preview.addDesiredVersion(newTopLevelItems)
             preview.addObservedVersion(topLevelItems)
+        if preview:
+            concreteJob.preview = preview
+        return concreteJob
 
-        return preview, updateSet
-
-    def _applySyncUpdateJob(self, storagedir=None, instanceid=None):
+    def _applySyncUpdateJob(self, concreteJob):
         '''
         Used to apply a frozen job
         '''
@@ -713,21 +704,16 @@ class SyncModel(SystemModel):
         logger.info("Top Level Items")
         for n,v,f in topLevelItems: logger.info("%s %s %s" % (n,v,f))
 
-        if instanceid:
-            self.flags.iid = instanceid
-        elif self.flags.iid:
-            instanceid = self.flags.iid
-
         # FIXME
         # This is always going to be true
         if self.flags.thaw:
-            updJob, updateSet, model = self.thawSyncUpdateJob(instanceid)
+            updJob, model = self.thawSyncUpdateJob(concreteJob)
             try:
-                updateSet.state = "Applying"
+                concreteJob.state = "Applying"
                 model.writeSnapshot()
                 self._fixSignals()
                 logger.info("Applying update jobfrom  %s"
-                                        % updateSet.updateDir)
+                                        % concreteJob.dir)
                 self._applyUpdateJob(updJob, callback)
                 updated = True
             except Exception, e:
@@ -739,9 +725,9 @@ class SyncModel(SystemModel):
             print "New Top Level Items"
             for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
 
-        return instanceid, topLevelItems
+        return topLevelItems
 
-    def preview(self, storagedir, instanceid, modelstring=None, preview=True):
+    def preview(self, concreteJob, preview=True):
         '''
         return preview, instanceid
         '''
@@ -749,14 +735,14 @@ class SyncModel(SystemModel):
         # unless you mean not run a preview
         if preview:
             self.flags.preview = preview
-        return self._prepareSyncUpdateJob(storagedir, instanceid, modelstring)
+        return self._prepareSyncUpdateJob(concreteJob)
 
-    def apply(self, instanceid=None):
+    def apply(self, concreteJob):
         '''
-        returns instanceid, topLevelItems
+        returns topLevelItems
         '''
-        instanceid, topLevelItems = self._applySyncUpdateJob(instanceid)
-        return instanceid, topLevelItems
+        return self._applySyncUpdateJob(concreteJob)
+
 
     def debug(self):
         #epdb.st()
@@ -773,6 +759,8 @@ if __name__ == '__main__':
     except EnvironmentError:
         print 'oops'
 
+    job = stored_objects.ConcreteUpdateJob()
+
     op = SyncModel()
-    updateJob, updateSet, instanceId, preview = op.preview(fileName)
-    instanceid, topLevelItems = op.apply(instanceId)
+    preview = op.preview(job)
+    topLevelItems = op.apply(job)

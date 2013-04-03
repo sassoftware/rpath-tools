@@ -35,4 +35,5 @@ class NoUpdatesFound(InstallationServiceError):
 class RepositoryError(InstallationServiceError):
     "Raised when a repository error is caught"
 
-
+class FrozenJobPathMissing(SystemModelServiceError):
+    "Raise when the path to a frozen job is missing"
