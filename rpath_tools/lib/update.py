@@ -17,6 +17,7 @@
 
 
 from conary import conarycfg
+from conary import trovetup
 
 from conary.conaryclient import cml
 from conary.conaryclient import systemmodel
@@ -140,6 +141,17 @@ class SystemModel(object):
         return troves
 
     # BASIC UTILS
+
+    def _fixSignals(self):
+        # TODO: Fix this hack.
+        # sfcb broker overrides these signals, but the python library thinks
+        # the handlers are None.  This breaks the sigprotect.py conary
+        # library.
+        import signal
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+        signal.signal(signal.SIGUSR1, signal.SIG_DFL)
+
 
     def storeInFile(self, data, fileName):
         '''
@@ -393,6 +405,42 @@ class SystemModel(object):
     def _getTopLevelItems(self):
         return sorted(self.conaryClient.getUpdateItemList())
 
+    def _getTopLevelItemsFromUpdate(self, topTuples, updateJob):
+        """
+        Return the tuple for the new top-level group after applying an
+        update job.
+        """
+        # FIXME Hack this to support multiple top level items
+        added = set()
+        newTopTuples = set()
+        topErased = False
+        names = [ x.name for x in topTuples ]
+        for jobList in updateJob.getJobs():
+            for (name, (oldVersion, oldFlavor), (newVersion, newFlavor),
+                    isAbsolute) in jobList:
+                if name in names:
+                    if newVersion:
+                        newTopTuples.add(trovetup.TroveTuple(name,
+                                            newVersion, newFlavor))
+                    else:
+                        # The top-level group is being erased, so look for
+                        # another group being installed
+                        topErased = True
+                elif oldVersion is None and name.startswith('group-'):
+                    added.add(trovetup.TroveTuple(name, newVersion, newFlavor))
+        if topErased and added:
+            # A common anti-pattern...
+            appliances = sorted(x for x in added
+                    if x.name.endswith('-appliance'))
+            if appliances:
+                return appliances[0]
+            else:
+                # Pick any group
+                return sorted(added)[0]
+        # Not mentioned, so reuse the old version. Migrating to "remediate" a
+        # system back to its nominal group would cause this, for example.
+        return topTuples
+ 
     def _getTransactionCount(self):
         db = self.conaryClient.getDatabase()
         return db.getTransactionCounter()
@@ -430,9 +478,7 @@ def UpdateModel(SystemModel):
         self.preview = preview
         self.apply = apply
         self.iid = instanceid
-        self.thaw = False
-        if self.iid:
-            self.thaw = True
+        self.thaw = True
         # Setup flags
         self.flags = UpdateFlags(apply=self.apply, preview=self.preview,
                 freeze=True, thaw=self.thaw, iid=self.iid)
@@ -464,7 +510,7 @@ def UpdateModel(SystemModel):
         model.setVersion(str(time.time()))
         # I think this is how it should work
         # Take some uglies from stdin and append them
-        # to current system model 
+        # to current system model
         # apparently in the most ugly way I can
         for op, args in opargs.items():
             arg = ' '.join([ x for x in args ])
@@ -490,8 +536,6 @@ def UpdateModel(SystemModel):
         modelFile.writeSnapshot()
         try:
             updJob, suggMap = self._buildUpdateJob(model)
-            #not sure i got this right... need  to just run an update
-            #_model_build_update_job(cfg, model, modelFile, callback)
             if not dry_run:
                 self._applyUpdateJob(updJob, callback)
                 updated = True
@@ -570,7 +614,7 @@ class SyncModel(SystemModel):
                     preview=False, apply=False):
         super(SystemModel, self).__init__()
         self._newSystemModel = None
-        self._model = None
+        self._modelfile = modelfile
         self.preview = preview
         self.apply = apply
         self.iid = instanceid
@@ -604,14 +648,11 @@ class SyncModel(SystemModel):
     def freezeSyncUpdateJob(self, updateJob, model, tcount, callback):
         updateSet, key = self._freezeUpdateJob(updateJob, callback)
         instanceId = 'updates:%s' % key
-        ##epdb.st()
-        # FIXME
         # Store the system model with the updJob
         fileName = self.modelFilePath(updateSet.updateJobDir, key)
         model.write(fileName=fileName)
         tcountFile = self.tcountFilePath(updateSet.updateJobDir, key)
         results, fd = self.storeInFile(tcount, tcountFile)
-        ##epdb.st()
         return updateSet, instanceId
 
     def _prepareSyncUpdateJob(self, modelfile=None):
@@ -658,8 +699,8 @@ class SyncModel(SystemModel):
         callback = self._callback
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
-        print "Top Level Items"
-        for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
+        logger.info("Top Level Items")
+        for n,v,f in topLevelItems: logger.info("%s %s %s" % (n,v,f))
 
         if instanceid:
             self.flags.iid = instanceid
@@ -670,17 +711,16 @@ class SyncModel(SystemModel):
         # This is always going to be true
         if self.flags.thaw:
             updJob, updateSet, model, tcount = self.thawSyncUpdateJob(instanceid)
-            #epdb.st()
             try:
                 updateSet.state = "Applying"
                 model.writeSnapshot()
-                # NEED THIS  LATER·WHEN INVOKED BY CIM
-                #self._fixSignals()
-                #epdb.st()
-                # SILLY CODE FOR MISA
+                self._fixSignals()
+                # BEGIN Panaphobic error checking
                 ctcount = self._getTransactionCount()
-
+                # As if we don't trust conary
                 if str(tcount.strip()) == str(ctcount):
+                    logger.info("Applying update jobfrom  %s"
+                                        % updateSet.updateDir)
                     self._applyUpdateJob(updJob, callback)
                     updated = True
                 else:
@@ -701,6 +741,13 @@ class SyncModel(SystemModel):
         '''
         return updateJob, updateSet, instanceId, preview
         '''
+        # FIXME
+        # How many ways should I let you set the modelfile???
+        # modelfile = None will use cfg.modelPath
+        if not modelfile and self._modelfile:
+            modelfile = self._modelfile
+        # Always run a preview when calling preview
+        # unless you mean not run a preview
         if preview:
             self.flags.preview = preview
         return self._prepareSyncUpdateJob(modelfile)
