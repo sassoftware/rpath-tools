@@ -677,20 +677,20 @@ class SyncModel(SystemModel):
         for n,v,f in topLevelItems:
             logger.info("%s %s %s" % (n,v,f))
 
-        updateSet = None
+        updateSet = self._newUpdateSet(storagepath, instanceid)
 
         if modelstring:
             model = self._getModelFromString(modelstring)
         else:
-            # IF and I mean IF you were silly enough to invoke this 
+            # IF and I mean IF you were silly enough to invoke this
             # without a modelblah you will get the default system-model
+            # because the function handles None way up the stack
             model = self._getModelFromFile(modelfile)
 
         updateJob, suggMap = self._buildUpdateJob(model, callback)
 
         if self.flags.freeze:
-            updateSet, instanceId = self.freezeUpdateJob(updateJob, model,
-                                                            callback)
+            updateSet = self.freezeUpdateJob( updateJob, model, callback)
 
         if self.flags.preview:
             newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
@@ -700,7 +700,7 @@ class SyncModel(SystemModel):
             preview.addDesiredVersion(newTopLevelItems)
             preview.addObservedVersion(topLevelItems)
 
-        return updateJob, updateSet, instanceId, preview
+        return preview, updateSet
 
     def _applySyncUpdateJob(self, storagedir=None, instanceid=None):
         '''
