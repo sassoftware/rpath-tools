@@ -24,8 +24,7 @@ from conary import updatecmd
 from conary import versions
 
 from rpath_tools.client.sysdisco import preview as rt_preview
-from rpath_tools.client.utils import update_job_formatter
-from rpath_tools.lib import stored_objects
+from rpath_tools.lib import formatter, stored_objects
 
 import sys
 # log.syslog.command() attempts to use sys.argv
@@ -188,7 +187,7 @@ class InstallationService(object):
         except NoUpdatesFound:
             updateJob = None
             newTop = oldTop
-        fmt = update_job_formatter.Formatter(updateJob)
+        fmt = formatter.Formatter(updateJob)
         fmt.format()
         fmt.addDesiredVersion(newTop)
         if flags.test or updateJob is None:

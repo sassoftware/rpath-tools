@@ -26,7 +26,7 @@ from conary import errors
 from conary.lib import util
 from conary.lib.sha1helper import sha256ToString
 
-from rpath_tools.client.utils.update_job_formatter import getArchFromFlavor
+from rpath_tools.lib import formatter
 from rpath_tools.client.errors import RpathToolsError
 
 import logging
@@ -265,7 +265,7 @@ class ConaryScanner(AbstractPackageScanner):
 
             revision = nvf.version.trailingRevision().asString()
 
-            arch = getArchFromFlavor(nvf.flavor)
+            arch = formatter.getArchFromFlavor(nvf.flavor)
 
             sig = None
             digest = trv.troveInfo.sigs.vSigs.getDigest(1)

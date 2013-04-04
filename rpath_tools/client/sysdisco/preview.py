@@ -21,7 +21,7 @@ from conary import trovetup
 from conary import updatecmd
 from conary import versions
 
-from rpath_tools.client.utils import update_job_formatter
+from rpath_tools.lib import formatter
 
 import logging
 
@@ -163,7 +163,7 @@ class Preview(object):
             logger.warn('No Updates Found')
             updateJob = None
             newTop = oldTop
-        fmt = update_job_formatter.Formatter(updateJob)
+        fmt = formatter.Formatter(updateJob)
         fmt.format()
         fmt.addDesiredVersion(newTop)
         if flags.test or updateJob is None:
