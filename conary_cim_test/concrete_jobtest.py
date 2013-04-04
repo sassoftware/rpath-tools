@@ -36,7 +36,7 @@ class ConcreteJobTest(testbaserepo.TestCase):
         file(self.systemModelPath, "w").write("install group-bar=2\n")
 
     def testPreviewSyncOperation(self):
-        flags = installation_service.UpdateFlags()
+        flags = installation_service.InstallationService.UpdateFlags()
         job = concrete_job.UpdateJob.previewSyncOperation(self.systemModelPath,
             flags)
         # Make sure system model got copied inside the job
@@ -44,7 +44,7 @@ class ConcreteJobTest(testbaserepo.TestCase):
                 file(self.systemModelPath).read())
 
     def testApplySyncOperation(self):
-        flags = installation_service.UpdateFlags()
+        flags = installation_service.InstallationService.UpdateFlags()
         job = concrete_job.UpdateJob.previewSyncOperation(self.systemModelPath,
             flags)
 

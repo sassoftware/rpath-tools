@@ -17,16 +17,16 @@
 
 import os
 
-import testbase
+import testbaserepo
 
 import pywbem
 import concrete_job
 import installation_service
 import surveys
 
-class Test(testbase.TestCaseProvider):
+class Test(testbaserepo.TestCase):
     def setUp(self):
-        testbase.TestCaseProvider.setUp(self)
+        testbaserepo.TestCase.setUp(self)
         self.surveyStoragePath = os.path.join(self.workDir, "storage")
         self.mock(surveys.SurveyService, 'storagePath', self.surveyStoragePath)
         self.mock(concrete_job.SurveyJob, 'storagePath', self.surveyStoragePath)

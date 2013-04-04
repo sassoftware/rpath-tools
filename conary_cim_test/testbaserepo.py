@@ -19,12 +19,10 @@ import os
 import time
 
 from conary import callbacks as conaryCallbacks
+from conary_test import rephelp
+from rpath_tools.lib import installation_service
 
 import concrete_job
-import installation_service
-
-from conary_test import rephelp
-
 import testbase
 
 class TestCase(rephelp.RepositoryHelper, testbase.ProviderMixIn):

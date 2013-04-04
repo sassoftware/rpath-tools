@@ -22,23 +22,6 @@ from .. import testbase
 from rpath_tools.lib import stored_objects
 
 class StorageTest(testbase.TestCase):
-    def testUpdateSetFactory(self):
-        storagePath = self.workDir + '/storage'
-        uf = stored_objects.UpdateSetFactory(storagePath)
-        updateSet = uf.new()
-        updateSet.content = "Installing"
-        key = updateSet.keyId
-        fPath = os.path.join(self.workDir, "storage",
-            updateSet.prefix, key, "content")
-
-        self.failUnlessEqual(updateSet.expiration, updateSet.updated + 36000)
-
-        self.failUnless(os.path.exists(fPath), fPath)
-        updateSet = uf.load(key)
-        self.failUnlessEqual(updateSet.content, "Installing")
-
-        self.failUnlessEqual([ x.keyId for x in uf ], [ key ])
-
     def testConcreteJobFactory(self):
         storagePath = self.workDir + '/storage'
         uf = stored_objects.ConcreteUpdateJobFactory(storagePath)
@@ -105,7 +88,7 @@ class StorageTest(testbase.TestCase):
 
     def testGetDownloadDir(self):
         storagePath = self.workDir + '/storage'
-        uf = stored_objects.UpdateSetFactory(storagePath)
+        uf = stored_objects.ConcreteUpdateJobFactory(storagePath)
 
         uset = uf.new()
         dname = uset.downloadDir

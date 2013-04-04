@@ -190,7 +190,7 @@ class ConcreteUpdateJob(StoredObject):
     pid = property(_getPid, _setPid)
 
     @property
-    def frozenUpdateJobDir(self):
+    def updateJobDir(self):
         downloadDir = self.storage.newCollection((self.keyId, "frozen-update-job"))
         return self.storage.getFileFromKey(downloadDir)
 
@@ -202,23 +202,13 @@ class ConcreteUpdateJob(StoredObject):
 
     systemModel = property(_getSystemModel, _setSystemModel)
 
-class ConcreteSurveyJob(ConcreteUpdateJob):
-    keyPrefix = "surveys"
-
-class UpdateSet(StoredObject):
-    prefix = "updates"
-
-    def _getDownloadDir(self):
+    @property
+    def downloadDir(self):
         downloadDir = self.storage.newCollection((self.keyId, "downloaded-changesets"))
         return self.storage.getFileFromKey(downloadDir)
 
-    downloadDir = property(_getDownloadDir)
-
-    def _getUpdateJobDir(self):
-        ujDir = self.storage.newCollection((self.keyId, "update-job"))
-        return self.storage.getFileFromKey(ujDir)
-
-    updateJobDir = property(_getUpdateJobDir)
+class ConcreteSurveyJob(ConcreteUpdateJob):
+    keyPrefix = "surveys"
 
 class StoredObjectsFactory(object):
     factory = None
@@ -266,9 +256,6 @@ class ConcreteUpdateJobFactory(StoredObjectsFactory):
 
 class ConcreteSurveyJobFactory(StoredObjectsFactory):
     factory = ConcreteSurveyJob
-
-class UpdateSetFactory(StoredObjectsFactory):
-    factory = UpdateSet
 
 class FlatStoredObject(BaseStoredObject):
     def _setContent(self, content):

@@ -28,7 +28,7 @@ import surveys
 import installation_service
 
 class BaseJob(object):
-    storagePath = None
+    storagePath = installation_service.InstallationService.UpdateSetFactory.storagePath
     factory = None
     def __init__(self):
         self.concreteJob = None
@@ -86,7 +86,6 @@ class BaseJob(object):
             os._exit(0)
 
 class UpdateJob(BaseJob):
-    storagePath = installation_service.UpdateSet.storagePath
     factory = stored_objects.ConcreteUpdateJobFactory
 
     def startUpdateCheck(self):
@@ -187,7 +186,6 @@ class UpdateJob(BaseJob):
         file(fname, "w").write(self.concreteJob.systemModel)
 
 class SurveyJob(BaseJob):
-    storagePath = installation_service.UpdateSet.storagePath
     factory = stored_objects.ConcreteSurveyJobFactory
 
     def startScan(self):
@@ -253,7 +251,7 @@ def main():
     kwargs[options.mode] = True
     kwargs['test'] = bool(options.test)
     
-    flags = installation_service.UpdateFlags(**kwargs)
+    flags = installation_service.InstallationService.UpdateFlags(**kwargs)
     if options.package:
         sources = options.package
         concreteJob = startUpdateOperation(sources, flags)

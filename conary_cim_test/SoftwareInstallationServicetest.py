@@ -194,7 +194,7 @@ class Test(testbaserepo.TestCase):
                 concreteJob = concrete_job.UpdateJob().new()
                 _flags = {}
                 _flags[mode] = True
-                flags = installation_service.UpdateFlags(**_flags)
+                flags = installation_service.InstallationService.UpdateFlags(**_flags)
                 concreteJob.startUpdateOperation(
                     [sources % defLabel],
                     flags)
@@ -568,7 +568,7 @@ class Test(testbaserepo.TestCase):
                 idx = args[0].index('--system-model-path')
                 tmpf = args[0][idx+1]
                 # Flags are meaningless for now
-                flags = installation_service.UpdateFlags()
+                flags = installation_service.InstallationService.UpdateFlags()
                 concreteJob = concrete_job.UpdateJob.previewSyncOperation(
                         tmpf, flags)
 
