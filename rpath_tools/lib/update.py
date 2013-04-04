@@ -471,7 +471,7 @@ class SystemModel(object):
         raise NotImplementedError
 
 
-def UpdateModel(SystemModel):
+class UpdateModel(SystemModel):
     '''
     Update the current system-model non destructive
     '''
