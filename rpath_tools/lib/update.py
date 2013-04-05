@@ -340,8 +340,8 @@ class SystemModel(object):
             updateJob.freeze(path)
             frozen = True
         except Exception, e:
-            # FIXME
-            raise FrozenJobError, FrozenJobError(e)
+            # FIXME still wrong... 
+            raise errors.FrozenJobError, errors.FrozenJobError(e)
         return frozen
 
     def _thawUpdateJob(self, path):
