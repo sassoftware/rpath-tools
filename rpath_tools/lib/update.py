@@ -355,7 +355,9 @@ class SystemModel(object):
         return updateJob
 
     def _getTopLevelItems(self):
-        return sorted(self.conaryClient.getUpdateItemList())
+        topLevelItems = [ trovetup.TroveTuple(x) for x
+                    in self.conaryClient.getUpdateItemList() ]
+        return sorted(topLevelItems)
 
     def _getTopLevelItemsFromUpdate(self, topTuples, updateJob):
         """
