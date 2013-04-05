@@ -61,6 +61,7 @@ copy_iso_files()
     trap "rm -rf $TEMPDIR" EXIT
     # Location of client store on the cdrom
     local CLIENTS_CDROM_DIR=$TEMPDIR/etc/sfcb/clients
+    local SSH_CDROM_DIR=$TEMPDIR/etc/ssh/keys.d
     local CONARY_ETC_DIR=/etc/conary
     local CONARY_FILES_SRC_DIR=${TEMPDIR}${CONARY_ETC_DIR}
     for dev in $(get_removable_drives | sort | uniq); do
@@ -93,6 +94,47 @@ copy_iso_files()
                     ln -sf $(basename ${crt}) $CLIENTS_CERT_DIR/${name};
                 done
             fi
+            # COPY SSH KEYS FROM CD
+            if [ -d $SSHKEYS_CDROM_DIR ];then
+                install -m 0755 $SSHKEYS_CDROM_DIR /etc/ssh/
+                for USER_SSHKEY_CDROM_DIR in $SSHKEYS_CDROM_DIR/*;do
+                    # For the love of ifs
+                    if [ -d $USER_SSHKEY_CDROM_DIR ];then
+                        for fname in $USER_SSHKEY_CDROM_DIR/*;do
+                            [ -f "$fname" ] || continue
+                            # Extract dirname
+                            dirname="${fname%/*}"
+                            # Filename should be user
+                            username="${dirname##*/}"
+                            userdir=$(getent passwd "$username" | cut -d: -f6)
+                            # We are using bash...
+                            [ -z $userdir ] && continue
+                            perms="$username"
+                            gid=$(getent passwd "$username" | cut -d: -f4)
+                            [ -z "$gid" ] || perms="$username:$gid"
+                            sshkeydir="$userdir/.ssh"
+                            install -d -o "$username" -g "$gid" -m 0700 "$sshkeydir"
+                            akfile="$sshkeydir/authorized_keys"
+                            tmpakfile=$(mktemp --tmpdir="$sshkeydir" -t authorized_keys.XXXXXXXX)
+                            chmod 0600 "$tmpakfile"
+                            chown "$perms" "$tmpakfile"
+                            # Create the authorized_keys file if
+                            # it doesn't exist (instead of
+                            # trying to concatenate the existing
+                            # one with the new file)
+                            cat "$fname" >> "$akfile"
+                            # I can't believe I coppied this part of the code
+                            # sorting an authorized key file 
+                            # is unnecessary, intrusive
+                            # and rude... misa should know better.
+                            # What if wanted my authorized key file ordered?
+                            sort -u "$akfile" > "$tmpakfile" && mv "$tmpakfile" "$akfile"
+                        done
+                    fi
+                done
+            fi
+
+
         fi
         umount $TEMPDIR 2>/dev/null
     done
