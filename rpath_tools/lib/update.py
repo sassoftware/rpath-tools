@@ -49,7 +49,6 @@ class SystemModelFlags(object):
             setattr(self, s, kwargs.pop(s, None))
 
 
-
 class SystemModel(object):
     def __init__(self, sysmod=None, callback=None):
         '''
@@ -141,60 +140,6 @@ class SystemModel(object):
         return troves
 
     # BASIC UTILS
-
-    def _fixSignals(self):
-        # TODO: Fix this hack.
-        # sfcb broker overrides these signals, but the python library thinks
-        # the handlers are None.  This breaks the sigprotect.py conary
-        # library.
-        import signal
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
-        signal.signal(signal.SIGUSR1, signal.SIG_DFL)
-
-
-    def storeInFile(self, data, fileName):
-        '''
-        Writes data to the specified file
-        overwrites the specified file if file exists.
-        @param data: Text to be stored in file
-        @type data: string
-        @param filename: name of file to which to write the data
-        @type filename: string
-        '''
-        import tempfile, stat
-
-        if os.path.exists(fileName):
-            fileMode = stat.S_IMODE(os.stat(fileName)[stat.ST_MODE])
-        else:
-            fileMode = 0644
-
-        dirName = os.path.dirname(fileName)
-        fd, tmpName = tempfile.mkstemp(prefix='stored', dir=dirName)
-        try:
-            f = os.fdopen(fd, 'w')
-            f.write(str(data))
-            os.chmod(tmpName, fileMode)
-            os.rename(tmpName, fileName)
-        except Exception, e:
-            #FIXME
-            return Exception, str(e)
-        return True, fileName
-
-    def readStoredFile(self, fileName):
-        '''
-        Read a stored file and return its contents in a string
-        @param fileName: Name of the file to read
-        @type fileName: string
-        '''
-        blob = ""
-        try:
-            with open(fileName) as f:
-                blob = f.read()
-        except EnvironmentError, e:
-            #FIXME
-            return str(e)
-        return blob
 
     def readStoredSystemModel(self, fileName):
         '''
@@ -390,12 +335,14 @@ class SystemModel(object):
         '''
         freeze an update job and store it on the filesystem
         '''
+        frozen = False
         try:
             updateJob.freeze(path)
+            frozen = True
         except Exception, e:
             # FIXME
-            raise errors.FrozenJobPathMissing
-        return
+            raise FrozenJobError, FrozenJobError(e)
+        return frozen
 
     def _thawUpdateJob(self, path):
         if os.path.exists(path):
@@ -655,7 +602,7 @@ class SyncModel(SystemModel):
         '''
         Used to create an update job to make a preview from
         '''
-        preview = "<preview/>"
+        preview = None
         callback = self._callback
         # Transaction Counter
         tcount = self._getTransactionCount()
@@ -676,7 +623,8 @@ class SyncModel(SystemModel):
         # And with returning a concreteJob I have to freeze the update
         if self.flags.freeze:
             try:
-                self.freezeUpdateJob(updateJob, concreteJob)
+                freeze = self.freezeUpdateJob(updateJob, concreteJob)
+                concreteJob.contents = freeze
             except Exception, e:
                 # FIXME
                 raise errors.FrozenUpdateJobError, str(e)
@@ -690,8 +638,8 @@ class SyncModel(SystemModel):
             preview.addDesiredVersion(newTopLevelItems)
             preview.addObservedVersion(topLevelItems)
         if preview:
-            concreteJob.preview = preview
-        return concreteJob
+            concreteJob.contents = preview
+        return concreteJob.contents
 
     def _applySyncUpdateJob(self, concreteJob):
         '''
@@ -711,7 +659,6 @@ class SyncModel(SystemModel):
             try:
                 concreteJob.state = "Applying"
                 model.writeSnapshot()
-                self._fixSignals()
                 logger.info("Applying update jobfrom  %s"
                                         % concreteJob.dir)
                 self._applyUpdateJob(updJob, callback)
@@ -729,7 +676,7 @@ class SyncModel(SystemModel):
 
     def preview(self, concreteJob, preview=True):
         '''
-        return preview, instanceid
+        return preview
         '''
         # Always run a preview when calling preview
         # unless you mean not run a preview
