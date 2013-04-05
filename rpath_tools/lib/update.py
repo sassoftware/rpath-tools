@@ -671,8 +671,8 @@ class SyncModel(SystemModel):
         if updated:
             model.closeSnapshot()
             topLevelItems = self._getTopLevelItems()
-            print "New Top Level Items"
-            for n,v,f in topLevelItems: print "%s %s %s" % (n,v,f)
+            logger.info("New Top Level Items")
+            for n,v,f in topLevelItems: logger.info("%s %s %s" % (n,v,f))
 
         return topLevelItems
 
