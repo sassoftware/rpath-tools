@@ -616,7 +616,7 @@ class SyncModel(SystemModel):
         for n,v,f in topLevelItems:
             logger.info("%s %s %s" % (n,v,f))
 
-        model = self._getModelFromString(concreteJob.systemModel)
+        model = self._getNewModelFromString(concreteJob.systemModel)
 
         updateJob, suggMap = self._buildUpdateJob(model, callback)
 
