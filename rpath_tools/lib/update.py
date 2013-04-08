@@ -592,8 +592,8 @@ class SyncModel(SystemModel):
         return os.path.join(os.path.dirname(dir), 'system-model')
 
     def thawSyncUpdateJob(self, concreteJob):
-        updateJob = self._thawUpdateJob(concreteJob)
-        model = self._getModelFromString(concreteJob.model)
+        updateJob = self._thawUpdateJob(concreteJob.updateJobDir)
+        model = self._getNewModelFromString(concreteJob.systemModel)
         return updateJob, model
 
     def freezeSyncUpdateJob(self, updateJob, concreteJob):

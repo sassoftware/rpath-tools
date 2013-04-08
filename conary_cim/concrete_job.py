@@ -185,10 +185,14 @@ class UpdateJob(BaseJob):
     def _applySyncOperationProcess(self, flags):
         self.concreteJob.state = "Completed"
         # XXX FIXME
-        fname = "/tmp/system-model"
-        if os.path.exists("%s.new" % fname):
-            os.unlink("%s.new" % fname)
-        file(fname, "w").write(self.concreteJob.systemModel)
+        #fname = "/tmp/system-model"
+        #if os.path.exists("%s.new" % fname):
+        #    os.unlink("%s.new" % fname)
+        #file(fname, "w").write(self.concreteJob.systemModel)
+        operation = update.SyncModel()
+        apply_tli = operation.apply(self.concreteJob)
+        return apply_tli
+
 
 class SurveyJob(BaseJob):
     factory = stored_objects.ConcreteSurveyJobFactory
