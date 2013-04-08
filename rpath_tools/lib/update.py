@@ -50,6 +50,9 @@ class SystemModelFlags(object):
 
 
 class SystemModel(object):
+
+    conaryClientFactory = clientfactory.ConaryClientFactory
+
     def __init__(self, sysmod=None, callback=None):
         '''
         sysmod is a system-model string that will over write the current
@@ -59,7 +62,6 @@ class SystemModel(object):
         @param callback: A callback for messaging can be None
         @type callback: object like updatecmd.Callback
         '''
-        self.conaryClientFactory = clientfactory.ConaryClientFactory
         self._sysmodel = None
         self._client = None
         self._newSystemModel = None
@@ -432,7 +434,7 @@ class UpdateModel(SystemModel):
     '''
     def __init__(self, preview=False, apply=False,
                         modelfile=None, instanceid=None):
-        super(SystemModel, self).__init__()
+        super(UpdateModel, self).__init__()
         self._newSystemModel = None
         self._model = None
         self.preview = preview
@@ -571,7 +573,7 @@ class SyncModel(SystemModel):
     Sync to system-model destructive
     '''
     def __init__(self, modelfile=None, instanceid=None):
-        super(SystemModel, self).__init__()
+        super(SyncModel, self).__init__()
         self._newSystemModel = None
         self._modelfile = modelfile
         self.iid = instanceid
