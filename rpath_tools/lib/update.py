@@ -108,13 +108,14 @@ class SystemModel(object):
 
     conaryCfg = property(_getCfg)
 
-    def _cache(self, callback, changeSetList=[], loadTroveCache=True):
+    def _cache(self, changeSetList=[], loadTroveCache=True):
         '''
         Create a model cache to use for updates
         '''
         cclient = self.conaryClient
         cclient.cfg.initializeFlavors()
         cfg = cclient.cfg
+        callback = self._callback
         try:
             self._model_cache = modelupdate.CMLTroveCache(
                 cclient.getDatabase(),
@@ -254,7 +255,7 @@ class SystemModel(object):
         raise NotImplementedError
 
 
-    def _buildUpdateJob(self, sysmod, callback):
+    def _buildUpdateJob(self, sysmod, callback=None):
         '''
         Build an update job from a system model
         @sysmod = SystemModelFile object

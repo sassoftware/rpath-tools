@@ -33,6 +33,7 @@ class ConaryClientFactory(object):
     def getClient(self, modelFile=None, model=True):
         ccfg = self.getCfg
         if model:
+            ccfg.initializeFlavors()
             if not modelFile:
                 model = cml.CML(ccfg)
                 modelFile = systemmodel.SystemModelFile(model)
