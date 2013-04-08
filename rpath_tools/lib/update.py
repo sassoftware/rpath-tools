@@ -72,7 +72,7 @@ class SystemModel(object):
                                         self._contents.split('\n') if x ]
         self._manifest = None
         self._model_cache = None
-        self._cfg = self.conaryClientFactory.getCfg()
+        self._cfg = self.conaryClientFactory().getCfg()
         self._callback = callback
         if not callback:
             self._callback = callbacks.UpdateCallback(
