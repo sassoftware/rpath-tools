@@ -625,7 +625,7 @@ class SyncModel(SystemModel):
         # And with returning a concreteJob I have to freeze the update
         if self.flags.freeze:
             try:
-                freeze = self.freezeUpdateJob(updateJob, concreteJob)
+                freeze = self.freezeSyncUpdateJob(updateJob, concreteJob)
                 concreteJob.contents = freeze
             except Exception, e:
                 # FIXME
