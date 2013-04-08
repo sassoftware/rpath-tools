@@ -74,11 +74,6 @@ class SystemModel(object):
         self._model_cache = None
         self._cfg = self.conaryClientFactory().getCfg()
         self._callback = callback
-        if not callback:
-            self._callback = callbacks.UpdateCallback(
-                                trustThreshold=self._cfg.trustThreshold)
-        else:
-            self._callback.setTrustThreshold(self._cfg.trustThreshold)
 
     def _getSystemModelContents(self):
         return self._newSystemModel
@@ -117,8 +112,6 @@ class SystemModel(object):
         cclient = self.conaryClient
         cclient.cfg.initializeFlavors()
         cfg = cclient.cfg
-        if not callback:
-            callback = self._callback
         try:
             self._model_cache = modelupdate.CMLTroveCache(
                 cclient.getDatabase(),
@@ -132,7 +125,8 @@ class SystemModel(object):
                 if os.path.exists(self._model_cache_path):
                     logger.info("loading model cache from %s",
                                     self._model_cache_path)
-                    callback.loadingModelCache()
+                    if callback:
+                        callback.loadingModelCache()
                     self._model_cache.load(self._model_cache_path)
             return self._model_cache
         except:
@@ -266,8 +260,6 @@ class SystemModel(object):
         return updJob, suggMapp
         '''
 
-        if not callback:
-            callback = self._callback
         model = sysmod.model
         cache = self._cache(callback)
         cclient = self._getClient(modelfile=sysmod)
@@ -281,7 +273,8 @@ class SystemModel(object):
                             troveSetGraph, cache)
         except errors.TroveSpecsNotFound, e:
             print "FAILED %s" % str(e)
-            callback.close()
+            if callback:
+                callback.close()
             cclient.close()
             return updJob, {}
 
@@ -313,9 +306,11 @@ class SystemModel(object):
 
         if cache.cacheModified():
             logger.info("saving model cache to %s", self._model_cache_path)
-            callback.savingModelCache()
+            if callback:
+                callback.savingModelCache()
             cache.save(self._model_cache_path)
-            callback.done()
+            if callback:
+                callback.done()
 
         return updJob, suggMap
 
@@ -323,8 +318,6 @@ class SystemModel(object):
         '''
         Apply a thawed|current update job to the system
         '''
-        if not callback:
-            callback = self._callback
         updated = False
         jobs = updJob.getJobs()
         if not jobs:
@@ -584,6 +577,9 @@ class SyncModel(SystemModel):
         self.flags = SystemModelFlags(apply=False, preview=False,
                 freeze=True, thaw=self.thaw, iid=self.iid)
 
+    def _callback(self, job):
+        return callbacks.UpdateCallback(job)
+
     def _getNewModelFromFile(self, modelfile):
         if modelfile and os.path.exists(modelfile):
             modelfile = '/etc/conary/system-model'
@@ -608,6 +604,7 @@ class SyncModel(SystemModel):
         '''
         Used to create an update job to make a preview from
         '''
+        callback = self._callback(concreteJob)
         preview = None
         # Transaction Counter
         tcount = self._getTransactionCount()
@@ -621,7 +618,7 @@ class SyncModel(SystemModel):
 
         model = self._getModelFromString(concreteJob.systemModel)
 
-        updateJob, suggMap = self._buildUpdateJob(model)
+        updateJob, suggMap = self._buildUpdateJob(model, callback)
 
         # TODO : REVIEW if self.flags helps...
         # SILLY AS IT IS ALWAYS TRUE
@@ -650,6 +647,7 @@ class SyncModel(SystemModel):
         '''
         Used to apply a frozen job
         '''
+        callback = self._callback(concreteJob)
         updated = False
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
@@ -665,7 +663,7 @@ class SyncModel(SystemModel):
                 model.writeSnapshot()
                 logger.info("Applying update jobfrom  %s"
                                         % concreteJob.dir)
-                self._applyUpdateJob(updJob)
+                self._applyUpdateJob(updJob, callback)
                 updated = True
             except Exception, e:
                 logger.error("FAILED: %s" % str(e))
