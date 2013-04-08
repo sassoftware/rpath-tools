@@ -43,7 +43,7 @@ logger = logging.getLogger(name = '__name__')
 
 class SystemModelFlags(object):
     __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test',
-                    'freeze', 'thaw', 'iid' ]
+                    'freeze', 'thaw', 'iid',  'preview', 'apply', ]
     def __init__(self, **kwargs):
         for s in self.__slots__:
             setattr(self, s, kwargs.pop(s, None))
