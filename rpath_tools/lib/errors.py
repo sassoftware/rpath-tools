@@ -37,3 +37,6 @@ class RepositoryError(InstallationServiceError):
 
 class FrozenJobPathMissing(SystemModelServiceError):
     "Raise when the path to a frozen job is missing"
+
+class FrozenUpdateJobError(SystemModelServiceError):
+    "Raise when a freezing an update job fails"
