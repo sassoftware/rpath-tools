@@ -637,10 +637,12 @@ class SyncModel(SystemModel):
                                                                     updateJob)
             preview = formatter.Formatter(updateJob)
             preview.format()
-            preview.addDesiredVersion(newTopLevelItems)
-            preview.addObservedVersion(topLevelItems)
+            for ntli in newTopLevelItems:
+                preview.addDesiredVersion(ntli)
+            for tli in topLevelItems:
+                preview.addObservedVersion(tli)
         if preview:
-            concreteJob.contents = preview
+            concreteJob.contents = preview.toxml()
         return concreteJob.contents
 
     def _applySyncUpdateJob(self, concreteJob):
