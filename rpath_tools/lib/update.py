@@ -108,14 +108,15 @@ class SystemModel(object):
 
     conaryCfg = property(_getCfg)
 
-    def _cache(self, changeSetList=[], loadTroveCache=True):
+    def _cache(self, callback=None, changeSetList=[], loadTroveCache=True):
         '''
         Create a model cache to use for updates
         '''
         cclient = self.conaryClient
         cclient.cfg.initializeFlavors()
         cfg = cclient.cfg
-        callback = self._callback
+        if not callback:
+            callback = self._callback
         try:
             self._model_cache = modelupdate.CMLTroveCache(
                 cclient.getDatabase(),
@@ -263,6 +264,8 @@ class SystemModel(object):
         return updJob, suggMapp
         '''
 
+        if not callback:
+            callback = self._callback
         model = sysmod.model
         cache = self._cache(callback)
         cclient = self._getClient(modelfile=sysmod)
@@ -314,10 +317,12 @@ class SystemModel(object):
 
         return updJob, suggMap
 
-    def _applyUpdateJob(self, updJob, callback):
+    def _applyUpdateJob(self, updJob, callback=None):
         '''
         Apply a thawed|current update job to the system
         '''
+        if not callback:
+            callback = self._callback
         updated = False
         jobs = updJob.getJobs()
         if not jobs:
@@ -594,8 +599,7 @@ class SyncModel(SystemModel):
         return updateJob, model
 
     def freezeSyncUpdateJob(self, updateJob, concreteJob):
-        callback = self._callback
-        results = self._freezeUpdateJob(updateJob, concreteJob.dir, callback)
+        results = self._freezeUpdateJob(updateJob, concreteJob.dir)
         return results
 
     def _prepareSyncUpdateJob(self, concreteJob):
@@ -603,7 +607,6 @@ class SyncModel(SystemModel):
         Used to create an update job to make a preview from
         '''
         preview = None
-        callback = self._callback
         # Transaction Counter
         tcount = self._getTransactionCount()
         logger.info("Conary DB Transaction Counter: %s" % tcount)
@@ -616,7 +619,7 @@ class SyncModel(SystemModel):
 
         model = self._getModelFromString(concreteJob.systemModel)
 
-        updateJob, suggMap = self._buildUpdateJob(model, callback)
+        updateJob, suggMap = self._buildUpdateJob(model)
 
         # TODO : REVIEW if self.flags helps...
         # SILLY AS IT IS ALWAYS TRUE
@@ -646,7 +649,6 @@ class SyncModel(SystemModel):
         Used to apply a frozen job
         '''
         updated = False
-        callback = self._callback
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
         logger.info("Top Level Items")
@@ -661,7 +663,7 @@ class SyncModel(SystemModel):
                 model.writeSnapshot()
                 logger.info("Applying update jobfrom  %s"
                                         % concreteJob.dir)
-                self._applyUpdateJob(updJob, callback)
+                self._applyUpdateJob(updJob)
                 updated = True
             except Exception, e:
                 logger.error("FAILED: %s" % str(e))
