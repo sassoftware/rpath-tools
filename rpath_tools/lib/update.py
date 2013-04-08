@@ -597,7 +597,7 @@ class SyncModel(SystemModel):
         return updateJob, model
 
     def freezeSyncUpdateJob(self, updateJob, concreteJob):
-        results = self._freezeUpdateJob(updateJob, concreteJob.dir)
+        results = self._freezeUpdateJob(updateJob, concreteJob.updateJobDir)
         return results
 
     def _prepareSyncUpdateJob(self, concreteJob):
