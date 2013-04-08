@@ -31,7 +31,7 @@ logger = logging.getLogger(name = '__name__')
 
 class ConaryClientFactory(object):
     def getClient(self, modelFile=None, model=True):
-        ccfg = self.getCfg
+        ccfg = self.getCfg()
         if model:
             if not modelFile:
                 model = cml.CML(ccfg)

@@ -73,7 +73,7 @@ class SystemModel(object):
         self._manifest = None
         self._model_cache = None
         self._cfg = self.conaryClientFactory().getCfg()
-        self._callback = callback
+        self._call = callback
 
     def _getSystemModelContents(self):
         return self._newSystemModel
