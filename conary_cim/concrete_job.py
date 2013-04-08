@@ -23,6 +23,8 @@ import sys
 import traceback
 
 from rpath_tools.lib import stored_objects
+from rpath_tools.lib import update
+
 
 import surveys
 import installation_service
@@ -164,6 +166,9 @@ class UpdateJob(BaseJob):
         # XXX FIXME
         fname = "/tmp/system-model.new"
         file(fname, "w").write(self.concreteJob.systemModel)
+        operation = update.SyncModel()
+        preview = operation.preview(self.concreteJob)
+        print preview
 
     @classmethod
     def applySyncOperation(cls, updateId, flags=None):
