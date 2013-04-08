@@ -105,7 +105,7 @@ class SystemModel(object):
     conaryClient = property(_getClient)
 
     def _getCfg(self):
-        self._cfg = self.conaryClientFactory.getCfg()
+        self._cfg = self.conaryClientFactory().getCfg()
         return self._cfg
 
     conaryCfg = property(_getCfg)
