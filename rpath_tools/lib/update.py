@@ -564,19 +564,16 @@ class SyncModel(SystemModel):
     '''
     Sync to system-model destructive
     '''
-    def __init__(self, modelfile=None, instanceid=None,
-                    preview=False, apply=False):
+    def __init__(self, modelfile=None, instanceid=None):
         super(SystemModel, self).__init__()
         self._newSystemModel = None
         self._modelfile = modelfile
-        self.preview = preview
-        self.apply = apply
         self.iid = instanceid
         self.thaw = False
         if self.iid:
             self.thaw = True
         # Setup flags
-        self.flags = SystemModelFlags(apply=self.apply, preview=self.preview,
+        self.flags = SystemModelFlags(apply=False, preview=False,
                 freeze=True, thaw=self.thaw, iid=self.iid)
 
     def _getNewModelFromFile(self, modelfile):
@@ -616,7 +613,7 @@ class SyncModel(SystemModel):
         for n,v,f in topLevelItems:
             logger.info("%s %s %s" % (n,v,f))
 
-        model = self._getModelFromString(concreteJob.model)
+        model = self._getModelFromString(concreteJob.systemModel)
 
         updateJob, suggMap = self._buildUpdateJob(model, callback)
 
@@ -676,20 +673,20 @@ class SyncModel(SystemModel):
 
         return topLevelItems
 
-    def preview(self, concreteJob, preview=True):
+    def preview(self, concreteJob):
         '''
         return preview
         '''
         # Always run a preview when calling preview
         # unless you mean not run a preview
-        if preview:
-            self.flags.preview = preview
+        self.flags.preview = True
         return self._prepareSyncUpdateJob(concreteJob)
 
     def apply(self, concreteJob):
         '''
         returns topLevelItems
         '''
+        self.flags.apply = True
         return self._applySyncUpdateJob(concreteJob)
 
 
