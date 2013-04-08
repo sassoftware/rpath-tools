@@ -20,7 +20,7 @@ import time
 
 from conary import callbacks as conaryCallbacks
 from conary_test import rephelp
-from rpath_tools.lib import installation_service
+from rpath_tools.lib import clientfactory, installation_service
 
 import concrete_job
 import testbase
@@ -33,8 +33,8 @@ class TestCase(rephelp.RepositoryHelper, testbase.ProviderMixIn):
         self._conaryClient.setUpdateCallback(conaryCallbacks.UpdateCallback())
 
         # Create a Conary client that can talk to the testsuite repo
-        class ConaryClientFactory(installation_service.ConaryClientFactory):
-            def getClient(slf):
+        class ConaryClientFactory(clientfactory.ConaryClientFactory):
+            def getClient(slf, *args, **kwargs):
                 return self._conaryClient
 
         installation_service.InstallationService.conaryClientFactory = ConaryClientFactory
@@ -45,7 +45,7 @@ class TestCase(rephelp.RepositoryHelper, testbase.ProviderMixIn):
 
     def tearDown(self):
         rephelp.RepositoryHelper.tearDown(self)
-        installation_service.InstallationService.conaryClientFactory = installation_service.ConaryClientFactory
+        installation_service.InstallationService.conaryClientFactory = clientfactory.ConaryClientFactory
         self.env = None
 
     def waitJob(self, jobObjectPath, timeout = 1):

@@ -24,7 +24,7 @@ from conary import updatecmd
 from conary import versions
 
 from rpath_tools.client.sysdisco import preview as rt_preview
-from rpath_tools.lib import formatter, stored_objects
+from rpath_tools.lib import clientfactory, formatter, stored_objects
 
 import sys
 # log.syslog.command() attempts to use sys.argv
@@ -39,14 +39,6 @@ class NoUpdatesFound(InstallationServiceError):
 
 class RepositoryError(InstallationServiceError):
     "Raised when a repository error is caught"
-
-class ConaryClientFactory(object):
-    def getClient(self):
-        ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        cclient = conaryclient.ConaryClient(ccfg)
-        callback = updatecmd.callbacks.UpdateCallback()
-        cclient.setUpdateCallback(callback)
-        return cclient
 
 class UpdateFlags(object):
     __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test' ]
@@ -92,19 +84,28 @@ class UpdateSet(object):
     updateJobDir = property(_getUpdateJobDir)
 
 class InstallationService(object):
-    conaryClientFactory = ConaryClientFactory
+    conaryClientFactory = clientfactory.ConaryClientFactory
     UpdateSetFactory = UpdateSet
     UpdateFlags = UpdateFlags
 
     def __init__(self):
         self.cclient = None
 
-    def _getClient(self, force=False):
+    def _getClient(self, modelfile=None, force=False):
         if self.cclient is None or force:
-            self.cclient = self.conaryClientFactory().getClient()
+            if self._system_model_exists():
+                self.cclient = self.conaryClientFactory().getClient(
+                                            modelFile=modelfile)
+            else:
+                self.cclient = self.conaryClientFactory().getClient(
+                                            model=False)
         return self.cclient
 
     conaryClient = property(_getClient)
+
+    def _system_model_exists(self):
+        cfg = self.conaryClientFactory().getCfg()
+        return os.path.isfile(cfg.modelPath)
 
     def buildUpdateJob(self, applyList):
         # We need to update to the latest version, so drop the version
