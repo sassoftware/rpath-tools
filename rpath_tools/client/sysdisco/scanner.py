@@ -79,6 +79,13 @@ class SurveyScanner(object):
             conary_pkgs_xml.append(result)
         return rpm_pkgs_xml, conary_pkgs_xml
 
+    def getSystemModelXML(self):
+        sysmod_xml = etree.Element('system_model')
+        systemModel = self._packageScanner.getSystemModel()
+        if systemModel:
+            sysmod_xml = systemModel.toxml()
+        return sysmod_xml
+
     def getValuesXML(self):
         values_xml = etree.Element('config_properties')
         if os.path.exists(valuesXmlPath):
