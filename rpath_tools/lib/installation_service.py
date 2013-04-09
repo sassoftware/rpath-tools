@@ -18,12 +18,11 @@
 import os
 
 from conary.deps import deps
-from conary import conarycfg
 from conary import conaryclient
 from conary import updatecmd
 from conary import versions
+from conary import trovetup
 
-from rpath_tools.client.sysdisco import preview as rt_preview
 from rpath_tools.lib import formatter, stored_objects, update
 
 import sys
@@ -135,6 +134,51 @@ class InstallationService(update.UpdateService):
         applyList = [ (x[0], (None, None), x[1:], True) for x in updateItems ]
         return applyList
 
+
+    def getCurrentTop(self):
+        """Return the tuple for the present top-level group"""
+        topLevelItems = sorted(self.conaryClient.getUpdateItemList())
+        for name, version, flavor in topLevelItems:
+            if name.startswith('group-') and name.endswith('-appliance'):
+                break
+        else:
+            print 'Unable to find top-level group'
+            return None
+        return trovetup.TroveTuple(name, version, flavor)
+
+    def getUpdatedTop(self, topTuple, updateJob):
+        """
+        Return the tuple for the new top-level group after applying an
+        update job.
+        """
+        added = set()
+        topErased = False
+        for jobList in updateJob.getJobs():
+            for (name, (oldVersion, oldFlavor), (newVersion, newFlavor),
+                    isAbsolute) in jobList:
+                if name == topTuple.name:
+                    if newVersion:
+                        return trovetup.TroveTuple(name, newVersion, newFlavor)
+                    else:
+                        # The top-level group is being erased, so look for
+                        # another group being installed
+                        topErased = True
+                elif oldVersion is None and name.startswith('group-'):
+                    added.add(trovetup.TroveTuple(name, newVersion, newFlavor))
+        if topErased and added:
+            # A common anti-pattern...
+            appliances = sorted(x for x in added
+                    if x.name.endswith('-appliance'))
+            if appliances:
+                return appliances[0]
+            else:
+                # Pick any group
+                return sorted(added)[0]
+        # Not mentioned, so reuse the old version. Migrating to "remediate" a
+        # system back to its nominal group would cause this, for example.
+        return topTuple
+
+
     def _fixSignals(self):
         # TODO: Fix this hack.
         # sfcb broker overrides these signals, but the python library thinks
@@ -158,13 +202,12 @@ class InstallationService(update.UpdateService):
         jobList = [ (x[0], (None, None), (x[1], x[2]), True)
             for x in trvSpecList ]
         cclient = self.conaryClient
-        previewer = rt_preview.Preview(cclient)
-        oldTop = previewer.getCurrentTop()
+        oldTop = self.getCurrentTop()
         callback = UpdateCallback(job)
         cclient.setUpdateCallback(callback)
         try:
             updateJob = self._newUpdateJob(jobList, flags)
-            newTop = previewer.getUpdatedTop(oldTop, updateJob)
+            newTop = self.getUpdatedTop(oldTop, updateJob)
         except NoUpdatesFound:
             updateJob = None
             newTop = oldTop
@@ -176,9 +219,13 @@ class InstallationService(update.UpdateService):
             return fmt.toxml()
         self._fixSignals()
         cclient.applyUpdateJob(updateJob, test=bool(flags.test))
-        actualTop = previewer.getCurrentTop()
+        actualTop = self.getCurrentTop()
         fmt.addObservedVersion(actualTop)
         return fmt.toxml()
+
+
+
+
 
 class UpdateCallback(updatecmd.UpdateCallback):
     class LogStream(object):
