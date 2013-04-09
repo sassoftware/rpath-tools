@@ -39,25 +39,29 @@ class Preview(object):
 
     conaryClient = property(_getClient)
 
-    def previewUpdateOperation(self, sources, flags, callback=None):
+    def previewUpdateOperation(self, job, sources, flags, callback=None):
         '''Use updateOperation to create a preview by setting flag.test'''
         # FIXME XXX
         # Create a job to pass to installation_service
-        job = None
         op = installation_service.InstallationService()
         xml = op.updateOperation(job, sources, flags)
         return xml
 
+    def previewSystemModelOperation(self, job, sources, flags):
+        '''Use sync update method ot provide a preview'''
+        fname = "/tmp/system-model.preview"
+        file(fname, "w").write(sources)
+        job = job.previewSyncOperation(fname, flags)
+        return job.contents
 
     def preview(self, sources):
-        flags = installation_service.UpdateFlags(migrate=True,test=True)
+        flags = installation_service.UpdateFlags(test=True)
+        concreteJob = concrete_job.UpdateJob()
         if self.is_system_model:
-            fname = "/tmp/system-model.preview"
-            file(fname, "w").write(sources)
-            concreteJob = concrete_job.UpdateJob.previewSyncOperation(fname, flags)
-            xml = concreteJob.contents
+            xml = self.previewSystemModelOperation(concreteJob, sources, flags)
         else:
-            xml = self.previewUpdateOperation(sources, flags)
+            flags.migrate = True
+            xml = self.previewUpdateOperation(concreteJob, sources, flags)
         if xml:
             return xml
         return '<preview/>'
