@@ -139,6 +139,9 @@ class ProviderMixIn(object):
     def setUp(self):
         self.env = Environment()
 
+    def tearDown(self):
+        self.env = None
+
     def getProvider(self, module):
         """Given a module, return the provider and an object path"""
         cimClassName, prov = sorted(module.get_providers(self.env).items())[0]

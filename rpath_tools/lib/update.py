@@ -36,6 +36,7 @@ import types
 import time
 import os
 import logging
+import traceback
 
 logger = logging.getLogger(name = '__name__')
 
@@ -48,11 +49,35 @@ class SystemModelFlags(object):
         for s in self.__slots__:
             setattr(self, s, kwargs.pop(s, None))
 
-
-class SystemModel(object):
-
+class UpdateService(object):
     conaryClientFactory = clientfactory.ConaryClientFactory
 
+    def __init__(self):
+        self._cclient = None
+
+    def _getClient(self, modelfile=None, force=False):
+        if self._cclient is None or force:
+            if self._system_model_exists():
+                self._cclient = self.conaryClientFactory().getClient(
+                                            modelFile=modelfile)
+            else:
+                self._cclient = self.conaryClientFactory().getClient(
+                                            model=False)
+        return self._cclient
+
+    conaryClient = property(_getClient)
+
+    def _getCfg(self):
+        self._cfg = self.conaryClientFactory().getCfg()
+        return self._cfg
+
+    conaryCfg = property(_getCfg)
+
+    def _system_model_exists(self):
+        cfg = self.conaryClientFactory().getCfg()
+        return os.path.isfile(cfg.modelPath)
+
+class SystemModel(UpdateService):
     def __init__(self, sysmod=None, callback=None):
         '''
         sysmod is a system-model string that will over write the current
@@ -62,8 +87,8 @@ class SystemModel(object):
         @param callback: A callback for messaging can be None
         @type callback: object like updatecmd.Callback
         '''
+        super(SystemModel, self).__init__()
         self._sysmodel = None
-        self._client = None
         self._newSystemModel = None
         self._contents = sysmod
         # FIXME
@@ -85,25 +110,6 @@ class SystemModel(object):
         self._newSystemModel = contents
 
     system_model = property(_getSystemModelContents, _setSystemModelContents)
-
-
-    def _getClient(self, modelfile=None, force=False):
-        if self._client is None or force:
-            if self._system_model_exists():
-                self._client = self.conaryClientFactory().getClient(
-                                            modelFile=modelfile)
-            else:
-                self._client = self.conaryClientFactory().getClient(
-                                            model=False)
-        return self._client
-
-    conaryClient = property(_getClient)
-
-    def _getCfg(self):
-        self._cfg = self.conaryClientFactory().getCfg()
-        return self._cfg
-
-    conaryCfg = property(_getCfg)
 
     def _cache(self, callback=None, changeSetList=[], loadTroveCache=True):
         '''
@@ -156,9 +162,6 @@ class SystemModel(object):
 
 
     # SYSTEM MODEL FUNCTIONS
-
-    def _system_model_exists(self):
-        return os.path.isfile('/etc/conary/system-model')
 
     def _getSystemModel(self):
         '''
@@ -610,7 +613,6 @@ class SyncModel(SystemModel):
         Used to create an update job to make a preview from
         '''
         callback = self._callback(concreteJob)
-        preview = None
         # Transaction Counter
         tcount = self._getTransactionCount()
         logger.info("Conary DB Transaction Counter: %s" % tcount)
@@ -631,7 +633,6 @@ class SyncModel(SystemModel):
         if self.flags.freeze:
             try:
                 freeze = self.freezeSyncUpdateJob(updateJob, concreteJob)
-                concreteJob.contents = freeze
             except Exception, e:
                 # FIXME
                 raise errors.FrozenUpdateJobError, str(e)
@@ -640,48 +641,50 @@ class SyncModel(SystemModel):
         if self.flags.preview:
             newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
                                                                     updateJob)
-            preview = formatter.Formatter(updateJob)
-            preview.format()
-            for ntli in newTopLevelItems:
-                preview.addDesiredVersion(ntli)
-            for tli in topLevelItems:
-                preview.addObservedVersion(tli)
-        if preview:
-            concreteJob.contents = preview.toxml()
-        return concreteJob.contents
+            return self._getPreviewFromUpdateJob(updateJob, topLevelItems,
+                    newTopLevelItems)
+        return preview
+
+    def _getPreviewFromUpdateJob(self, updateJob, topLevelItems, newTopLevelItems):
+        preview = formatter.Formatter(updateJob)
+        preview.format()
+        for ntli in newTopLevelItems:
+            preview.addDesiredVersion(ntli)
+        for tli in topLevelItems:
+            preview.addObservedVersion(tli)
+        return preview
 
     def _applySyncUpdateJob(self, concreteJob):
         '''
         Used to apply a frozen job
         '''
         callback = self._callback(concreteJob)
-        updated = False
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
         logger.info("Top Level Items")
         for n,v,f in topLevelItems: logger.info("%s %s %s" % (n,v,f))
 
-        # FIXME
-        # This is always going to be true
-        if self.flags.thaw:
-            updJob, model = self.thawSyncUpdateJob(concreteJob)
-            try:
-                concreteJob.state = "Applying"
-                model.writeSnapshot()
-                logger.info("Applying update jobfrom  %s"
-                                        % concreteJob.dir)
-                self._applyUpdateJob(updJob, callback)
-                updated = True
-            except Exception, e:
-                logger.error("FAILED: %s" % str(e))
-                updated = False
-        if updated:
-            model.closeSnapshot()
-            topLevelItems = self._getTopLevelItems()
-            logger.info("New Top Level Items")
-            for n,v,f in topLevelItems: logger.info("%s %s %s" % (n,v,f))
+        updJob, model = self.thawSyncUpdateJob(concreteJob)
+        try:
+            concreteJob.state = "Applying"
+            model.writeSnapshot()
+            logger.info("Applying update job from  %s"
+                                    % concreteJob.updateJobDir)
+            self._applyUpdateJob(updJob, callback)
+        except Exception, e:
+            concreteJob.content = traceback.format_exc()
+            concreteJob.state = "Exception"
+            logger.error("FAILED: %s" % str(e))
+            return
 
-        return topLevelItems
+        model.closeSnapshot()
+        newTopLevelItems = self._getTopLevelItems()
+        logger.info("New Top Level Items")
+        for n,v,f in newTopLevelItems:
+            logger.info("%s %s %s" % (n,v,f))
+        preview = self._getPreviewFromUpdateJob(updJob, topLevelItems, newTopLevelItems)
+        concreteJob.content = preview.toxml()
+        concreteJob.state = "Completed"
 
     def preview(self, concreteJob):
         '''

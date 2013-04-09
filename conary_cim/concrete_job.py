@@ -162,13 +162,10 @@ class UpdateJob(BaseJob):
         self.background_run(self._previewSyncOperationProcess, flags)
 
     def _previewSyncOperationProcess(self, flags):
-        self.concreteJob.state = "Completed"
-        # XXX FIXME
-        fname = "/tmp/system-model.new"
-        file(fname, "w").write(self.concreteJob.systemModel)
         operation = update.SyncModel()
         preview = operation.preview(self.concreteJob)
-        print preview
+        self.concreteJob.content = preview.toxml()
+        self.concreteJob.state = "Completed"
 
     @classmethod
     def applySyncOperation(cls, updateId, flags=None):
@@ -183,16 +180,8 @@ class UpdateJob(BaseJob):
         self.background_run(self._applySyncOperationProcess, flags)
 
     def _applySyncOperationProcess(self, flags):
-        self.concreteJob.state = "Completed"
-        # XXX FIXME
-        #fname = "/tmp/system-model"
-        #if os.path.exists("%s.new" % fname):
-        #    os.unlink("%s.new" % fname)
-        #file(fname, "w").write(self.concreteJob.systemModel)
         operation = update.SyncModel()
-        apply_tli = operation.apply(self.concreteJob)
-        return apply_tli
-
+        operation.apply(self.concreteJob)
 
 class SurveyJob(BaseJob):
     factory = stored_objects.ConcreteSurveyJobFactory
