@@ -21,8 +21,7 @@ from conary import versions
 
 from rpath_tools.lib import formatter
 from rpath_tools.lib import clientfactory
-
-from conary_cim.concrete_job import UpdateJob
+from rpath_tools.lib import concrete_job
 
 import os
 import logging
@@ -177,7 +176,7 @@ class Preview(object):
         if self.is_system_model:
             fname = "/tmp/system-model.preview"
             file(fname, "w").write(sources)
-            concreteJob = UpdateJob.previewSyncOperation(fname, flags)
+            concreteJob = concrete_job.UpdateJob.previewSyncOperation(fname, flags)
             xml = concreteJob.contents
         else:
             xml = self.updateOperation(sources, flags)
