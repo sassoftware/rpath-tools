@@ -19,6 +19,7 @@
 from conary.lib import util
 
 from rpath_tools.lib import clientfactory
+from rpath_tools.lib import concrete_job
 
 import logging
 
@@ -44,8 +45,12 @@ class Updater(object):
         self.contents = systemModel
 
 
-    def debug(self):
-        return
+    def debug(self, sources, flags):
+        fname = "/tmp/system-model.preview"
+        file(fname, "w").write(sources)
+        concreteJob = concrete_job.UpdateJob.previewSyncOperation(fname, flags)
+        xml = concreteJob.contents
+        return xml
 
 
 if __name__ == '__main__':
