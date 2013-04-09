@@ -26,14 +26,13 @@ from configurators import valuesXmlPath
 from preview import Preview
 from descriptors import Descriptors
 
-import sys 
 import time
 import os
 import uuid
 
 import logging
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(name='__name__')
 
 class SurveyScanner(object):
     def __init__(self, origin="scanner"):
@@ -172,6 +171,7 @@ class SurveyScanner(object):
 
 if __name__ == '__main__':
     from conary.lib import util
+    import sys
     sys.excepthook = util.genExcepthook()
     scanner = SurveyScanner()
     sources = [ 'group-smitty-c6e-goad-appliance=/smitty-c6e-goad.eng.rpath.com@rpath:smitty-c6e-goad-1-devel/1-63-1' ]

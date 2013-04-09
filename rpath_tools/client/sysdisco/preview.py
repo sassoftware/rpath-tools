@@ -15,16 +15,12 @@
 #
 
 
-from conary import conarycfg
 from conary import conaryclient
 from conary import trovetup
-from conary import updatecmd
 from conary import versions
 
-from rpath_tools.lib import update
 from rpath_tools.lib import formatter
 from rpath_tools.lib import clientfactory
-from rpath_tools.lib import errors
 
 from conary_cim.concrete_job import UpdateJob
 
