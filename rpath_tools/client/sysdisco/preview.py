@@ -21,11 +21,17 @@ from conary import trovetup
 from conary import updatecmd
 from conary import versions
 
+from rpath_tools.lib import update
 from rpath_tools.lib import formatter
+from rpath_tools.lib import clientfactory
+from rpath_tools.lib import errors
 
+from conary_cim.concrete_job import UpdateJob
+
+import os
 import logging
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(name='__name__')
 
 class InstallationServiceError(Exception):
     "Base class"
@@ -43,17 +49,10 @@ class UpdateFlags(object):
             setattr(self, s, kwargs.pop(s, None))
 
 
-class ConaryClientFactory(object):
-    def getClient(self):
-        ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        cclient = conaryclient.ConaryClient(ccfg)
-        callback = updatecmd.callbacks.UpdateCallback()
-        cclient.setUpdateCallback(callback)
-        return cclient
 
 
 class Preview(object):
-    conaryClientFactory = ConaryClientFactory
+    conaryClientFactory = clientfactory.ConaryClientFactory
 
     def __init__(self, cclient=None):
         self.cclient = cclient
@@ -75,6 +74,12 @@ class Preview(object):
         except ValueError:
             pass
         return (n, v, f)
+
+    def _system_model_exists(self):
+        cfg = self.conaryClientFactory().getCfg()
+        return os.path.isfile(cfg.modelPath)
+
+    is_system_model = property(_system_model_exists)
 
     def _newUpdateJob(self, applyList, flags):
         cclient = self.conaryClient
@@ -169,21 +174,17 @@ class Preview(object):
         if flags.test or updateJob is None:
             fmt.addObservedVersion(oldTop)
             return fmt.toxml()
-        # NEVER RUN THIS NEVER
-        # left this in for future
-        never = None
-        if never:
-            self._fixSignals()
-            cclient.applyUpdateJob(updateJob, test=flags.test)
-            # Re-evaluate top level items now that the update is applied.
-            actualTop = self.getCurrentTop()
-            fmt.addObservedVersion(actualTop)
-            return fmt.toxml()
-        return never
+        return None
 
     def preview(self, sources):
         flags = UpdateFlags(migrate=True,test=True)
-        xml = self.updateOperation(sources, flags)
+        if self.is_system_model:
+            fname = "/tmp/system-model.preview"
+            file(fname, "w").write(sources)
+            concreteJob = UpdateJob.previewSyncOperation(fname, flags)
+            xml = concreteJob.contents
+        else:
+            xml = self.updateOperation(sources, flags)
         if xml:
             return xml
         return '<preview/>'

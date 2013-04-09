@@ -319,8 +319,12 @@ class SystemModel(object):
         '''
         updated = False
         jobs = updJob.getJobs()
+        if callback:
+            callback.executingSystemModel()
         if not jobs:
             return updated
+            if callback:
+                callback.done()
         try:
             cclient = self.conaryClient
             cclient.setUpdateCallback(callback)
@@ -329,6 +333,8 @@ class SystemModel(object):
             updated = True
         except Exception, e:
             raise errors.SystemModelServiceError, e
+        if updated and callback:
+            callback.done()
         return updated
 
     def _freezeUpdateJob(self, updateJob, path):
@@ -427,6 +433,7 @@ class UpdateModel(SystemModel):
     def __init__(self, preview=False, apply=False,
                         modelfile=None, instanceid=None):
         super(UpdateModel, self).__init__()
+        # New System Model
         self._newSystemModel = None
         self._model = None
         self.preview = preview
@@ -436,7 +443,6 @@ class UpdateModel(SystemModel):
         # Setup flags
         self.flags = SystemModelFlags(apply=self.apply, preview=self.preview,
                 freeze=True, thaw=self.thaw, iid=self.iid)
-            # New System Model
 
     def _load_model_with_list_of_tuples(self, opargs):
         '''
