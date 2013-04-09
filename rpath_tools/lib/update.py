@@ -275,7 +275,6 @@ class SystemModel(object):
             print "FAILED %s" % str(e)
             if callback:
                 callback.close()
-            cclient.close()
             return updJob, {}
 
         # LIFTED FROM updatecmd.py
