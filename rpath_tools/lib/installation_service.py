@@ -24,7 +24,7 @@ from conary import updatecmd
 from conary import versions
 
 from rpath_tools.client.sysdisco import preview as rt_preview
-from rpath_tools.lib import clientfactory, formatter, stored_objects
+from rpath_tools.lib import formatter, stored_objects, update
 
 import sys
 # log.syslog.command() attempts to use sys.argv
@@ -83,29 +83,9 @@ class UpdateSet(object):
 
     updateJobDir = property(_getUpdateJobDir)
 
-class InstallationService(object):
-    conaryClientFactory = clientfactory.ConaryClientFactory
+class InstallationService(update.UpdateService):
     UpdateSetFactory = UpdateSet
     UpdateFlags = UpdateFlags
-
-    def __init__(self):
-        self.cclient = None
-
-    def _getClient(self, modelfile=None, force=False):
-        if self.cclient is None or force:
-            if self._system_model_exists():
-                self.cclient = self.conaryClientFactory().getClient(
-                                            modelFile=modelfile)
-            else:
-                self.cclient = self.conaryClientFactory().getClient(
-                                            model=False)
-        return self.cclient
-
-    conaryClient = property(_getClient)
-
-    def _system_model_exists(self):
-        cfg = self.conaryClientFactory().getCfg()
-        return os.path.isfile(cfg.modelPath)
 
     def buildUpdateJob(self, applyList):
         # We need to update to the latest version, so drop the version

@@ -107,7 +107,7 @@ class Test(testbaserepo.TestCase):
         jobObjectPath = params['job'][1]
         self.failUnless(jobObjectPath.keybindings['InstanceID'].startswith("com.rpath:"))
 
-        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 2)
+        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 4)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
 
         esiProv, esiObjPath = self.getProviderElementSoftwareIdentity()
@@ -141,7 +141,7 @@ class Test(testbaserepo.TestCase):
         jobObjectPath = params['job'][1]
         self.failUnless(jobObjectPath.keybindings['InstanceID'].startswith("com.rpath:"))
 
-        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 2)
+        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 4)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
 
     def testInstallFromSoftwareIdentity(self):
@@ -589,13 +589,14 @@ class Test(testbaserepo.TestCase):
 
         # Update
         InstallOptions = []
-        sources = "group-foo=/%s/2-1-1"
-        systemModel = "install %s" % sources
+        sources = [ "group-foo=%s/2-1-1" % self.defLabel,
+                "bar=%s/1-1-1" % self.defLabel ]
+        systemModel = '\n'.join("install %s" % x for x in sources)
         ret, params = sisProv.MI_invokeMethod(self.env, sisObjPath,
             "UpdateFromSystemModel",
             dict(
                 ManagementNodeAddresses = ['1.1.1.1', '2.2.2.2'],
-                SystemModel = systemModel % self.defLabel,
+                SystemModel = systemModel,
                 InstallOptions = InstallOptions))
 
         self.failUnlessEqual(ret[1], 4096)
@@ -613,24 +614,23 @@ class Test(testbaserepo.TestCase):
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
         job = concrete_job.UpdateJob().load(jobId)
-        self.assertEquals(job.concreteJob.systemModel, "install group-foo=/localhost@rpl:linux/2-1-1")
+        self.assertEquals(job.concreteJob.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+        #self.assertXMLEquals(job.concreteJob.content, "")
 
         rlProv, rlObjectPath = self.getProviderRecordLog()
         rlObjectPath['InstanceId'] = jobObjectPath['InstanceId']
         recordLogInst = rlProv.MI_getInstance(self.env, rlObjectPath, None)
-        from testrunner import testcase
-        raise testcase.SkipTestException("To be fixed when we wire in system-model bits")
         # Make sure we got some logs here
         self.failUnlessEqual(
             recordLogInst.properties['CurrentNumberOfRecords'].value,
-            31)
+            2)
 
         rleProv, rleObjectPath = self.getProviderLogEntry()
         logEntryContents = []
         for leInst in rleProv.MI_enumInstances(self.env, rleObjectPath, []):
             logEntryContents.append(leInst.properties['RecordData'].value)
         logId = leInst.properties['LogInstanceID'].value
-        self.failUnlessEqual(len(logEntryContents), 31)
+        self.failUnlessEqual(len(logEntryContents), 2)
         self.failUnlessEqual(logEntryContents[-1], "Done")
 
         ruolProv, ruolObjectPath = self.getProviderUseOfLog()
@@ -646,6 +646,9 @@ class Test(testbaserepo.TestCase):
         self.failUnlessEqual(ret[0][1].replace('recordLogs', 'jobs'),
             ret[0][3])
         self.failUnlessEqual(ret[0][1], logId)
+
+        from testrunner import testcase
+        raise testcase.SkipTestException("To be fixed when we wire in system-model bits")
 
         nvfs = [ x for x in self.getConaryClient().db.iterAllTroves() ]
         self.failUnlessEqual(
@@ -712,7 +715,18 @@ class Test(testbaserepo.TestCase):
         jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
 
+        # Make sure we've saved the system model
+        jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
+        jobId = jobId.split('/', 1)[-1]
+        job = concrete_job.UpdateJob().load(jobId)
+        self.assertEquals(job.concreteJob.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'ApplyUpdate', {})
         self.failUnlessEqual(params, {})
         self.failUnlessEqual(ret, ('uint16', 0L))
+
+        jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
+        self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
+
+

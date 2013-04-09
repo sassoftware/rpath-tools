@@ -52,7 +52,10 @@ class ConcreteJobMixIn(object):
         cuJob = concreteJob.concreteJob
         if cuJob.state is None:
             raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, model['InstanceID'])
-        jobState = getattr(self.Values.JobState, cuJob.state,
+        jobState = cuJob.state
+        if jobState == 'Applying':
+            jobState = 'Running'
+        jobState = getattr(self.Values.JobState, jobState,
             self.Values.JobState.Exception)
 
         if jobState == self.Values.JobState.Completed:
