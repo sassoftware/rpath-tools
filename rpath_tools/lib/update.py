@@ -682,7 +682,7 @@ class SyncModel(SystemModel):
         return a job
         '''
         callback = self._callback(job)
-        jobid = job.get_job_id()
+        jobid = job.keyId
 
         logger.info("BEGIN Applying sync update operation JOBID : %s" % jobid)
         # Top Level Items
