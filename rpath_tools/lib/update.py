@@ -373,6 +373,7 @@ class SystemModel(UpdateService):
         Return the tuple for the new top-level group after applying an
         update job.
         """
+        # TODO Decide how to handle multiple top level items
         # FIXME Hack this to support multiple top level items
         added = set()
         newTopTuples = set()
@@ -578,12 +579,9 @@ class SyncModel(SystemModel):
         self._newSystemModel = None
         self._modelfile = modelfile
         self.iid = instanceid
-        self.thaw = False
-        if self.iid:
-            self.thaw = True
         # Setup flags
         self.flags = SystemModelFlags(apply=False, preview=False,
-                freeze=True, thaw=self.thaw, iid=self.iid)
+                freeze=False, thaw=False, iid=self.iid)
 
     def _callback(self, job):
         return callbacks.UpdateCallback(job)
@@ -727,6 +725,7 @@ class SyncModel(SystemModel):
         # Always run a preview when calling preview
         # unless you mean not run a preview
         self.flags.preview = True
+        self.flags.freeze = True
         job = self._prepareSyncUpdateJob(job)
         return job.content
 
@@ -735,6 +734,7 @@ class SyncModel(SystemModel):
         returns topLevelItems
         '''
         self.flags.apply = True
+        self.flags.thaw = True
         job = self._applySyncUpdateJob(job)
         return job.content
 

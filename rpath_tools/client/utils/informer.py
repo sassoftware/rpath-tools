@@ -16,13 +16,12 @@
 #
 
 
-from conary import updatecmd
 from conary import conarycfg
 from conary import conaryclient
 from conary import trovetup
 from conary.lib import util
-from conary.conaryclient import cml
-from conary.conaryclient import systemmodel
+
+from rpath_tools.lib import clientfactory
 
 import os
 
@@ -43,20 +42,6 @@ class RepositoryError(InformerError):
     "Raised when a repository error is caught"
 
 
-class ConaryClientFactory(object):
-    def getClient(self, modelFile=None, model=True):
-        ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        ccfg.initializeFlavors()
-        if model:
-            if not modelFile:
-                model = cml.CML(ccfg)
-                modelFile = systemmodel.SystemModelFile(model)
-            cclient = conaryclient.ConaryClient(ccfg, modelFile=modelFile)
-        else:
-            cclient = conaryclient.ConaryClient(ccfg)
-        callback = updatecmd.callbacks.UpdateCallback()
-        cclient.setUpdateCallback(callback)
-        return cclient
 
 class InformerFlags(object):
     __slots__ = [ 'top', 'updates', 'counter', 'sync',
@@ -78,6 +63,9 @@ class InformerFlags(object):
 
 
 class Informer(object):
+
+    conaryClientFactory = clientfactory.ConaryClientFactory
+
     def __init__(self, values=[], callback=None):
         '''
         Base Module Class
@@ -86,7 +74,6 @@ class Informer(object):
         @param callback: A callback for messaging can be None
         @type callback: object like updatecmd.Callback
         '''
-        self.conaryClientFactory = ConaryClientFactory
 
         self._values = dict([ (x, True) for x in values])
         self.flags = InformerFlags()

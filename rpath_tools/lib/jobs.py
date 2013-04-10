@@ -159,12 +159,13 @@ class SyncPreviewTask(BaseUpdateTask):
     def run(self, systemModelPath, flags=None):
         operation = update.SyncModel()
         preview = operation.preview(self.job)
-        self.job.content = preview.toxml()
+        self.job.content = preview
 
 class SyncApplyTask(BaseUpdateTask):
     def run(self, flags=None):
         operation = update.SyncModel()
-        operation.apply(self.job)
+        preview = operation.apply(self.job)
+        self.job.content = preview
 
 class SurveyTask(BaseTask):
     jobFactory = stored_objects.ConcreteSurveyJobFactory
