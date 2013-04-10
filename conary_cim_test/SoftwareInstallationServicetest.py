@@ -189,7 +189,6 @@ class Test(testbaserepo.TestCase):
 
         class Popen:
             def __init__(self, *args, **kwargs):
-                callArgs = args[0]
                 task = jobs.UpdateTask().new()
                 _flags = {}
                 _flags[mode] = True

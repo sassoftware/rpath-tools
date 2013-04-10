@@ -20,7 +20,7 @@ import os
 import testbaserepo
 
 import pywbem
-from rpath_tools.lib import installation_service, jobs
+from rpath_tools.lib import jobs
 import surveys
 
 class Test(testbaserepo.TestCase):
