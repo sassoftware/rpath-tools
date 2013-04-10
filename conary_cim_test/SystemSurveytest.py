@@ -20,8 +20,7 @@ import os
 import testbaserepo
 
 import pywbem
-import concrete_job
-import installation_service
+from rpath_tools.lib import installation_service, jobs
 import surveys
 
 class Test(testbaserepo.TestCase):
@@ -29,7 +28,7 @@ class Test(testbaserepo.TestCase):
         testbaserepo.TestCase.setUp(self)
         self.surveyStoragePath = os.path.join(self.workDir, "storage")
         self.mock(surveys.SurveyService, 'storagePath', self.surveyStoragePath)
-        self.mock(concrete_job.SurveyJob, 'storagePath', self.surveyStoragePath)
+        self.mock(jobs.SurveyTask, 'storagePath', self.surveyStoragePath)
         self.surveyPath = os.path.join(self.surveyStoragePath,
             surveys.Survey.prefix)
         os.makedirs(self.surveyPath)

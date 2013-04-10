@@ -26,7 +26,7 @@ import pywbem
 
 from mixin_computersystem import MixInComputerSystem
 import stub_RPATH_ElementSoftwareIdentity
-import installation_service
+from rpath_tools.lib import installation_service
 
 try:
     import poll_updater

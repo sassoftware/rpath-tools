@@ -17,7 +17,7 @@
 
 
 from rpath_tools.lib import clientfactory
-from rpath_tools.lib import concrete_job
+from rpath_tools.lib import jobs
 from rpath_tools.lib import installation_service
 
 import logging
@@ -56,7 +56,7 @@ class Preview(object):
 
     def preview(self, sources):
         flags = installation_service.UpdateFlags(test=True)
-        concreteJob = concrete_job.UpdateJob()
+        concreteJob = jobs.UpdateJob()
         if self.is_system_model:
             xml = self.previewSystemModelOperation(concreteJob, sources, flags)
         else:

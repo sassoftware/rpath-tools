@@ -24,7 +24,7 @@ Instruments the CIM class RPATH_RecordLog
 
 import pywbem
 
-import concrete_job
+from rpath_tools.lib import jobs
 import stub_RPATH_RecordLog
 import baseConcreteJobProvider
 
@@ -62,8 +62,8 @@ class RPATH_RecordLog(stubClass):
                 % self.__class__.__name__)
 
         key = self.fromInstanceID(model['InstanceID'])
-        concreteJob = concrete_job.AnyJob.load(key)
-        logEntriesLen = len(list(concreteJob.logs.enumerate()))
+        task = jobs.AnyTask.load(key)
+        logEntriesLen = len(list(task.logs.enumerate()))
 
         #model['AvailableRequestedStates'] = [self.Values.AvailableRequestedStates.<VAL>,] # TODO 
         #model['Caption'] = '' # TODO 
@@ -124,7 +124,7 @@ class RPATH_RecordLog(stubClass):
         # we set property values on the model. 
         model.path.update({'InstanceID': None})
 
-        for job in concrete_job.AnyJob.list():
+        for job in jobs.AnyTask.list():
             model['InstanceID'] = self.createInstanceID(job.keyId)
             if keys_only:
                 yield model

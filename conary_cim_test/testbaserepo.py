@@ -23,7 +23,7 @@ from conary.lib import util
 from conary_test import rephelp
 from rpath_tools.lib import clientfactory, installation_service, update
 
-import concrete_job
+from rpath_tools.lib import jobs
 import testbase
 
 class TestCase(rephelp.RepositoryHelper, testbase.ProviderMixIn):
@@ -44,7 +44,7 @@ class TestCase(rephelp.RepositoryHelper, testbase.ProviderMixIn):
         self.mock(update.UpdateService, 'conaryClientFactory', ConaryClientFactory)
         storagePath = os.path.join(self.workDir, "storage")
         self.mock(installation_service.UpdateSet, "storagePath", storagePath)
-        self.mock(concrete_job.UpdateJob, "storagePath", storagePath)
+        self.mock(jobs.BaseUpdateTask, "storagePath", storagePath)
         testbase.ProviderMixIn.setUp(self)
 
     def tearDown(self):

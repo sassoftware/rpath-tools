@@ -30,7 +30,7 @@ from mixin_computersystem import MixInComputerSystem
 import stub_RPATH_SoftwareInstallationService
 import RPATH_UpdateConcreteJob
 
-import concrete_job
+from rpath_tools.lib import jobs
 
 try:
     import poll_updater
@@ -278,14 +278,13 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
             instanceId = None
 
         # Create update job
-        concreteJob = concrete_job.UpdateJob().new()
-        concreteJob.startApplyUpdate(instanceId)
-
+        task = jobs.UpdateAllTask().new()
+        task(instanceId)
 
         # XXX Should be VAMI_UpdateConcreteJob
         job = pywbem.CIMInstanceName(classname='RPATH_UpdateConcreteJob',
             keybindings = dict(
-                InstanceID = RPATH_UpdateConcreteJob.RPATH_UpdateConcreteJob.createInstanceID(concreteJob.get_job_id())),
+                InstanceID = RPATH_UpdateConcreteJob.RPATH_UpdateConcreteJob.createInstanceID(task.get_job_id())),
             namespace = "root/cimv2")
 
         out_params = []
@@ -382,13 +381,13 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
         }
 
         args = [optionsMap[x] for x in param_installoptions if x in optionsMap]
-        execPath = os.path.join(os.path.dirname(concrete_job.__file__), 'concrete_job.py')
+        execPath = os.path.join(os.path.dirname(jobs.__file__), 'jobs.py')
         args.insert(0, execPath)
         args.insert(0, pythonPath)
         for source in param_sources:
             args.append("-p%s" % source)
 
-        # Use subprocess to start the update job.  concrete_job double forks,
+        # Use subprocess to start the update job.  jobs.py double forks,
         # so the wait will return almost immediately.
         concreteJobProc = subprocess.Popen(args, stdout=subprocess.PIPE)
         concreteJobProc.wait()
@@ -465,10 +464,10 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
         tmpf.flush()
         tmpf.close()
 
-        execPath = os.path.join(os.path.dirname(concrete_job.__file__), 'concrete_job.py')
+        execPath = os.path.join(os.path.dirname(jobs.__file__), 'jobs.py')
         args = [ pythonPath, execPath, '--system-model-path', tmpf.name, '--mode', 'sync' ]
 
-        # Use subprocess to start the update job.  concrete_job double forks,
+        # Use subprocess to start the update job.  jobs.py double forks,
         # so the wait will return almost immediately.
         concreteJobProc = subprocess.Popen(args, stdout=subprocess.PIPE)
         concreteJobProc.wait()
@@ -535,13 +534,13 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
             poll_updater.updatePollFile(logger)
 
         # Create update job
-        concreteJob = concrete_job.UpdateJob().new()
-        concreteJob.startUpdateCheck()
+        task = jobs.UpdateCheckTask().new()
+        task()
 
         # XXX Should be VAMI_UpdateConcreteJob
         job = pywbem.CIMInstanceName(classname='RPATH_UpdateConcreteJob',
             keybindings = dict(
-                InstanceID = RPATH_UpdateConcreteJob.RPATH_UpdateConcreteJob.createInstanceID(concreteJob.get_job_id())),
+                InstanceID = RPATH_UpdateConcreteJob.RPATH_UpdateConcreteJob.createInstanceID(task.get_job_id())),
             namespace = "root/cimv2")
 
         out_params = []

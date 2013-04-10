@@ -20,8 +20,7 @@ import pywbem
 import testbaserepo
 
 from conary.lib import util
-import concrete_job
-import installation_service
+from rpath_tools.lib import installation_service, jobs
 
 class Test(testbaserepo.TestCase):
     def testSoftwareInstallationService(self):
@@ -191,14 +190,12 @@ class Test(testbaserepo.TestCase):
         class Popen:
             def __init__(self, *args, **kwargs):
                 callArgs = args[0]
-                concreteJob = concrete_job.UpdateJob().new()
+                task = jobs.UpdateTask().new()
                 _flags = {}
                 _flags[mode] = True
                 flags = installation_service.InstallationService.UpdateFlags(**_flags)
-                concreteJob.startUpdateOperation(
-                    [sources % defLabel],
-                    flags)
-                self.jobId = concreteJob.get_job_id()
+                task([sources % defLabel], flags)
+                self.jobId = task.get_job_id()
 
             def wait(self):
                 return None
@@ -309,15 +306,16 @@ class Test(testbaserepo.TestCase):
 
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.AnyJob.load(jobId)
-        job.concreteJob.state = 'Exception'
-        job.concreteJob.content = None
+        task = jobs.AnyTask.load(jobId)
+        job = task.job
+        job.state = 'Exception'
+        job.content = None
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 2L))
 
-        job.concreteJob.content = 'Blahblah'
+        job.content = 'Blahblah'
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 0L))
@@ -569,10 +567,9 @@ class Test(testbaserepo.TestCase):
                 tmpf = args[0][idx+1]
                 # Flags are meaningless for now
                 flags = installation_service.InstallationService.UpdateFlags()
-                concreteJob = concrete_job.UpdateJob.previewSyncOperation(
-                        tmpf, flags)
-
-                self.jobId = concreteJob.get_job_id()
+                task = jobs.SyncPreviewTask().new()
+                task(tmpf, flags)
+                self.jobId = task.get_job_id()
 
             def wait(self):
                 return None
@@ -613,8 +610,8 @@ class Test(testbaserepo.TestCase):
         # Make sure we've saved the system model
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.UpdateJob().load(jobId)
-        self.assertEquals(job.concreteJob.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+        task = jobs.UpdateTask().load(jobId)
+        self.assertEquals(task.job.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
         #self.assertXMLEquals(job.concreteJob.content, "")
 
         rlProv, rlObjectPath = self.getProviderRecordLog()
@@ -694,15 +691,16 @@ class Test(testbaserepo.TestCase):
 
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.AnyJob.load(jobId)
-        job.concreteJob.state = 'Exception'
-        job.concreteJob.content = None
+        task = jobs.AnyTask.load(jobId)
+        job = task.job
+        job.state = 'Exception'
+        job.content = None
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 2L))
 
-        job.concreteJob.content = 'Blahblah'
+        job.content = 'Blahblah'
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 0L))
@@ -718,8 +716,9 @@ class Test(testbaserepo.TestCase):
         # Make sure we've saved the system model
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.UpdateJob().load(jobId)
-        self.assertEquals(job.concreteJob.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+        task = jobs.UpdateTask().load(jobId)
+        job = task.job
+        self.assertEquals(job.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'ApplyUpdate', {})

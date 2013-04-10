@@ -24,7 +24,7 @@ Instruments the CIM class RPATH_LogEntry
 
 import pywbem
 
-import concrete_job
+from rpath_tools.lib import jobs
 import utils
 import stub_RPATH_LogEntry
 import RPATH_RecordLog
@@ -63,8 +63,8 @@ class RPATH_LogEntry(stubClass):
                 % self.__class__.__name__)
 
         jobId, logEntryTimestamp = self.fromInstanceID(model['InstanceID'])
-        concreteJob = concrete_job.AnyJob.load(jobId)
-        cuJob = concreteJob.concreteJob
+        task = jobs.AnyTask.load(jobId)
+        cuJob = task.job
         logEntries = [ x for x in cuJob.logs.enumerate()
             if x.timestamp == logEntryTimestamp ]
         if not logEntries:
@@ -123,7 +123,7 @@ class RPATH_LogEntry(stubClass):
         # we set property values on the model. 
         model.path.update({'InstanceID': None})
 
-        for job in concrete_job.AnyJob.list():
+        for job in jobs.AnyTask.list():
             logInstanceID = self.createLogInstanceID(job.keyId)
             model['LogInstanceID'] = logInstanceID
             for le in job.logs.enumerate():

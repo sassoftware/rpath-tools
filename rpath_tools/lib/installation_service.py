@@ -85,6 +85,10 @@ class UpdateSet(object):
 class InstallationService(update.UpdateService):
     UpdateSetFactory = UpdateSet
     UpdateFlags = UpdateFlags
+    # XXX we should find a better place for these
+    SystemModelID = 'com.rpath.conary:system_model'
+    SystemModelElementName = 'system model'
+    SystemModelType = object()
 
     def buildUpdateJob(self, applyList):
         # We need to update to the latest version, so drop the version
@@ -127,6 +131,18 @@ class InstallationService(update.UpdateService):
         updateJob.thaw(job.updateJobDir)
         return keyId, updateJob, job
 
+    def updateAllCheck(self):
+        applyList = self.getUpdateItemList()
+        try:
+            updateJob = self.buildUpdateJob(applyList)
+        except NoUpdatesFound:
+            return
+        except RepositoryError, e:
+            # XXX FIXME: store the exception somewhere
+            raise
+
+        self.freezeUpdateJob(updateJob)
+
     def getUpdateItemList(self):
         cclient = self.conaryClient
 
@@ -134,6 +150,24 @@ class InstallationService(update.UpdateService):
         applyList = [ (x[0], (None, None), x[1:], True) for x in updateItems ]
         return applyList
 
+    def getAvailableUpdatesList(self):
+        "Return the list of available updates from a frozen update job"
+        try:
+            jobId, updateJob, concreteJob = self.thawUpdateJob()
+        except NoUpdatesFound:
+            return None, []
+        return jobId, updateJob.primaries
+
+    def updateAllApply(self, instanceId):
+        try:
+            jobId, updateJob, updateSet = self.thawUpdateJob(instanceId)
+        except NoUpdatesFound:
+            return None
+        # Set the state, so we don't pick this update set object again
+        updateSet.state = "Applying"
+
+        self._fixSignals()
+        self.conaryClient.applyUpdateJob(updateJob)
 
     def getCurrentTop(self):
         """Return the tuple for the present top-level group"""
@@ -223,8 +257,28 @@ class InstallationService(update.UpdateService):
         fmt.addObservedVersion(actualTop)
         return fmt.toxml()
 
-
-
+    def createTroveMapping(self):
+        """
+        @return: a dictionary keyed on the full trove spec, with a tuple
+            ((name, version, flavor), isInstalled) as value
+        """
+        troveList = self.getUpdateItemList()
+        # True for installed troves, False for available troves
+        troveMapping = dict(
+            ("rpath.com:%s=%s[%s]" % (n, v.freeze(), f), ((n, v, f), True))
+                for (n, (_, _), (v, f), _) in troveList)
+        jobId, troveList = self.getAvailableUpdatesList()
+        if jobId is not None:
+            troveMapping.update(dict(
+                ("rpath.com:%s:%s" % (jobId, i), ((n, v, f), False))
+                    for i, (n, (_, _), (v, f), _) in enumerate(troveList)))
+        systemModel = self.conaryClient.getSystemModel()
+        if systemModel:
+            contents = systemModel.contents
+            mtime = int(systemModel.mtime)
+            value = ('system model', contents, mtime)
+            troveMapping[self.SystemModelID] = (value, self.SystemModelType)
+        return troveMapping
 
 
 class UpdateCallback(updatecmd.UpdateCallback):

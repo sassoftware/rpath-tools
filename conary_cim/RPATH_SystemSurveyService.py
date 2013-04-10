@@ -29,7 +29,7 @@ from pywbem.cim_provider2 import CIMProvider2
 from mixin_computersystem import MixInComputerSystem
 import stub_RPATH_SystemSurveyService
 
-import concrete_job
+from rpath_tools.lib import jobs
 import RPATH_SurveyConcreteJob
 
 stubClass = stub_RPATH_SystemSurveyService.RPATH_SystemSurveyService
@@ -195,10 +195,10 @@ class RPATH_SystemSurveyService(stubClass, MixInComputerSystem):
                 % self.__class__.__name__)
 
         # Create update job
-        sserv = concrete_job.SurveyJob()
-        job = sserv.scan(param_desiredpackages)
+        task = jobs.SurveyTask().new()
+        task(param_desiredpackages)
 
-        jobInstanceID = RPATH_SurveyConcreteJob.RPATH_SurveyConcreteJob.createInstanceID(job.get_job_id())
+        jobInstanceID = RPATH_SurveyConcreteJob.RPATH_SurveyConcreteJob.createInstanceID(task.get_job_id())
         job = pywbem.CIMInstanceName(classname='RPATH_SurveyConcreteJob',
             keybindings = dict(InstanceID = jobInstanceID),
             namespace = "root/cimv2")
