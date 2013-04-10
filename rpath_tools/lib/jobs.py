@@ -213,7 +213,7 @@ def main():
 
     kwargs[options.mode] = True
     kwargs['test'] = bool(options.test)
-    
+
     flags = installation_service.InstallationService.UpdateFlags(**kwargs)
     if options.package:
         task = startUpdateOperation(sources=options.package, flags=flags)

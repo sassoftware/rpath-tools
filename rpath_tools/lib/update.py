@@ -599,33 +599,35 @@ class SyncModel(SystemModel):
     def modelFilePath(self, dir):
         return os.path.join(os.path.dirname(dir), 'system-model')
 
-    def thawSyncUpdateJob(self, concreteJob):
-        updateJob = self._thawUpdateJob(concreteJob.updateJobDir)
-        model = self._getNewModelFromString(concreteJob.systemModel)
+    def thawSyncUpdateJob(self, job):
+        updateJob = self._thawUpdateJob(job.updateJobDir)
+        model = self._getNewModelFromString(job.systemModel)
         return updateJob, model
 
-    def freezeSyncUpdateJob(self, updateJob, concreteJob):
-        results = self._freezeUpdateJob(updateJob, concreteJob.updateJobDir)
+    def freezeSyncUpdateJob(self, updateJob, job):
+        results = self._freezeUpdateJob(updateJob, job.updateJobDir)
         return results
 
     def _getPreviewFromUpdateJob(self, updateJob, topLevelItems, newTopLevelItems):
+        preview_xml = '<preview/>'
         preview = formatter.Formatter(updateJob)
-        preview.format()
-        for ntli in newTopLevelItems:
-            preview.addDesiredVersion(ntli)
-        for tli in topLevelItems:
-            preview.addObservedVersion(tli)
-        return preview
+        if preview:
+            preview.format()
+            for ntli in newTopLevelItems:
+                preview.addDesiredVersion(ntli)
+            for tli in topLevelItems:
+                preview.addObservedVersion(tli)
+            preview_xml = preview.toxml()
+        return preview_xml
 
-    def _prepareSyncUpdateJob(self, concreteJob):
+    def _prepareSyncUpdateJob(self, job):
         '''
         Used to create an update job to make a preview from
-        return concreteJob
+        return job
         '''
         preview = None
         frozen = False
-        callback = self._callback(concreteJob)
-        concreteJob.content = '<preview/>'
+        callback = self._callback(job)
         # Transaction Counter
         tcount = self._getTransactionCount()
         logger.info("Conary DB Transaction Counter: %s" % tcount)
@@ -636,19 +638,24 @@ class SyncModel(SystemModel):
         for n,v,f in topLevelItems:
             logger.info("%s %s %s" % (n,v,f))
 
-        model = self._getNewModelFromString(concreteJob.systemModel)
+        model = self._getNewModelFromString(job.systemModel)
 
         updateJob, suggMap = self._buildUpdateJob(model, callback)
 
         # TODO : REVIEW if self.flags helps...
         # SILLY AS IT IS ALWAYS TRUE
-        # And with returning a concreteJob I have to freeze the update
+        # And with returning a job I have to freeze the update
         if self.flags.freeze:
             try:
-                frozen = self.freezeSyncUpdateJob(updateJob, concreteJob)
+                frozen = self.freezeSyncUpdateJob(updateJob, job)
             except Exception, e:
                 # FIXME
-                raise errors.FrozenUpdateJobError, str(e)
+                job.content = traceback.format_exc()
+                job.state = "Exception"
+                logger.error("FAILED: %s" % str(e))
+                if callback:
+                    callback.done()
+                return job
         # SILLY AS IT IS ALWAYS TRUE
         # I should probably remove self.flags cause it is overkill
         if self.flags.preview:
@@ -657,68 +664,68 @@ class SyncModel(SystemModel):
             preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
                                                                 newTopLevelItems)
             if preview:
-                concreteJob.content = preview.toxml()
+                job.content = preview
         if frozen:
-            concreteJob.state = "Frozen"
-        return concreteJob
+            job.state = "Frozen"
+        return job
 
 
 
-    def _applySyncUpdateJob(self, concreteJob):
+    def _applySyncUpdateJob(self, job):
         '''
         Used to apply a frozen job
-        return a concreteJob
+        return a job
         '''
-        callback = self._callback(concreteJob)
+        callback = self._callback(job)
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
         logger.info("Top Level Items")
         for n,v,f in topLevelItems: logger.info("%s %s %s" % (n,v,f))
 
-        updJob, model = self.thawSyncUpdateJob(concreteJob)
+        updateJob, model = self.thawSyncUpdateJob(job)
         try:
-            concreteJob.state = "Applying"
+            job.state = "Applying"
             model.writeSnapshot()
             logger.info("Applying update job from  %s"
-                                    % concreteJob.updateJobDir)
-            self._applyUpdateJob(updJob, callback)
+                                    % job.updateJobDir)
+            self._applyUpdateJob(updateJob, callback)
         except Exception, e:
-            concreteJob.content = traceback.format_exc()
-            concreteJob.state = "Exception"
+            job.content = traceback.format_exc()
+            job.state = "Exception"
             logger.error("FAILED: %s" % str(e))
             if callback:
                 callback.done()
-            return
+            return job
 
         model.closeSnapshot()
         newTopLevelItems = self._getTopLevelItems()
         logger.info("New Top Level Items")
         for n,v,f in newTopLevelItems:
             logger.info("%s %s %s" % (n,v,f))
-        preview = self._getPreviewFromUpdateJob(updJob, topLevelItems,
+        preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
                                                             newTopLevelItems)
         if preview:
-            concreteJob.content = preview.toxml()
-        concreteJob.state = "Completed"
-        return concreteJob
+            job.content = preview
+        job.state = "Completed"
+        return job
 
-    def preview(self, concreteJob):
+    def preview(self, job):
         '''
         return preview
         '''
         # Always run a preview when calling preview
         # unless you mean not run a preview
         self.flags.preview = True
-        concreteJob = self._prepareSyncUpdateJob(concreteJob)
-        return concreteJob.content
+        job = self._prepareSyncUpdateJob(job)
+        return job.content
 
-    def apply(self, concreteJob):
+    def apply(self, job):
         '''
         returns topLevelItems
         '''
         self.flags.apply = True
-        concreteJob = self._applySyncUpdateJob(concreteJob)
-        return concreteJob.content
+        job = self._applySyncUpdateJob(job)
+        return job.content
 
     def debug(self):
         #epdb.st()
@@ -735,8 +742,4 @@ if __name__ == '__main__':
     except EnvironmentError:
         print 'oops'
 
-    job = stored_objects.ConcreteUpdateJob()
 
-    op = SyncModel()
-    preview = op.preview(job)
-    topLevelItems = op.apply(job)

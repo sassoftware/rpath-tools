@@ -53,6 +53,9 @@ class Formatter(object):
         etree.SubElement(self.root, 'desired').text = troveTup.asString(
                 withTimestamp=True)
 
+    def addUuid(self, uuid):
+        etree.SubElement(self.root, 'uuid').text = str(uuid)
+
     def toxml(self):
         return etree.tostring(self.root)
 
