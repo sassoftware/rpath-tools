@@ -631,7 +631,7 @@ class SyncModel(SystemModel):
         preview = None
         frozen = False
         callback = self._callback(job)
-        jobid = job.get_job_id()
+        jobid = job.keyId
 
         logger.info("BEGIN Sync update operation for job : %s" % jobid)
         # Transaction Counter
