@@ -608,7 +608,8 @@ class SyncModel(SystemModel):
         results = self._freezeUpdateJob(updateJob, job.updateJobDir)
         return results
 
-    def _getPreviewFromUpdateJob(self, updateJob, topLevelItems, newTopLevelItems):
+    def _getPreviewFromUpdateJob(self, updateJob, topLevelItems,
+                                        newTopLevelItems, uuid=None):
         preview_xml = '<preview/>'
         preview = formatter.Formatter(updateJob)
         if preview:
@@ -617,6 +618,8 @@ class SyncModel(SystemModel):
                 preview.addDesiredVersion(ntli)
             for tli in topLevelItems:
                 preview.addObservedVersion(tli)
+            if uuid:
+                preview.addUuid(uuid)
             preview_xml = preview.toxml()
         return preview_xml
 
@@ -628,6 +631,9 @@ class SyncModel(SystemModel):
         preview = None
         frozen = False
         callback = self._callback(job)
+        jobid = job.get_job_id()
+
+        logger.info("BEGIN Sync update operation for job : %s" % jobid)
         # Transaction Counter
         tcount = self._getTransactionCount()
         logger.info("Conary DB Transaction Counter: %s" % tcount)
@@ -652,17 +658,18 @@ class SyncModel(SystemModel):
                 # FIXME
                 job.content = traceback.format_exc()
                 job.state = "Exception"
-                logger.error("FAILED: %s" % str(e))
+                logger.error("JOBID : %s FAILED: %s" % (jobid, str(e)))
                 if callback:
                     callback.done()
                 return job
+        # TODO : REVIEW if self.flags helps...
         # SILLY AS IT IS ALWAYS TRUE
         # I should probably remove self.flags cause it is overkill
         if self.flags.preview:
             newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
                                                                     updateJob)
             preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
-                                                                newTopLevelItems)
+                                                        newTopLevelItems, jobid)
             if preview:
                 job.content = preview
         if frozen:
@@ -677,6 +684,9 @@ class SyncModel(SystemModel):
         return a job
         '''
         callback = self._callback(job)
+        jobid = job.get_job_id()
+
+        logger.info("BEGIN Applying sync update operation JOBID : %s" % jobid)
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
         logger.info("Top Level Items")
@@ -686,13 +696,13 @@ class SyncModel(SystemModel):
         try:
             job.state = "Applying"
             model.writeSnapshot()
-            logger.info("Applying update job from  %s"
-                                    % job.updateJobDir)
+            logger.info("Applying update job JOBID : %s from  %s"
+                                    % (jobid, job.updateJobDir))
             self._applyUpdateJob(updateJob, callback)
         except Exception, e:
             job.content = traceback.format_exc()
             job.state = "Exception"
-            logger.error("FAILED: %s" % str(e))
+            logger.error("JOBID : %s FAILED: %s" % (jobid, str(e)))
             if callback:
                 callback.done()
             return job
@@ -703,10 +713,11 @@ class SyncModel(SystemModel):
         for n,v,f in newTopLevelItems:
             logger.info("%s %s %s" % (n,v,f))
         preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
-                                                            newTopLevelItems)
+                                                    newTopLevelItems, jobid)
         if preview:
             job.content = preview
         job.state = "Completed"
+        logger.info("Completed apply for sync update operation JOBID : %s" % jobid)
         return job
 
     def preview(self, job):
