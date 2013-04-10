@@ -607,7 +607,7 @@ class SyncModel(SystemModel):
         return results
 
     def _getPreviewFromUpdateJob(self, updateJob, topLevelItems,
-                                        newTopLevelItems, uuid=None):
+                                        newTopLevelItems, jobid=None):
         preview_xml = '<preview/>'
         preview = formatter.Formatter(updateJob)
         if preview:
@@ -616,8 +616,8 @@ class SyncModel(SystemModel):
                 preview.addDesiredVersion(ntli)
             for tli in topLevelItems:
                 preview.addObservedVersion(tli)
-            if uuid:
-                preview.addUuid(uuid)
+            if jobid:
+                preview.addJobid(jobid)
             preview_xml = preview.toxml()
         return preview_xml
 
