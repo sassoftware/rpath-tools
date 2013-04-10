@@ -191,7 +191,7 @@ class AnyTask(object):
 
 def startUpdateOperation(sources, flags):
     task = UpdateTask().new()
-    task.run(sources, flags)
+    task(sources, flags)
     return task
 
 def main():
