@@ -620,6 +620,7 @@ class SyncModel(SystemModel):
     def _prepareSyncUpdateJob(self, concreteJob):
         '''
         Used to create an update job to make a preview from
+        return concreteJob
         '''
         preview = None
         frozen = False
@@ -659,13 +660,14 @@ class SyncModel(SystemModel):
                 concreteJob.content = preview.toxml()
         if frozen:
             concreteJob.state = "Frozen"
-        return concreteJob.content
+        return concreteJob
 
 
 
     def _applySyncUpdateJob(self, concreteJob):
         '''
         Used to apply a frozen job
+        return a concreteJob
         '''
         callback = self._callback(concreteJob)
         # Top Level Items
@@ -698,7 +700,7 @@ class SyncModel(SystemModel):
         if preview:
             concreteJob.content = preview.toxml()
         concreteJob.state = "Completed"
-        return concreteJob.content
+        return concreteJob
 
     def preview(self, concreteJob):
         '''
@@ -707,15 +709,16 @@ class SyncModel(SystemModel):
         # Always run a preview when calling preview
         # unless you mean not run a preview
         self.flags.preview = True
-        return self._prepareSyncUpdateJob(concreteJob)
+        concreteJob = self._prepareSyncUpdateJob(concreteJob)
+        return concreteJob.content
 
     def apply(self, concreteJob):
         '''
         returns topLevelItems
         '''
         self.flags.apply = True
-        return self._applySyncUpdateJob(concreteJob)
-
+        concreteJob = self._applySyncUpdateJob(concreteJob)
+        return concreteJob.content
 
     def debug(self):
         #epdb.st()
