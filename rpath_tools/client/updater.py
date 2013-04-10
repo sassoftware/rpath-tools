@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 
-from conary import trovetup
 
 from conary.lib import util
 
