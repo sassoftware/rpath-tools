@@ -655,8 +655,8 @@ class SyncModel(SystemModel):
                                                                     updateJob)
             preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
                                                                 newTopLevelItems)
-
-            concreteJob.content = preview.toxml()
+            if preview:
+                concreteJob.content = preview.toxml()
         if frozen:
             concreteJob.state = "Frozen"
         return concreteJob.content
@@ -695,7 +695,8 @@ class SyncModel(SystemModel):
             logger.info("%s %s %s" % (n,v,f))
         preview = self._getPreviewFromUpdateJob(updJob, topLevelItems,
                                                             newTopLevelItems)
-        concreteJob.content = preview.toxml()
+        if preview:
+            concreteJob.content = preview.toxml()
         concreteJob.state = "Completed"
         return concreteJob.content
 
