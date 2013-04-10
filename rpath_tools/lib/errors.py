@@ -17,12 +17,6 @@
 
 
 
-
-import logging
-
-logger = logging.getLogger(name = '__name__')
-
-
 class SystemModelServiceError(Exception):
     "Base class"
 
@@ -40,3 +34,9 @@ class FrozenJobPathMissing(SystemModelServiceError):
 
 class FrozenUpdateJobError(SystemModelServiceError):
     "Raise when a freezing an update job fails"
+
+class BuildUpdateJobError(SystemModelServiceError):
+    "Raise when building an update job fails"
+
+class NotImplementedError(SystemModelServiceError):
+    "Raise when a function is not implemented"

@@ -91,10 +91,8 @@ class SystemModel(UpdateService):
         self._sysmodel = None
         self._newSystemModel = None
         self._contents = sysmod
-        # FIXME
         if self._contents:
-            self._newSystemModel = [ x + '\n' for x in
-                                        self._contents.split('\n') if x ]
+            self._newSystemModel = self._setSystemModelContents(self._contents)
         self._manifest = None
         self._model_cache = None
         self._cfg = self.conaryClientFactory().getCfg()
@@ -157,7 +155,7 @@ class SystemModel(UpdateService):
                 data = f.readlines()
         except EnvironmentError, e:
             #FIXME
-            return [ EnvironmentError, str(e) ]
+            raise EnvironmentError, str(e)
         return data
 
 
@@ -242,7 +240,8 @@ class SystemModel(UpdateService):
                 model = self._update_model(model, modelData)
             except Exception, e:
                 #FIXME : Use a nice error...
-                raise Exception, str(e)
+                logger.error("FAILED TO READ MODEL : %s" % str(e))
+                #raise Exception, str(e)
         return model
 
 
@@ -252,7 +251,7 @@ class SystemModel(UpdateService):
         '''
         # copy snapshot to system-model
         #self.modelFile.closeSnapshot(fileName=modelFile.snapName)
-        raise NotImplementedError
+        raise errors.NotImplementedError
 
 
     def _buildUpdateJob(self, sysmod, callback=None):
@@ -274,8 +273,8 @@ class SystemModel(UpdateService):
         try:
             suggMap = cclient._updateFromTroveSetGraph(updJob,
                             troveSetGraph, cache)
-        except errors.TroveSpecsNotFound, e:
-            print "FAILED %s" % str(e)
+        except Exception, e:
+            logger.error("FAILED %s" % str(e))
             if callback:
                 callback.close()
             return updJob, {}
@@ -350,17 +349,18 @@ class SystemModel(UpdateService):
             frozen = True
         except Exception, e:
             # FIXME still wrong... 
-            raise errors.FrozenJobError, errors.FrozenJobError(e)
+            raise errors.FrozenUpdateJobError, errors.FrozenUpdateJobError(e)
         return frozen
 
     def _thawUpdateJob(self, path):
         if os.path.exists(path):
-            cclient = self.conaryClient
-            updateJob = cclient.newUpdateJob()
-            updateJob.thaw(path)
-        else:
-            # FIXME
-            raise errors.FrozenJobPathMissing
+            try:
+                cclient = self.conaryClient
+                updateJob = cclient.newUpdateJob()
+                updateJob.thaw(path)
+            except:
+                # FIXME
+                raise errors.FrozenJobPathMissing
         return updateJob
 
     def _getTopLevelItems(self):
@@ -608,11 +608,23 @@ class SyncModel(SystemModel):
         results = self._freezeUpdateJob(updateJob, concreteJob.updateJobDir)
         return results
 
+    def _getPreviewFromUpdateJob(self, updateJob, topLevelItems, newTopLevelItems):
+        preview = formatter.Formatter(updateJob)
+        preview.format()
+        for ntli in newTopLevelItems:
+            preview.addDesiredVersion(ntli)
+        for tli in topLevelItems:
+            preview.addObservedVersion(tli)
+        return preview
+
     def _prepareSyncUpdateJob(self, concreteJob):
         '''
         Used to create an update job to make a preview from
         '''
+        preview = None
+        frozen = False
         callback = self._callback(concreteJob)
+        concreteJob.content = '<preview/>'
         # Transaction Counter
         tcount = self._getTransactionCount()
         logger.info("Conary DB Transaction Counter: %s" % tcount)
@@ -632,7 +644,7 @@ class SyncModel(SystemModel):
         # And with returning a concreteJob I have to freeze the update
         if self.flags.freeze:
             try:
-                freeze = self.freezeSyncUpdateJob(updateJob, concreteJob)
+                frozen = self.freezeSyncUpdateJob(updateJob, concreteJob)
             except Exception, e:
                 # FIXME
                 raise errors.FrozenUpdateJobError, str(e)
@@ -641,18 +653,15 @@ class SyncModel(SystemModel):
         if self.flags.preview:
             newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
                                                                     updateJob)
-            return self._getPreviewFromUpdateJob(updateJob, topLevelItems,
-                    newTopLevelItems)
-        return preview
+            preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
+                                                                newTopLevelItems)
 
-    def _getPreviewFromUpdateJob(self, updateJob, topLevelItems, newTopLevelItems):
-        preview = formatter.Formatter(updateJob)
-        preview.format()
-        for ntli in newTopLevelItems:
-            preview.addDesiredVersion(ntli)
-        for tli in topLevelItems:
-            preview.addObservedVersion(tli)
-        return preview
+            concreteJob.content = preview.toxml()
+        if frozen:
+            concreteJob.state = "Frozen"
+        return concreteJob.content
+
+
 
     def _applySyncUpdateJob(self, concreteJob):
         '''
@@ -675,6 +684,8 @@ class SyncModel(SystemModel):
             concreteJob.content = traceback.format_exc()
             concreteJob.state = "Exception"
             logger.error("FAILED: %s" % str(e))
+            if callback:
+                callback.done()
             return
 
         model.closeSnapshot()
@@ -682,9 +693,11 @@ class SyncModel(SystemModel):
         logger.info("New Top Level Items")
         for n,v,f in newTopLevelItems:
             logger.info("%s %s %s" % (n,v,f))
-        preview = self._getPreviewFromUpdateJob(updJob, topLevelItems, newTopLevelItems)
+        preview = self._getPreviewFromUpdateJob(updJob, topLevelItems,
+                                                            newTopLevelItems)
         concreteJob.content = preview.toxml()
         concreteJob.state = "Completed"
+        return concreteJob.content
 
     def preview(self, concreteJob):
         '''
