@@ -16,9 +16,7 @@
 
 
 
-from rpath_tools.lib import clientfactory
-from rpath_tools.lib import jobs
-from rpath_tools.lib import installation_service
+from rpath_tools.client import updater
 
 import logging
 
@@ -27,44 +25,21 @@ logger = logging.getLogger(name='__name__')
 
 
 class Preview(object):
-    conaryClientFactory = clientfactory.ConaryClientFactory
 
-    def __init__(self, cclient=None):
-        self.cclient = cclient
-
-    def _getClient(self, force=False):
-        if self.cclient is None or force:
-            self.cclient = self.conaryClientFactory().getClient()
-        return self.cclient
-
-    conaryClient = property(_getClient)
-
-    def previewUpdateOperation(self, job, sources, flags, callback=None):
-        '''Use updateOperation to create a preview by setting flag.test'''
-        # FIXME XXX
-        # Create a job to pass to installation_service
-        op = installation_service.InstallationService()
-        xml = op.updateOperation(job, sources, flags)
-        return xml
-
-    def previewSystemModelOperation(self, job, sources, flags):
-        '''Use sync update method ot provide a preview'''
-        fname = "/tmp/system-model.preview"
-        file(fname, "w").write(sources)
-        job = job.previewSyncOperation(fname, flags)
-        return job.contents
+    def __init__(self, sources=None):
+        self.sources = sources
 
     def preview(self, sources):
-        flags = installation_service.UpdateFlags(test=True)
-        concreteJob = jobs.UpdateJob()
-        if self.is_system_model:
-            xml = self.previewSystemModelOperation(concreteJob, sources, flags)
-        else:
-            flags.migrate = True
-            xml = self.previewUpdateOperation(concreteJob, sources, flags)
-        if xml:
-            return xml
-        return '<preview/>'
+        '''
+        @param sources: should be a string representing the desired
+                        system-model for the system. For classic update
+                        path sources should be a string of the top level item
+
+        @type sources : string
+        '''
+
+        return updater.preview(sources, preview=True)
+
 
 if __name__ == '__main__':
     import sys
