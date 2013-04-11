@@ -100,7 +100,7 @@ class BaseTask(object):
         return self
 
     def load(self, jobId):
-        self.job = self.jobFactory(self.storagePath).load(jobId)
+        self.job = self.jobFactory(self.storagePath).load(self.sanitizeKey(jobId))
         return self
 
     def get_job_id(self):
@@ -134,6 +134,10 @@ class BaseTask(object):
         the run method.
         """
 
+    @classmethod
+    def sanitizeKey(cls, jobId):
+        return jobId
+
 class BaseUpdateTask(BaseTask):
     jobFactory = stored_objects.ConcreteUpdateJobFactory
 
@@ -166,6 +170,11 @@ class SyncApplyTask(BaseUpdateTask):
         operation = update.SyncModel()
         preview = operation.apply(self.job)
         self.job.content = preview
+
+    @classmethod
+    def sanitizeKey(cls, key):
+        return (cls.jobFactory.factory.keyPrefix,
+                key.rsplit('/', 1)[-1])
 
 class SurveyTask(BaseTask):
     jobFactory = stored_objects.ConcreteSurveyJobFactory

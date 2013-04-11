@@ -54,8 +54,7 @@ class Formatter(object):
                 withTimestamp=True)
 
     def addJobid(self, jobid):
-        self.root['id'] = str(jobid)
-        etree.SubElement(self.root, 'jobid').text = str(jobid)
+        self.root.attrib['id'] = str(jobid)
 
     def toxml(self):
         return etree.tostring(self.root)

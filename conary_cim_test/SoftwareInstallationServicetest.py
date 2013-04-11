@@ -709,6 +709,25 @@ class Test(testbaserepo.TestCase):
     def testApplyUpdate(self):
         sisProv, sisObjPath, jobObjectPath = self.setupSyncOperation()
 
+        # Set up versions
+        repos = self.openRepository()
+        troveMaps = {}
+        labelMaps = [
+            ('foo', 'foo'),
+            ('bar', 'bar'),
+            ('foorun', 'foo:runtime'),
+            ('groupfoo', 'group-foo'),
+            ('groupbarapp', 'group-bar-appliance'),
+        ]
+        for ver in range(1, 3):
+            for label, troveName in labelMaps:
+                troveMaps['%s-%s-1-1' % (label, ver)] = \
+                        (troveName, '%s/%s-1-1' % (self.defLabel, ver), None)
+        troveTups = repos.findTroves(None, troveMaps.values())
+        # Now convert maps to version strings
+        params = dict((x, troveTups[y][0][1].freeze())
+                for (x, y) in troveMaps.iteritems())
+
         jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
 
@@ -718,6 +737,110 @@ class Test(testbaserepo.TestCase):
         task = jobs.UpdateTask().load(jobId)
         job = task.job
         self.assertEquals(job.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+
+        params.update(jobId=jobId)
+
+        self.assertXMLEquals(job.content, """\
+<preview id="%(jobId)s">
+  <conary_package_changes>
+    <conary_package_change>
+      <type>changed</type>
+      <from_conary_package>
+        <name>foo</name>
+        <version>%(foo-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </from_conary_package>
+      <to_conary_package>
+        <name>foo</name>
+        <version>%(foo-2-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>2-1-1</revision>
+      </to_conary_package>
+      <conary_package_diff>
+        <version>
+          <from>%(foo-1-1-1)s</from>
+          <to>%(foo-2-1-1)s</to>
+        </version>
+        <revision>
+          <from>1-1-1</from>
+          <to>2-1-1</to>
+        </revision>
+      </conary_package_diff>
+    </conary_package_change>
+    <conary_package_change>
+      <type>changed</type>
+      <from_conary_package>
+        <name>foo:runtime</name>
+        <version>%(foorun-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </from_conary_package>
+      <to_conary_package>
+        <name>foo:runtime</name>
+        <version>%(foorun-2-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>2-1-1</revision>
+      </to_conary_package>
+      <conary_package_diff>
+        <version>
+          <from>%(foorun-1-1-1)s</from>
+          <to>%(foorun-2-1-1)s</to>
+        </version>
+        <revision>
+          <from>1-1-1</from>
+          <to>2-1-1</to>
+        </revision>
+      </conary_package_diff>
+    </conary_package_change>
+    <conary_package_change>
+      <type>removed</type>
+      <removed_conary_package>
+        <name>group-bar-appliance</name>
+        <version>%(groupbarapp-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </removed_conary_package>
+    </conary_package_change>
+    <conary_package_change>
+      <type>changed</type>
+      <from_conary_package>
+        <name>group-foo</name>
+        <version>%(groupfoo-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </from_conary_package>
+      <to_conary_package>
+        <name>group-foo</name>
+        <version>%(groupfoo-2-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>2-1-1</revision>
+      </to_conary_package>
+      <conary_package_diff>
+        <version>
+          <from>%(groupfoo-1-1-1)s</from>
+          <to>%(groupfoo-2-1-1)s</to>
+        </version>
+        <revision>
+          <from>1-1-1</from>
+          <to>2-1-1</to>
+        </revision>
+      </conary_package_diff>
+    </conary_package_change>
+  </conary_package_changes>
+  <desired>group-bar-appliance=%(groupbarapp-1-1-1)s[]</desired>
+  <desired>group-foo=%(groupfoo-1-1-1)s[]</desired>
+  <observed>group-bar-appliance=%(groupbarapp-1-1-1)s[]</observed>
+  <observed>group-foo=%(groupfoo-1-1-1)s[]</observed>
+</preview>
+""" % params)
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'ApplyUpdate', {})

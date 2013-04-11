@@ -53,4 +53,12 @@ class ConcreteJobTest(testbaserepo.TestCase):
         # We reload the old job
         self.assertEquals(task2.get_job_id(), jobId)
 
+    def testSanitizeKey(self):
+        task = jobs.SyncPreviewTask().new()
+        task(self.systemModelPath)
+        jobId = task.get_job_id()
 
+        mangledJobId = "blah:jobs/%s" % jobId
+
+        task2 = jobs.SyncApplyTask().load(mangledJobId)
+        self.assertEquals(task2.get_job_id(), jobId)
