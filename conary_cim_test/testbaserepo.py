@@ -24,32 +24,18 @@ from conary_test import rephelp
 from rpath_tools.lib import clientfactory, installation_service, update
 
 from rpath_tools.lib import jobs
+
 import testbase
+from rpath_toolstest import testbase as rpath_tools_test
 
-class TestCase(rephelp.RepositoryHelper, testbase.ProviderMixIn):
+class TestCase(rpath_tools_test.TestCaseRepo, testbase.ProviderMixIn):
     def setUp(self):
-        rephelp.RepositoryHelper.setUp(self)
-        self.openRepository()
-        self._conaryClient = self.getConaryClient()
-        util.mkdirChain(os.path.dirname(self._conaryClient.cfg.root + self._conaryClient.cfg.modelPath))
-        self._conaryClient.setUpdateCallback(conaryCallbacks.UpdateCallback())
-
-        # Create a Conary client that can talk to the testsuite repo
-        class ConaryClientFactory(clientfactory.ConaryClientFactory):
-            def getClient(slf, *args, **kwargs):
-                return self._conaryClient
-            def getCfg(slf, *args, **kwargs):
-                return self._conaryClient.cfg
-
-        self.mock(update.UpdateService, 'conaryClientFactory', ConaryClientFactory)
-        storagePath = os.path.join(self.workDir, "storage")
-        self.mock(installation_service.UpdateSet, "storagePath", storagePath)
-        self.mock(jobs.BaseUpdateTask, "storagePath", storagePath)
+        rpath_tools_test.TestCaseRepo.setUp(self)
         testbase.ProviderMixIn.setUp(self)
 
     def tearDown(self):
-        rephelp.RepositoryHelper.tearDown(self)
         testbase.ProviderMixIn.tearDown(self)
+        rpath_tools_test.TestCaseRepo.tearDown(self)
 
     def waitJob(self, jobObjectPath, timeout = 1):
         jprov, _ = self.getProviderConcreteJob()

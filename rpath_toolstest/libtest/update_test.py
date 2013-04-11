@@ -14,18 +14,19 @@
 # limitations under the License.
 #
 
+from lxml import etree
 import os
 
-import testbaserepo
+from rpath_toolstest import testbase
 
 from rpath_tools.lib import stored_objects, update
 
-class UpdateTest(testbaserepo.TestCase):
+class UpdateTest(testbase.TestCaseRepo):
 
     jobFactory = stored_objects.ConcreteUpdateJobFactory
 
     def setUp(self):
-        testbaserepo.TestCase.setUp(self)
+        testbase.TestCaseRepo.setUp(self)
         self.openRepository()
         for v in ["1", "2"]:
             self.addComponent("foo:runtime", v)
@@ -38,38 +39,32 @@ class UpdateTest(testbaserepo.TestCase):
         file(self.systemModelPath, "w").write("install group-bar=2\n")
 
     def newJob(self):
-        self.job = self.jobFactory(self.storagePath).new()
-        self.job.state = "New"
-        return self.job
+        job = self.jobFactory(self.storagePath).new()
+        job.state = "New"
+        return job
 
     def loadJob(self, jobId):
-        self.job = self.jobFactory(self.storagePath).load(self.sanitizeKey(jobId))
-        return self.job
-
-
+        job = self.jobFactory(self.storagePath).load(jobId)
+        return job
 
     def testSyncModelPreviewOperation(self):
-
-        self.job = self.newJob()
-        self.job.systemModel = file(self.systemModelPath).read()
+        job = self.newJob()
+        job.systemModel = file(self.systemModelPath).read()
         operation = update.SyncModel()
-        preview = operation.preview(self.job)
-        self.job.content = preview
-        # need something to check there is a preview
-        if preview:
-            return True
+        preview = operation.preview(job)
+        tree = etree.fromstring(preview)
+        self.assertEquals(tree.attrib['id'], job.keyId)
+        return job
 
     def testSyncModelApplyOperation(self):
-        self.job = self.newJob()
-        self.job_test = self.loadJob(self.job.keyId)
+        job = self.testSyncModelPreviewOperation()
+        job_test = self.loadJob(job.keyId)
 
         operation = update.SyncModel()
-        preview = operation.apply(self.job_test)
-        self.job.content = preview
-
-        # need something to check there is a preview
-        if preview:
-            return True
+        preview = operation.apply(job_test)
+        tree = etree.fromstring(preview)
+        self.assertEquals(tree.attrib['id'], job.keyId)
+        return job
 
     def testFreezeUpdateJob(self):
         pass

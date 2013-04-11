@@ -269,6 +269,9 @@ class SystemModel(UpdateService):
         if cclient.cfg.syncCapsuleDatabase:
             cclient.syncCapsuleDatabase(callback)
         updJob = cclient.newUpdateJob()
+        # XXX why do we even have to set the transaction counter...
+        # conary should do that
+        updJob.setTransactionCounter(cclient.db.getTransactionCounter())
         troveSetGraph = cclient.cmlGraph(model)
         try:
             suggMap = cclient._updateFromTroveSetGraph(updJob,
@@ -632,9 +635,6 @@ class SyncModel(SystemModel):
         jobid = job.keyId
 
         logger.info("BEGIN Sync update operation for job : %s" % jobid)
-        # Transaction Counter
-        tcount = self._getTransactionCount()
-        logger.info("Conary DB Transaction Counter: %s" % tcount)
 
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
@@ -645,6 +645,8 @@ class SyncModel(SystemModel):
         model = self._getNewModelFromString(job.systemModel)
 
         updateJob, suggMap = self._buildUpdateJob(model, callback)
+        # Transaction Counter
+        logger.info("Conary DB Transaction Counter: %s" % updateJob.getTransactionCounter())
 
         # TODO : REVIEW if self.flags helps...
         # SILLY AS IT IS ALWAYS TRUE
