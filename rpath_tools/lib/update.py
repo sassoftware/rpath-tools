@@ -276,7 +276,7 @@ class SystemModel(UpdateService):
         except Exception, e:
             logger.error("FAILED %s" % str(e))
             if callback:
-                callback.close()
+                callback.done()
             return updJob, {}
 
         # LIFTED FROM updatecmd.py
