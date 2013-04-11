@@ -36,7 +36,7 @@ class UpdateTest(testbase.TestCaseRepo):
         self.updatePkg(["group-bar=1"])
 
         self.systemModelPath = os.path.join(self.workDir, "system-model")
-        file(self.systemModelPath, "w").write("install group-bar=2\n")
+        file(self.systemModelPath, "w").write("install group-bar=%s/2\n" % self.defLabel)
 
     def newJob(self):
         job = self.jobFactory(self.storagePath).new()
@@ -65,6 +65,16 @@ class UpdateTest(testbase.TestCaseRepo):
         tree = etree.fromstring(preview)
         self.assertEquals(tree.attrib['id'], job.keyId)
         return job
+
+    def testSyncModelPreviewOperationBadSystemModel(self):
+        systemModel = "install nosuchtrove=%s/3" % self.defLabel
+        job = self.newJob()
+        job.systemModel = systemModel
+        operation = update.SyncModel()
+        ret = operation.preview(job)
+        self.assertEquals(ret, None)
+        self.assertEquals(job.state, "Exception")
+        self.assertIn("TroveSpecsNotFound: No troves found matching: nosuchtrove=localhost@rpl:linux/3", job.content)
 
     def testFreezeUpdateJob(self):
         pass
