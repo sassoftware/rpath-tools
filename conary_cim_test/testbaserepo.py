@@ -23,8 +23,6 @@ from conary.lib import util
 from conary_test import rephelp
 from rpath_tools.lib import clientfactory, installation_service, update
 
-from rpath_tools.lib import jobs
-
 import testbase
 from rpath_toolstest import testbase as rpath_tools_test
 
