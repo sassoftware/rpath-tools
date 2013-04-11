@@ -27,7 +27,7 @@ import pywbem
 from pywbem.cim_provider2 import CIMProvider2
 
 from rpath_tools.lib import jobs
-import surveys
+from rpath_tools.lib import surveys
 import baseConcreteJobProvider
 import stub_RPATH_SurveyConcreteJob
 
