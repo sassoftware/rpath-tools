@@ -842,6 +842,9 @@ class Test(testbaserepo.TestCase):
 </preview>
 """ % params)
 
+        self.assertEquals(jobInst.properties['JobResults'].value[0],
+                job.content)
+
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'ApplyUpdate', {})
         self.failUnlessEqual(params, {})
@@ -849,5 +852,3 @@ class Test(testbaserepo.TestCase):
 
         jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
-
-
