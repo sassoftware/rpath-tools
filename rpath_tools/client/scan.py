@@ -33,12 +33,12 @@ from rpath_tools.client.register import LocalUuid
 
 logger = logging.getLogger('client')
 
-def main(cfg=None):
+def main(cfg=None, tli=[]):
     if not cfg:
         cfg = config.RpathToolsConfiguration()
         cfg.topDir = '/etc/conary'
     r = Scanner(cfg)
-    results = r.scanSystem()
+    results = r.scanSystem(tli)
     return results
 
 

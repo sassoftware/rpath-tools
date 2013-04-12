@@ -327,13 +327,14 @@ class IConfigCommand(RpathToolsCommand):
 
 
 class ScanCommand(RpathToolsCommand):
-    commands = ['scan']
+    commands = ['scan', 'toplevelitems']
     help = "Run a survey on the local host."
     requireConfig = True
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
-        results = scan.main(self.cfg)
+        self.tli = args[-1]
+        results = scan.main(self.cfg, self.tli)
         return results
 
 class ConfiguratorCommand(RpathToolsCommand):
