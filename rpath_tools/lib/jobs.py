@@ -209,7 +209,7 @@ def reexec(args):
 
     # Use subprocess to start the update job.  jobs.py double forks,
     # so the wait will return almost immediately.
-    jobProc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    jobProc = subprocess.Popen(callArgs, stdout=subprocess.PIPE)
     jobProc.wait()
     return jobProc
 
