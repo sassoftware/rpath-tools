@@ -123,12 +123,27 @@ class Scanner(object):
         except KeyError:
             return (0, 0)
 
+    def _scanner(self, desiredTopLevelItems):
+        self.survey, self.surveyUuid = self._scan_system(desiredTopLevelItems)
+        if self.survey is None:
+            return self.survey
+        # If the server returned something back, save
+        survey_path = self.writeSurveytoStore(self.survey,
+                        self.cfg.scannerSurveyStore, uuid=self.surveyUuid,
+                        uid=None, gid=None)
+        return survey_path
 
-    def scanSystem(self):
+
+    def _scan_system(self, desiredTopLevelItems):
+        dom = self.surveyScanner.toxml(desiredTopLevelItems)
+        xml = etree.tostring(dom)
+        return xml, self.surveyScanner.uuid
+
+    def scanSystem(self, desiredTopLevelItems=[]):
         logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
         start = time.time()
         start_proc = time.clock()
-        surveyed = self._scanner([])
+        surveyed = self._scanner(desiredTopLevelItems)
         results = { 'SurveyFile' : None,
                     'LocalUuid'  : self.localUuidObj.uuid,
                     'ScanTime'   : None,
@@ -146,48 +161,9 @@ class Scanner(object):
             results = { 'SurveyFile' : surveyed,
                         'LocalUuid'  : self.localUuidObj.uuid,
                         'ScanTime'   : scantime,
-                        'ProvessTime' : proctime,
+                        'ProcessTime' : proctime,
                   }
         return results
-
-
-    def scanSystemCIM(self, desiredTopLevelItems):
-        '''use this from CIM as it removes prints'''
-        logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
-        start = time.time()
-        start_proc = time.clock()
-        surveyed = self._scanner(desiredTopLevelItems)
-        if surveyed:
-            proctime = time.clock() - start_proc
-            scantime = time.time() - start
-            logger.info('    Survey succeeded\n'
-                        '        Survey File   : %s\n'
-                        '        Scan Time     : %s\n'
-                        '        Process Time  : %s\n' %
-                            (surveyed, scantime,proctime)
-                        )
-            return True
-        logger.error('  Survey failed.  Check the log file at %s' %
-            self.cfg.logFile)
-        return False
-
-
-    def _scanner(self, desiredTopLevelItems):
-        self.survey, self.surveyUuid = self._scan_system(desiredTopLevelItems)
-        if self.survey is None:
-            return self.survey
-        # If the server returned something back, save
-        survey_path = self.writeSurveytoStore(self.survey,
-                        self.cfg.scannerSurveyStore, uuid=self.surveyUuid,
-                        uid=None, gid=None)
-        return survey_path
-
-
-    def _scan_system(self, desiredTopLevelItems):
-        dom = self.surveyScanner.toxml(desiredTopLevelItems)
-        xml = etree.tostring(dom)
-        return xml, self.surveyScanner.uuid
-
 
 if __name__ == '__main__':
     sys.exit(main())
