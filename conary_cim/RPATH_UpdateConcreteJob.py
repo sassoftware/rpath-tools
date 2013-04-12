@@ -88,6 +88,7 @@ class RPATH_UpdateConcreteJob(baseConcreteJobProvider.ConcreteJobMixIn, stubClas
 
         key = self.fromInstanceID(key)
         self._task = jobs.SyncApplyTask().load(key)
+        self._task()
 
         cuJob = self._task.job
         if cuJob.state != "Exception":

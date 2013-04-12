@@ -852,3 +852,10 @@ class Test(testbaserepo.TestCase):
 
         jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
+
+        groupfoospec = ('group-foo', None, None)
+        barspec = ('bar', None, None)
+        troves = self.getConaryClient().db.findTroves(None,
+                [ groupfoospec, barspec ])
+        self.assertEquals(str(troves[groupfoospec][0][1].trailingRevision()),
+                '2-1-1')
