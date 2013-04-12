@@ -38,7 +38,7 @@ class Preview(object):
         @type sources : string
         '''
 
-        return updater.preview(sources, preview=True)
+        return updater.preview(sources)
 
 
 if __name__ == '__main__':
