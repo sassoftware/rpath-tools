@@ -19,6 +19,7 @@
 import itertools
 import optparse
 import os
+import subprocess
 import sys
 import traceback
 
@@ -200,6 +201,17 @@ def startUpdateOperation(sources, flags):
     task = UpdateTask().new()
     task(sources, flags)
     return task
+
+def reexec(args):
+    pythonExec = os.path.join(sys.exec_prefix, "bin", "python")
+    execPath = __file__
+    callArgs = [ pythonExec, execPath ] + args
+
+    # Use subprocess to start the update job.  jobs.py double forks,
+    # so the wait will return almost immediately.
+    jobProc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    jobProc.wait()
+    return jobProc
 
 def main():
     parser = optparse.OptionParser()

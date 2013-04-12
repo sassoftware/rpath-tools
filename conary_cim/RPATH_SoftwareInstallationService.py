@@ -23,7 +23,6 @@ Instruments the CIM class RPATH_SoftwareInstallationService
 """
 
 import os
-import subprocess
 import pywbem
 import tempfile
 from mixin_computersystem import MixInComputerSystem
@@ -381,18 +380,10 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
         }
 
         args = [optionsMap[x] for x in param_installoptions if x in optionsMap]
-        execPath = os.path.join(os.path.dirname(jobs.__file__), 'jobs.py')
-        args.insert(0, execPath)
-        args.insert(0, pythonPath)
         for source in param_sources:
             args.append("-p%s" % source)
-
-        # Use subprocess to start the update job.  jobs.py double forks,
-        # so the wait will return almost immediately.
-        concreteJobProc = subprocess.Popen(args, stdout=subprocess.PIPE)
-        concreteJobProc.wait()
-        # job id is printed to standard out
-        stdoutdata, stderrdata = concreteJobProc.communicate()
+        jobProc = jobs.reexec(args)
+        stdoutdata, stderrdata = jobProc.communicate()
         concreteJobId = stdoutdata.strip('\n')
 
         # XXX Should be VAMI_UpdateConcreteJob
@@ -464,15 +455,10 @@ class RPATH_SoftwareInstallationService(stub_RPATH_SoftwareInstallationService.R
         tmpf.flush()
         tmpf.close()
 
-        execPath = os.path.join(os.path.dirname(jobs.__file__), 'jobs.py')
-        args = [ pythonPath, execPath, '--system-model-path', tmpf.name, '--mode', 'sync' ]
+        args = [ '--system-model-path', tmpf.name, '--mode', 'sync' ]
 
-        # Use subprocess to start the update job.  jobs.py double forks,
-        # so the wait will return almost immediately.
-        concreteJobProc = subprocess.Popen(args, stdout=subprocess.PIPE)
-        concreteJobProc.wait()
-        # job id is printed to standard out
-        stdoutdata, stderrdata = concreteJobProc.communicate()
+        jobProc = jobs.reexec(args)
+        stdoutdata, stderrdata = jobProc.communicate()
         concreteJobId = stdoutdata.strip('\n')
 
         # The concrete job should have picked up the file by now, get

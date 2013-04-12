@@ -202,7 +202,7 @@ class Test(testbaserepo.TestCase):
             def communicate(self):
                 return self.jobId, None
 
-        self.mock(RPATH_SoftwareInstallationService.subprocess, "Popen", Popen)
+        self.mock(jobs.subprocess, "Popen", Popen)
 
         self._setupRepo()
         _, siObjPath = self.getProviderSoftwareIdentity()
@@ -562,12 +562,18 @@ class Test(testbaserepo.TestCase):
 
         class Popen:
             def __init__(self, *args, **kwargs):
-                idx = args[0].index('--system-model-path')
-                tmpf = args[0][idx+1]
-                # Flags are meaningless for now
-                flags = installation_service.InstallationService.UpdateFlags()
-                task = jobs.SyncPreviewTask().new()
-                task(tmpf, flags)
+                if '--system-model-path' in args[0]:
+                    idx = args[0].index('--system-model-path')
+                    tmpf = args[0][idx+1]
+                    # Flags are meaningless for now
+                    flags = installation_service.InstallationService.UpdateFlags()
+                    task = jobs.SyncPreviewTask().new()
+                    task(tmpf, flags)
+                else:
+                    idx = args[0].index('--update-id')
+                    jobId = args[0][idx+1]
+                    task = jobs.SyncApplyTask().load(jobId)
+                    task()
                 self.jobId = task.get_job_id()
 
             def wait(self):
@@ -576,7 +582,7 @@ class Test(testbaserepo.TestCase):
             def communicate(self):
                 return self.jobId, None
 
-        self.mock(RPATH_SoftwareInstallationService.subprocess, "Popen", Popen)
+        self.mock(jobs.subprocess, "Popen", Popen)
 
         self._setupRepo()
         _, siObjPath = self.getProviderSoftwareIdentity()
