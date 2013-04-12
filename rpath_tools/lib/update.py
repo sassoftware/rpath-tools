@@ -418,10 +418,10 @@ class SystemModel(UpdateService):
     def erase(self):
         raise NotImplementedError
 
-    def preview(self, raiseExceptions=True):
+    def preview(self, raiseExceptions=False):
         raise NotImplementedError
 
-    def apply(self, raiseExceptions=True):
+    def apply(self, raiseExceptions=False):
         raise NotImplementedError
 
 
@@ -694,7 +694,7 @@ class SyncModel(SystemModel):
 
         return job.content
 
-    def apply(self, job, raiseExceptions=True):
+    def apply(self, job, raiseExceptions=False):
         '''
         returns topLevelItems
         '''
