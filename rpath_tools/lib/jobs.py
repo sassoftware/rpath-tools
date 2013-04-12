@@ -162,12 +162,12 @@ class SyncPreviewTask(BaseUpdateTask):
 
     def run(self, systemModelPath, flags=None):
         operation = update.SyncModel()
-        operation.preview(self.job)
+        operation.preview(self.job, raiseExceptions=True)
 
 class SyncApplyTask(BaseUpdateTask):
     def run(self, flags=None):
         operation = update.SyncModel()
-        operation.apply(self.job)
+        operation.apply(self.job, raiseExceptions=True)
 
     @classmethod
     def sanitizeKey(cls, key):
