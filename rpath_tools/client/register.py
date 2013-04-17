@@ -37,7 +37,7 @@ from rpath_tools.client import utils
 from rpath_tools.client.utils import x509
 from rpath_tools.client.utils import client as UtilsClient
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 def main():
     cfg = config.RpathToolsConfiguration()

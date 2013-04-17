@@ -16,12 +16,11 @@
 #
 
 
-from conary import conarycfg
 from conary import conaryclient
 from conary import trovetup
 from conary.lib import util
 
-from rpath_tools.lib import clientfactory
+from rpath_tools.lib import update
 
 import os
 
@@ -30,7 +29,7 @@ import json
 
 import logging
 
-logger = logging.getLogger(name = '__name__')
+logger = logging.getLogger(__name__)
 
 class InformerError(Exception):
     "Base class"
@@ -62,9 +61,7 @@ class InformerFlags(object):
         return self.__slots__
 
 
-class Informer(object):
-
-    conaryClientFactory = clientfactory.ConaryClientFactory
+class Informer(update.UpdateService):
 
     def __init__(self, values=[], callback=None):
         '''
@@ -74,6 +71,9 @@ class Informer(object):
         @param callback: A callback for messaging can be None
         @type callback: object like updatecmd.Callback
         '''
+        super(Informer, self).__init__()
+        self.systemModelPath = self.conaryCfg.modelPath
+        self.tmpDir = self.conaryCfg.tmpDir
 
         self._values = dict([ (x, True) for x in values])
         self.flags = InformerFlags()
@@ -88,27 +88,6 @@ class Informer(object):
                                  ('counter', self.getTransactionCounter),
                             ])
 
-    def _system_model_exists(self):
-        return os.path.isfile('/etc/conary/system-model')
-
-    def _getClient(self, modelfile=None, force=False):
-        if self._client is None or force:
-            if self._system_model_exists():
-                self._client = self.conaryClientFactory().getClient(
-                                            modelFile=modelfile)
-            else:
-                self._client = self.conaryClientFactory().getClient(
-                                            model=False)
-        return self._client
-
-    conaryClient = property(_getClient)
-
-    def _getCfg(self):
-        self._cfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        self._cfg.initializeFlavors()
-        return self._cfg
-
-    conaryCfg = property(_getCfg)
 
 
     def _runProcess(self, cmd):
@@ -285,8 +264,6 @@ class Informer(object):
             if self.flags.get(item) and item in self._functionMap:
                 results = "%s\n%s" % (results, self._runFunction(item))
         return results
-
-
 
 
     def debug(self):
