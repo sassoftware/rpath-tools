@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/conary/bin/python2.6
 #
 # Copyright (c) SAS Institute Inc.
 #
@@ -18,22 +18,40 @@
 
 from conary.lib import util
 
-from rpath_tools.lib import clientfactory
+
+from rpath_tools.lib import update
 from rpath_tools.lib import jobs
 from rpath_tools.lib import errors
 from rpath_tools.lib import installation_service
 
+import tempfile
+import os
+
 import logging
 
-logger = logging.getLogger(name = '__name__')
+logger = logging.getLogger(__name__)
 
 
-class Updater(object):
-
-    conaryClientFactory = clientfactory.ConaryClientFactory
+class Updater(update.UpdateService):
 
     def __init__(self, value=None):
-        self.contents = value
+        super(Updater, self).__init__()
+        self.systemModelPath = self.conaryCfg.modelPath
+        self.tmpDir = self.conaryCfg.tmpDir
+
+    @property
+    def is_system_model(self):
+        return self._system_model_exists()
+
+    def storeTempSystemModel(self, data):
+        fd, path = tempfile.mkstemp(prefix='system-model.', dir=self.tmpDir)
+        try:
+            f = os.fdopen(fd, 'w')
+            f.write(str(str(data)))
+        except Exception, e:
+            #FIXME
+            raise Exception, str(e)
+        return path
 
     def updateOperation(self, sources, preview=True):
         '''
@@ -43,14 +61,15 @@ class Updater(object):
         '''
         xml = '<preview/>'
         if self.is_system_model:
-            systemModelPath = '/tmp/system-model.rpath-tools'
-            file(systemModelPath, "w").write(sources)
+            if not sources:
+                sources = file(self.systemModelPath).read()
+            tempSystemModelPath = self.storeTempSystemModel(sources)
             task = jobs.SyncPreviewTask().new()
             # Currently we have to call the steps manually
             # to avoid a double fork
-            task.preFork(systemModelPath)
-            task.run(systemModelPath)
-            xml = task.content
+            task.preFork(tempSystemModelPath)
+            task.run(tempSystemModelPath)
+            xml = task.job.content
         else:
             # WARNING if preview is set to False the update will be applied
             flags = installation_service.InstallationService.UpdateFlags(
@@ -69,7 +88,7 @@ class Updater(object):
             # to avoid a double fork
             task.preFork()
             task.run()
-            xml = task.content
+            xml = task.job.content
         else:
             logger.error('Classic systems do not'
                 ' freeze jobs so we can not apply a frozen job')
@@ -102,7 +121,7 @@ class Updater(object):
         # to avoid a double fork
         task.preFork(systemModelPath)
         task.run(systemModelPath)
-        xml = task.content
+        xml = task.job.content
         return xml
 
 

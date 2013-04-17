@@ -29,8 +29,11 @@ from rpath_models import System, Networks, Network, CurrentState, ManagementInte
 from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client import scan
+from rpath_tools.client import updater
 from rpath_tools.client import configurator
 from rpath_tools.client.sysdisco import puppet
+
+
 
 from rpath_tools.client.utils.tmpwatcher import TmpWatcher
 from rpath_tools.client.utils.collector import Collector
@@ -336,6 +339,35 @@ class ScanCommand(RpathToolsCommand):
         self.tli = args[-1]
         results = scan.main(self.cfg, self.tli)
         return results
+
+class UpdateCommand(RpathToolsCommand):
+    commands = ['updater', 'preview', 'apply', 'install', 'update', 'updateall',]
+    help = "Run updates on the local host."
+    requireConfig = True
+
+    def addParameters(self, argDef):
+        RpathToolsCommand.addParameters(self, argDef)
+        argDef['preview'] = options.ONE_PARAM
+        argDef['apply'] = options.ONE_PARAM
+        argDef['install'] = options.ONE_PARAM
+        argDef['update'] = options.ONE_PARAM
+        argDef['updateall'] = options.NO_PARAM
+
+
+
+    def runCommand(self, *args, **kw):
+        self.cfg = args[0]
+        self.tli = args[-1]
+        self.jobid = None
+        if 'jobid' in args:
+            self.jobid = args.pop('jobid', None)
+        self.command_types = ['update', 'preview', 'apply', 'updateall', 'install']
+        self.commands = [ x for x in args[-1] if x in self.command_types ]
+        if 'apply' in self.commands and self.jobid:
+            updater.apply(self.cfg, self.commands, self.iid)
+        results = updater.preview(self.cfg, self.commands, self.tli)
+        return results
+
 
 class ConfiguratorCommand(RpathToolsCommand):
     commands = ['configurator', 'read', 'write', 'validate', 'discover']

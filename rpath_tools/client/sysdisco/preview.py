@@ -20,7 +20,7 @@ from rpath_tools.client import updater
 
 import logging
 
-logger = logging.getLogger(name='__name__')
+logger = logging.getLogger(__name__)
 
 
 
@@ -28,6 +28,7 @@ class Preview(object):
 
     def __init__(self, sources=None):
         self.sources = sources
+        self.up = updater.Updater()
 
     def preview(self, sources):
         '''
@@ -37,8 +38,7 @@ class Preview(object):
 
         @type sources : string
         '''
-
-        return updater.preview(sources)
+        return self.up.preview(sources)
 
 
 if __name__ == '__main__':
