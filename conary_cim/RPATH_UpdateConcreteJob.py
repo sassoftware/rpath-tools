@@ -88,8 +88,12 @@ class RPATH_UpdateConcreteJob(baseConcreteJobProvider.ConcreteJobMixIn, stubClas
 
         key = self.fromInstanceID(key)
         self._task = jobs.SyncApplyTask().load(key)
-
         cuJob = self._task.job
+
+        args = [ "--mode", "sync", "--update-id", cuJob.keyId ]
+        jobProc = jobs.reexec(args)
+        jobProc.communicate()
+
         if cuJob.state != "Exception":
             rval = self.Values.ApplyUpdate.OK
             return (rval, [])

@@ -19,6 +19,7 @@
 import itertools
 import optparse
 import os
+import subprocess
 import sys
 import traceback
 
@@ -162,14 +163,12 @@ class SyncPreviewTask(BaseUpdateTask):
 
     def run(self, systemModelPath, flags=None):
         operation = update.SyncModel()
-        preview = operation.preview(self.job)
-        self.job.content = preview
+        operation.preview(self.job, raiseExceptions=True)
 
 class SyncApplyTask(BaseUpdateTask):
     def run(self, flags=None):
         operation = update.SyncModel()
-        preview = operation.apply(self.job)
-        self.job.content = preview
+        operation.apply(self.job, raiseExceptions=True)
 
     @classmethod
     def sanitizeKey(cls, key):
@@ -202,6 +201,17 @@ def startUpdateOperation(sources, flags):
     task = UpdateTask().new()
     task(sources, flags)
     return task
+
+def reexec(args):
+    pythonExec = os.path.join(sys.exec_prefix, "bin", "python")
+    execPath = __file__
+    callArgs = [ pythonExec, execPath ] + args
+
+    # Use subprocess to start the update job.  jobs.py double forks,
+    # so the wait will return almost immediately.
+    jobProc = subprocess.Popen(callArgs, stdout=subprocess.PIPE)
+    jobProc.wait()
+    return jobProc
 
 def main():
     parser = optparse.OptionParser()
