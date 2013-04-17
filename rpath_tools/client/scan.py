@@ -31,7 +31,7 @@ from rpath_tools.client.sysdisco import scanner
 
 from rpath_tools.client.register import LocalUuid
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 def main(cfg=None, tli=[]):
     if not cfg:
@@ -147,7 +147,7 @@ class Scanner(object):
         results = { 'SurveyFile' : None,
                     'LocalUuid'  : self.localUuidObj.uuid,
                     'ScanTime'   : None,
-                    'ProvessTime' : None,
+                    'ProcessTime' : None,
                   }
         if surveyed:
             proctime = time.clock() - start_proc
