@@ -33,7 +33,7 @@ from packages import RPMInfo
 
 import logging
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 # ServiceInfo has to be mutable
 

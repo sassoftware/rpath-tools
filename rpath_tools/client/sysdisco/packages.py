@@ -31,7 +31,7 @@ from rpath_tools.client.errors import RpathToolsError
 
 import logging
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 
 class IDFactory(object):

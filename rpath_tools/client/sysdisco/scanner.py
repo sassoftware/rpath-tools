@@ -32,7 +32,7 @@ import uuid
 
 import logging
 
-logger = logging.getLogger(name='__name__')
+logger = logging.getLogger(__name__)
 
 class SurveyScanner(object):
     def __init__(self, origin="scanner"):
