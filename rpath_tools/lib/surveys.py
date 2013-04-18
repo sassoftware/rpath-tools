@@ -73,7 +73,7 @@ class SurveyService(object):
 
         r = Scanner(cfg)
 
-        r.scanSystemCIM(desiredTopLevelItems)
+        r.scanSystem(desiredTopLevelItems)
 
         job.content = str(r.surveyUuid)
 
