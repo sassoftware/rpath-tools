@@ -15,7 +15,7 @@
 #
 
 import os
-from conary import trovetup, versions
+from conary import trovetup
 from conary.lib import util
 from lxml import etree
 
