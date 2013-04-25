@@ -18,7 +18,8 @@
 import pywbem
 
 import RPATH_SoftwareInstallationService as rSIS
-import RPATH_UpdateConcreteJob as rConcreteJob
+import RPATH_UpdateConcreteJob as rUpdateConcreteJob
+import RPATH_SurveyConcreteJob as rSurveyConcreteJob
 import RPATH_ElementSoftwareIdentity as rESI
 import RPATH_SoftwareIdentity as rSI
 import RPATH_RecordLog as rRL
@@ -110,8 +111,11 @@ class ProviderMixIn(object):
     def getProviderElementSoftwareIdentity(self):
         return self.getProvider(rESI)
 
-    def getProviderConcreteJob(self):
-        return self.getProvider(rConcreteJob)
+    def getProviderUpdateConcreteJob(self):
+        return self.getProvider(rUpdateConcreteJob)
+
+    def getProviderSurveyConcreteJob(self):
+        return self.getProvider(rSurveyConcreteJob)
 
     def getProviderSoftwareIdentity(self):
         return self.getProvider(rSI)

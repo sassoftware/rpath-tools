@@ -51,8 +51,9 @@ class SurveyService(object):
     storagePath = "/var/lib/conary-cim"
     SurveyFactoryClass = SurveyFactory
 
-    def __init__(self):
+    def __init__(self, configFilePath=None):
         self._sfact = None
+        self._configFilePath = configFilePath
 
     @property
     def surveyFactory(self):
@@ -64,16 +65,18 @@ class SurveyService(object):
         for s in self.surveyFactory:
             yield s
 
-    def scan(self, job, desiredTopLevelItems):
+    def scan(self, job, desiredTopLevelItems, systemModel):
         from rpath_tools.client import config
         from rpath_tools.client.scan import Scanner
 
-        cfg = config.RpathToolsConfiguration()
-        cfg.topDir = '/etc/conary'
+        cfg = config.RpathToolsConfiguration(readConfigFiles=True)
+        if self._configFilePath:
+            cfg.read(self._configFilePath)
 
         r = Scanner(cfg)
 
-        r.scanSystem(desiredTopLevelItems)
+        r.scanSystem(desiredTopLevelItems=desiredTopLevelItems,
+                systemModel=systemModel)
 
         job.content = str(r.surveyUuid)
 

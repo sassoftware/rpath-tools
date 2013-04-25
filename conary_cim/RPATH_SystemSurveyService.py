@@ -157,6 +157,7 @@ class RPATH_SystemSurveyService(stubClass, MixInComputerSystem):
             break
 
     def cim_method_scan(self, env, object_name,
+                        param_systemmodel=None,
                         param_desiredpackages=None):
         """Implements RPATH_SystemSurveyService.Scan()
 
@@ -167,8 +168,13 @@ class RPATH_SystemSurveyService(stubClass, MixInComputerSystem):
         object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
             specifying the object on which the method Scan() 
             should be invoked.
-        param_desiredpackages--  The input parameter DesiredPackages (type [unicode,]) 
+        param_systemmodel --  The input parameter SystemModel (type [unicode,]) 
+            A system model against which a preview will be computed. Takes
+            precedence over DesiredPackages
+            
+        param_desiredpackages --  The input parameter DesiredPackages (type [unicode,]) 
             A list of packages against which a preview will be computed
+            
 
         Returns a two-tuple containing the return value (type pywbem.Uint32 self.Values.Scan)
         and a list of CIMParameter objects representing the output parameters
@@ -196,7 +202,7 @@ class RPATH_SystemSurveyService(stubClass, MixInComputerSystem):
 
         # Create update job
         task = jobs.SurveyTask().new()
-        task(param_desiredpackages)
+        task(param_desiredpackages, param_systemmodel)
 
         jobInstanceID = RPATH_SurveyConcreteJob.RPATH_SurveyConcreteJob.createInstanceID(task.get_job_id())
         job = pywbem.CIMInstanceName(classname='RPATH_SurveyConcreteJob',

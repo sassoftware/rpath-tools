@@ -481,9 +481,10 @@ class RPATH_SystemSurveyService(CIMProvider2):
         #out_params+= [pywbem.CIMParameter('job', type='reference', 
         #                   value=pywbem.CIMInstanceName(classname='CIM_ConcreteJob', ...))] # TODO
         #rval = # TODO (type pywbem.Uint32 self.Values.ChangeAffectedElementsAssignedSequence)
-        #return (rval, out_params)
+        return (rval, out_params)
         
     def cim_method_scan(self, env, object_name,
+                        param_systemmodel=None,
                         param_desiredpackages=None):
         """Implements RPATH_SystemSurveyService.Scan()
 
@@ -494,8 +495,12 @@ class RPATH_SystemSurveyService(CIMProvider2):
         object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
             specifying the object on which the method Scan() 
             should be invoked.
+        param_systemmodel --  The input parameter SystemModel (type [unicode,]) 
+            A system model against which a preview will be computed. Takes
+            precedence over DesiredPackages
+            
         param_desiredpackages --  The input parameter DesiredPackages (type [unicode,]) 
-            A desired state against which a preview will be computed
+            A list of packages against which a preview will be computed
             
 
         Returns a two-tuple containing the return value (type pywbem.Uint32 self.Values.Scan)
@@ -540,7 +545,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Supporting_Entity_in_Error = pywbem.Uint16(5)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Not Available', 1: 'No Additional Information', 2: 'Stressed', 3: 'Predictive Failure', 4: 'Non-Recoverable Error', 5: 'Supporting Entity in Error'}
 
         class RequestedState(object):
             Unknown = pywbem.Uint16(0)
@@ -557,7 +561,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Not_Applicable = pywbem.Uint16(12)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 32768..65535
-            _reverse_map = {0: 'Unknown', 2: 'Enabled', 3: 'Disabled', 4: 'Shut Down', 5: 'No Change', 6: 'Offline', 7: 'Test', 8: 'Deferred', 9: 'Quiesce', 10: 'Reboot', 11: 'Reset', 12: 'Not Applicable'}
 
         class HealthState(object):
             Unknown = pywbem.Uint16(0)
@@ -568,7 +571,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Critical_failure = pywbem.Uint16(25)
             Non_recoverable_error = pywbem.Uint16(30)
             # DMTF_Reserved = ..
-            _reverse_map = {0: 'Unknown', 5: 'OK', 10: 'Degraded/Warning', 15: 'Minor failure', 20: 'Major failure', 25: 'Critical failure', 30: 'Non-recoverable error'}
 
         class ChangeAffectedElementsAssignedSequence(object):
             Completed_with_No_Error = pywbem.Uint32(0)
@@ -595,7 +597,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Reset = pywbem.Uint16(11)
             Not_Applicable = pywbem.Uint16(12)
             # DMTF_Reserved = ..
-            _reverse_map = {0: 'Unknown', 2: 'Enabled', 3: 'Disabled', 4: 'Shut Down', 5: 'No Change', 6: 'Offline', 7: 'Test', 8: 'Defer', 9: 'Quiesce', 10: 'Reboot', 11: 'Reset', 12: 'Not Applicable'}
 
         class EnabledDefault(object):
             Enabled = pywbem.Uint16(2)
@@ -606,7 +607,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Quiesce = pywbem.Uint16(9)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 32768..65535
-            _reverse_map = {2: 'Enabled', 3: 'Disabled', 5: 'Not Applicable', 6: 'Enabled but Offline', 7: 'No Default', 9: 'Quiesce'}
 
         class EnabledState(object):
             Unknown = pywbem.Uint16(0)
@@ -622,7 +622,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Starting = pywbem.Uint16(10)
             # DMTF_Reserved = 11..32767
             # Vendor_Reserved = 32768..65535
-            _reverse_map = {0: 'Unknown', 1: 'Other', 2: 'Enabled', 3: 'Disabled', 4: 'Shutting Down', 5: 'Not Applicable', 6: 'Enabled but Offline', 7: 'In Test', 8: 'Deferred', 9: 'Quiesce', 10: 'Starting'}
 
         class Scan(object):
             Job_Completed_with_No_Error = pywbem.Uint32(0)
@@ -647,7 +646,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Reboot = pywbem.Uint16(10)
             Reset = pywbem.Uint16(11)
             # DMTF_Reserved = ..
-            _reverse_map = {2: 'Enabled', 3: 'Disabled', 4: 'Shut Down', 6: 'Offline', 7: 'Test', 8: 'Defer', 9: 'Quiesce', 10: 'Reboot', 11: 'Reset'}
 
         class Status(object):
             OK = 'OK'
@@ -672,7 +670,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             No_Contact = pywbem.Uint16(4)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'Not Available', 2: 'Communication OK', 3: 'Lost Communication', 4: 'No Contact'}
 
         class OperationalStatus(object):
             Unknown = pywbem.Uint16(0)
@@ -696,7 +693,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Power_Mode = pywbem.Uint16(18)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'Other', 2: 'OK', 3: 'Degraded', 4: 'Stressed', 5: 'Predictive Failure', 6: 'Error', 7: 'Non-Recoverable Error', 8: 'Starting', 9: 'Stopping', 10: 'Stopped', 11: 'In Service', 12: 'No Contact', 13: 'Lost Communication', 14: 'Aborted', 15: 'Dormant', 16: 'Supporting Entity in Error', 17: 'Completed', 18: 'Power Mode'}
 
         class OperatingStatus(object):
             Unknown = pywbem.Uint16(0)
@@ -718,7 +714,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             In_Service = pywbem.Uint16(16)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'Not Available', 2: 'Servicing', 3: 'Starting', 4: 'Stopping', 5: 'Stopped', 6: 'Aborted', 7: 'Dormant', 8: 'Completed', 9: 'Migrating', 10: 'Emigrating', 11: 'Immigrating', 12: 'Snapshotting', 13: 'Shutting Down', 14: 'In Test', 15: 'Transitioning', 16: 'In Service'}
 
         class RequestStateChange(object):
             Completed_with_No_Error = pywbem.Uint32(0)
@@ -759,7 +754,6 @@ class RPATH_SystemSurveyService(CIMProvider2):
             Error = pywbem.Uint16(3)
             # DMTF_Reserved = ..
             # Vendor_Reserved = 0x8000..
-            _reverse_map = {0: 'Unknown', 1: 'OK', 2: 'Degraded', 3: 'Error'}
 
 ## end of class RPATH_SystemSurveyServiceProvider
     

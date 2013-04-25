@@ -22,19 +22,20 @@ from conary import conarycfg
 from conary import conaryclient
 from rpath_tools.client.utils.config_descriptor_cache import ConfigDescriptorCache
 
-class Descriptors(object):
+from rpath_tools.lib import update
+
+class Descriptors(update.SystemModel):
     def __init__(self):
-        self.cfg = conarycfg.ConaryConfiguration(True)
-        self.client = conaryclient.ConaryClient(self.cfg)
+        update.SystemModel.__init__(self)
 
     def gather(self):
         desc = None
-        groups = [ x for x in self.client.getUpdateItemList()
+        groups = [ x for x in self.conaryClient.getUpdateItemList()
                     if x[0].startswith('group-') and
                     x[0].endswith('-appliance') ]
         if len(groups):
             group = groups[0]
-            desc = ConfigDescriptorCache(self.client.getDatabase()).getDescriptor(group)
+            desc = ConfigDescriptorCache(self.conaryClient.getDatabase()).getDescriptor(group)
         if desc:
             desc.setDisplayName('ConfigurationDescriptor')
             desc.addDescription('ConfigurationDescriptor')

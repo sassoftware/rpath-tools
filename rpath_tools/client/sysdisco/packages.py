@@ -26,7 +26,7 @@ from conary import errors
 from conary.lib import util
 from conary.lib.sha1helper import sha256ToString
 
-from rpath_tools.lib import formatter
+from rpath_tools.lib import formatter, update
 from rpath_tools.client.errors import RpathToolsError
 
 import logging
@@ -190,7 +190,6 @@ class SystemModel(conaryclient.systemmodel.SystemModelFile):
 class AbstractPackageScanner(object):
     def __init__(self):
         self._results = None
-        self._client = None
 
     def scan(self):
         raise NotImplementedError
@@ -198,6 +197,8 @@ class AbstractPackageScanner(object):
     def tomodel(self):
         raise NotImplementedError
 
+    def reset(self):
+        self._results = None
 
 class RPMScanner(AbstractPackageScanner):
     def scan(self):
@@ -222,24 +223,20 @@ class RPMScanner(AbstractPackageScanner):
         return self._results
 
 
-class ConaryScanner(AbstractPackageScanner):
-    @property
-    def client(self):
-        if self._client is None:
-            cfg = conarycfg.ConaryConfiguration(True)
-            self._client = conaryclient.ConaryClient(cfg)
-        return self._client
+class ConaryScanner(AbstractPackageScanner, update.SystemModel):
+    def __init__(self):
+        AbstractPackageScanner.__init__(self)
+        update.SystemModel.__init__(self)
 
     def _getDb(self):
         try:
-            db = self.client.getDatabase()
+            return self.conaryClient.getDatabase()
         except errors.ConaryError, e:
             logger.error('Failed to open conary db: %s' % str(e))
             raise RpathToolsError(e)
-        return db
 
     def getSystemModel(self):
-        sysmodel = self.client.getSystemModel()
+        sysmodel = self.conaryClient.getSystemModel()
         if sysmodel is None:
             return None
         return SystemModel(sysmodel)
@@ -250,7 +247,7 @@ class ConaryScanner(AbstractPackageScanner):
 
         db = self._getDb()
 
-        topLevelItems = set(self.client.getUpdateItemList())
+        topLevelItems = set(self.conaryClient.getUpdateItemList())
 
         self._results = {}
         # We cannot use the iterator here, it keeps the database locked, and

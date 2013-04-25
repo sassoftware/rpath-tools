@@ -169,17 +169,6 @@ class Test(testbaserepo.TestCase):
              ('foo:runtime', '/localhost@rpl:linux/2-1-1', ''),
              ('group-bar', '/localhost@rpl:linux/2-1-1', '')])
 
-    def _setupRepo(self):
-        for v in ["1", "2"]:
-            self.addComponent("foo:runtime", v)
-            self.addCollection("foo", v, [":runtime"])
-            self.addCollection("group-foo", v, [ "foo" ])
-            self.addComponent("bar:runtime", v)
-            self.addCollection("bar", v, [":runtime"])
-            self.addCollection("group-bar-appliance", v, [ "bar" ])
-
-        self.updatePkg(["group-foo=1", "group-bar-appliance=1"])
-
     def testInstallFromNetworkLocations(self):
         import RPATH_SoftwareInstallationService
         RPATH_SoftwareInstallationService.pythonPath = "/usr/bin/python"
@@ -204,7 +193,8 @@ class Test(testbaserepo.TestCase):
 
         self.mock(jobs.subprocess, "Popen", Popen)
 
-        self._setupRepo()
+        self.setupRepo()
+        self.updatePkg(["group-foo=1", "group-bar-appliance=1"])
         _, siObjPath = self.getProviderSoftwareIdentity()
 
         sisProv, sisObjPath = self.getProviderSoftwareInstallationService()
@@ -584,7 +574,8 @@ class Test(testbaserepo.TestCase):
 
         self.mock(jobs.subprocess, "Popen", Popen)
 
-        self._setupRepo()
+        self.setupRepo()
+        self.updatePkg(["group-foo=1", "group-bar-appliance=1"])
         _, siObjPath = self.getProviderSoftwareIdentity()
 
         sisProv, sisObjPath = self.getProviderSoftwareInstallationService()

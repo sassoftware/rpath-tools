@@ -123,13 +123,14 @@ class Scanner(object):
         except KeyError:
             return (0, 0)
 
-    def _scan_system(self, desiredTopLevelItems):
-        dom = self.surveyScanner.toxml(desiredTopLevelItems)
+    def _scan_system(self, desiredTopLevelItems, systemModel):
+        dom = self.surveyScanner.toxml(desiredTopLevelItems, systemModel)
         xml = etree.tostring(dom)
         return xml, self.surveyScanner.uuid
 
-    def _scanner(self, desiredTopLevelItems):
-        self.survey, self.surveyUuid = self._scan_system(desiredTopLevelItems)
+    def _scanner(self, desiredTopLevelItems, systemModel):
+        self.survey, self.surveyUuid = self._scan_system(desiredTopLevelItems,
+                systemModel)
         if self.survey is None:
             return self.survey
         # If the server returned something back, save
@@ -138,11 +139,11 @@ class Scanner(object):
                         uid=None, gid=None)
         return survey_path
 
-    def scanSystem(self, desiredTopLevelItems=[]):
+    def scanSystem(self, desiredTopLevelItems=[], systemModel=None):
         logger.info('Attempting to run survey on %s' % self.localUuidObj.uuid)
         start = time.time()
         start_proc = time.clock()
-        surveyed = self._scanner(desiredTopLevelItems)
+        surveyed = self._scanner(desiredTopLevelItems, systemModel)
         results = { 'SurveyFile' : None,
                     'LocalUuid'  : self.localUuidObj.uuid,
                     'ScanTime'   : None,

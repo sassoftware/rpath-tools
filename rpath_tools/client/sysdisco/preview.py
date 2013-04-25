@@ -30,7 +30,7 @@ class Preview(object):
         self.sources = sources
         self.up = updater.Updater()
 
-    def preview(self, sources):
+    def preview(self, sources, systemModel=None):
         '''
         @param sources: should be a string representing the desired
                         system-model for the system. For classic update
@@ -38,7 +38,7 @@ class Preview(object):
 
         @type sources : string
         '''
-        return self.up.preview(sources)
+        return self.up.preview(sources, systemModel)
 
 
 if __name__ == '__main__':

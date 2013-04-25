@@ -25,6 +25,7 @@ from rpath_tools.lib import errors
 from rpath_tools.lib import installation_service
 
 import tempfile
+import time
 import os
 
 import logging
@@ -36,12 +37,7 @@ class Updater(update.UpdateService):
 
     def __init__(self, value=None):
         super(Updater, self).__init__()
-        self.systemModelPath = self.conaryCfg.modelPath
         self.tmpDir = self.conaryCfg.tmpDir
-
-    @property
-    def is_system_model(self):
-        return self._system_model_exists()
 
     def storeTempSystemModel(self, data):
         fd, path = tempfile.mkstemp(prefix='system-model.', dir=self.tmpDir)
@@ -53,36 +49,38 @@ class Updater(update.UpdateService):
             raise Exception, str(e)
         return path
 
-    def updateOperation(self, sources, preview=True):
+    def updateOperation(self, sources, systemModel=None, preview=True):
         '''
         system-model sources must be a string representation of
         the system-model file
         classic method sources is a list of top level items
         '''
-        xml = '<preview/>'
-        if self.is_system_model:
-            if not sources:
-                sources = file(self.systemModelPath).read()
-            tempSystemModelPath = self.storeTempSystemModel(sources)
+        if self.isSystemModel:
+            if not systemModel:
+                systemModel = file(self.systemModelPath).read()
+            tempSystemModelPath = self.storeTempSystemModel(systemModel)
             task = jobs.SyncPreviewTask().new()
             # Currently we have to call the steps manually
             # to avoid a double fork
             task.preFork(tempSystemModelPath)
             task.run(tempSystemModelPath)
-            xml = task.job.content
         else:
             # WARNING if preview is set to False the update will be applied
             flags = installation_service.InstallationService.UpdateFlags(
                                 migrate=True, test=preview)
             task = jobs.startUpdateOperation(sources=sources, flags=flags)
-            task()
-            xml = task.xml()
+            finalStates = set(['Completed', 'Exception'])
+            while task.job.state not in finalStates:
+                time.sleep(1)
+            if task.job.state != 'Completed':
+                raise Exception(task.job.content)
+        xml = task.job.content
         return xml
 
 
     def applyOperation(self, jobid):
         xml = '<preview/>'
-        if self.is_system_model:
+        if self.isSystemModel:
             task = jobs.SyncApplyTask().load(jobid)
             # Currently we have to call the steps manually
             # to avoid a double fork
@@ -95,9 +93,9 @@ class Updater(update.UpdateService):
             raise errors.NotImplementedError
         return xml
 
-    def preview(self, sources):
+    def preview(self, sources, systemModel=None):
         # Stub for preview operation
-        preview_xml = self.updateOperation(sources)
+        preview_xml = self.updateOperation(sources, systemModel)
 
         # jobid for apply will be in preview
         return preview_xml

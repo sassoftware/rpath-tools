@@ -177,10 +177,11 @@ class SyncApplyTask(BaseUpdateTask):
 
 class SurveyTask(BaseTask):
     jobFactory = stored_objects.ConcreteSurveyJobFactory
+    surveyServiceFactory = surveys.SurveyService
 
-    def run(self, desiredTopLevelItems):
-        surveyserv = surveys.SurveyService()
-        surveyserv.scan(self.job, desiredTopLevelItems)
+    def run(self, desiredTopLevelItems, systemModel):
+        surveyserv = self.surveyServiceFactory()
+        surveyserv.scan(self.job, desiredTopLevelItems, systemModel)
 
 class AnyTask(object):
     # XXX Make this more extensible

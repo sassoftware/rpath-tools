@@ -54,10 +54,11 @@ class UpdateService(object):
 
     def __init__(self):
         self._cclient = None
+        self._cfg = None
 
     def _getClient(self, modelfile=None, force=False):
         if self._cclient is None or force:
-            if self._system_model_exists():
+            if self.isSystemModel:
                 self._cclient = self.conaryClientFactory().getClient(
                                             modelFile=modelfile)
             else:
@@ -67,15 +68,21 @@ class UpdateService(object):
 
     conaryClient = property(_getClient)
 
-    def _getCfg(self):
-        self._cfg = self.conaryClientFactory().getCfg()
+    def _getCfg(self, force=False):
+        if self._cfg is None or force:
+            self._cfg = self.conaryClientFactory().getCfg()
         return self._cfg
 
     conaryCfg = property(_getCfg)
 
-    def _system_model_exists(self):
-        cfg = self.conaryClientFactory().getCfg()
-        return os.path.isfile(cfg.modelPath)
+    @property
+    def isSystemModel(self):
+        return os.path.isfile(self.systemModelPath)
+
+    @property
+    def systemModelPath(self):
+        cfg = self.conaryCfg
+        return util.joinPaths(cfg.root, cfg.modelPath)
 
 class SystemModel(UpdateService):
     def __init__(self, sysmod=None, callback=None):
@@ -377,7 +384,7 @@ class SystemModel(UpdateService):
         added = set()
         newTopTuples = set()
         topErased = False
-        names = [ x.name for x in topTuples ]
+        names = set(x.name for x in topTuples)
         for jobList in updateJob.getJobs():
             for (name, (oldVersion, oldFlavor), (newVersion, newFlavor),
                     isAbsolute) in jobList:

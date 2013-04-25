@@ -36,7 +36,11 @@ class TestCase(rpath_tools_test.TestCaseRepo, testbase.ProviderMixIn):
         rpath_tools_test.TestCaseRepo.tearDown(self)
 
     def waitJob(self, jobObjectPath, timeout = 1):
-        jprov, _ = self.getProviderConcreteJob()
+        if jobObjectPath.classname == 'RPATH_SurveyConcreteJob':
+            method = self.getProviderSurveyConcreteJob
+        else:
+            method = self.getProviderUpdateConcreteJob
+        jprov, _ = method()
         # Iterate until state changes
         jobState = 0
         jobInst = None

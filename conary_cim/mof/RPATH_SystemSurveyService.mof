@@ -13,6 +13,11 @@ class RPATH_SystemSurveyService: CIM_Service {
              "A list of packages against which a preview will be computed"
              )]
       String DesiredPackages[],
+         [IN, Description (
+             "A system model against which a preview will be computed. "
+             "Takes precedence over DesiredPackages"
+             )]
+      String SystemModel[],
          [IN ( false ), OUT, Description (
              "Reference to the job (may be null if job completed)."
               )]

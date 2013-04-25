@@ -60,15 +60,52 @@ topDir %(topDir)s
 logFile %(topDir)s/log
 conaryProxyFilePath %(topDir)s/rpath-tools-conaryProxy
 remoteCertificateAuthorityStore %(topDir)s/certs
-scannerSurveyStore %(topDir)s/survey
+scannerSurveyStore %(workDir)s/storage/surveys
 scannerSurveyLockFile %(topDir)s/survey.lock
 sfcbConfigurationFile %(topDir)s/sfcb.cfg
 includeConfigFile %(configD)s/*
-""" % dict(topDir=topDir, configD=configD))
+""" % dict(topDir=topDir, configD=configD, workDir=self.workDir))
         file(os.path.join(topDir, "sfcb.cfg"), "w").write("""
 sslCertificateFilePath: %(topDir)s/sfcb.ssl
 """ % dict(topDir=topDir))
         file(os.path.join(topDir, "sfcb.ssl"), "w").write("blah")
+        # This is silly, template locations should be part of the config
+        from rpath_tools.client.sysdisco import configurators
+        checkedOutTemplates = os.path.join(os.path.dirname(configurators.__file__),
+                '..', '..', '..', '..', 'xml_resources', 'templates')
+        if os.path.isdir(checkedOutTemplates):
+            self.mock(configurators, 'templatePath', checkedOutTemplates)
+            self.mock(configurators, 'writeErrorTemplate',
+                    os.path.join(checkedOutTemplates,
+                        os.path.basename(configurators.writeErrorTemplate)))
+            self.mock(configurators, 'readErrorTemplate',
+                    os.path.join(checkedOutTemplates,
+                        os.path.basename(configurators.readErrorTemplate)))
+            self.mock(configurators, 'validateErrorTemplate',
+                    os.path.join(checkedOutTemplates,
+                        os.path.basename(configurators.validateErrorTemplate)))
+            self.mock(configurators, 'discoverErrorTemplate',
+                    os.path.join(checkedOutTemplates,
+                        os.path.basename(configurators.discoverErrorTemplate)))
+            self.mock(configurators, 'xslFilePath',
+                    os.path.join(checkedOutTemplates, '..',
+                        os.path.basename(configurators.xslFilePath)))
+            extensionDir = os.path.join(self.workDir, 'rpath-tools', 'extensions')
+            self.mock(configurators, 'readExtensionPath',
+                    os.path.join(extensionDir,
+                        os.path.basename(configurators.readExtensionPath)))
+            self.mock(configurators, 'writeExtensionPath',
+                    os.path.join(extensionDir,
+                        os.path.basename(configurators.writeExtensionPath)))
+            self.mock(configurators, 'discoverExtensionPath',
+                    os.path.join(extensionDir,
+                        os.path.basename(configurators.discoverExtensionPath)))
+            self.mock(configurators, 'validateExtensionPath',
+                    os.path.join(extensionDir,
+                        os.path.basename(configurators.validateExtensionPath)))
+            valuesXmlPath = os.path.join(self.workDir, 'rpath-tools', 'values.xml')
+            self.mock(configurators, 'valuesXmlPath', valuesXmlPath)
+
         return configFilePath
 
 class TestCase(RpathToolsMixIn, testcase.TestCaseWithWorkDir):
@@ -97,7 +134,24 @@ class TestCaseRepo(RpathToolsMixIn, rephelp.RepositoryHelper):
         self.mock(installation_service.UpdateSet, "storagePath", self.storagePath)
         self.mock(jobs.BaseUpdateTask, "storagePath", self.storagePath)
 
+    def setUpRpathTools(self, configFilePathArg):
+        class SurveyTask(jobs.SurveyTask):
+            class surveyServiceFactory(jobs.surveys.SurveyService):
+                def __init__(self, configFilePath=None):
+                    if configFilePath is None:
+                        configFilePath = configFilePathArg
+                    jobs.surveys.SurveyService.__init__(self, configFilePath=configFilePath)
+        self.mock(jobs, 'SurveyTask', SurveyTask)
+
     def tearDown(self):
         RpathToolsMixIn.tearDown(self)
         rephelp.RepositoryHelper.tearDown(self)
 
+    def setupRepo(self):
+        for v in ["1", "2"]:
+            trv = self.addComponent("foo:runtime", v)
+            self.addCollection("foo", trv.version.freeze(), [":runtime"])
+            self.addCollection("group-foo", v, [ "foo" ])
+            trv = self.addComponent("bar:runtime", v)
+            self.addCollection("bar", trv.version.freeze(), [":runtime"])
+            self.addCollection("group-bar-appliance", v, [ "bar" ])
