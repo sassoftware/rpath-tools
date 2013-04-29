@@ -84,6 +84,17 @@ class UpdateService(object):
         cfg = self.conaryCfg
         return util.joinPaths(cfg.root, cfg.modelPath)
 
+    @classmethod
+    def fixSignals(cls):
+        # sfcb broker overrides these signals, but the python library thinks
+        # the handlers are None.  This breaks the sigprotect.py conary
+        # library.
+        import signal
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
+        signal.signal(signal.SIGUSR1, signal.SIG_DFL)
+
+
 class SystemModel(UpdateService):
     def __init__(self, sysmod=None, callback=None):
         '''

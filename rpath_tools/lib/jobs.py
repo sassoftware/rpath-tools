@@ -33,7 +33,7 @@ class TaskRunner(object):
         self.background_run(self.runSync, task, args, kwargs)
         return task
 
-    def runSync(self, task, args, kwargs):
+    def runSync(self, task, *args, **kwargs):
         job = task.job
         job.pid = os.getpid()
         job.state = "Running"
@@ -46,14 +46,8 @@ class TaskRunner(object):
         else:
             job.state = "Completed"
 
-    def preFork(self):
-        pass
-
-    def postFork(self):
-        pass
-
-    def background_run(self, function, *args, **kw):
-        self.preFork()
+    def background_run(self, function, task, args, kwargs):
+        task.preFork(*args, **kwargs)
         pid = os.fork()
         if pid:
             os.waitpid(pid, 0)
@@ -65,7 +59,7 @@ class TaskRunner(object):
                     # The first child exits and is waited by the parent
                     # the finally part will do the os._exit
                     return
-                self.postFork()
+                task.postFork(*args, **kwargs)
                 # Redirect stdin, stdout, stderr
                 fd = os.open(os.devnull, os.O_RDWR)
                 os.dup2(fd, 0)
@@ -76,7 +70,7 @@ class TaskRunner(object):
                 os.setsid()
 
                 os.chdir('/')
-                function(*args, **kw)
+                function(task, *args, **kwargs)
             except Exception:
                 try:
                     ei = sys.exc_info()
@@ -119,7 +113,6 @@ class BaseTask(object):
         Asyncrhonously invoke the run method via the TaskRunner
         """
         runner = self.TaskRunner()
-        self.preFork(*args, **kwargs)
         return runner.runAsync(self, *args, **kwargs)
 
     def run(self, *args, **kwargs):
@@ -131,6 +124,13 @@ class BaseTask(object):
     def preFork(self, *args, **kwargs):
         """
         Method invoked before the task runner forks.
+        The arguments and keyword arguments are the same as the ones passed to
+        the run method.
+        """
+
+    def postFork(self, *args, **kwargs):
+        """
+        Method invoked after the task runner forks.
         The arguments and keyword arguments are the same as the ones passed to
         the run method.
         """
@@ -161,11 +161,17 @@ class SyncPreviewTask(BaseUpdateTask):
     def preFork(self, systemModelPath, flags=None):
         self.job.systemModel = file(systemModelPath).read()
 
+    def postFork(self, *args, **kwargs):
+        update.SyncModel.fixSignals()
+
     def run(self, systemModelPath, flags=None):
         operation = update.SyncModel()
         operation.preview(self.job, raiseExceptions=True)
 
 class SyncApplyTask(BaseUpdateTask):
+    def postFork(self, *args, **kwargs):
+        update.SyncModel.fixSignals()
+
     def run(self, flags=None):
         operation = update.SyncModel()
         operation.apply(self.job, raiseExceptions=True)

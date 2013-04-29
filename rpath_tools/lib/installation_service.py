@@ -166,7 +166,7 @@ class InstallationService(update.UpdateService):
         # Set the state, so we don't pick this update set object again
         updateSet.state = "Applying"
 
-        self._fixSignals()
+        self.fixSignals()
         self.conaryClient.applyUpdateJob(updateJob)
 
     def getCurrentTop(self):
@@ -212,17 +212,6 @@ class InstallationService(update.UpdateService):
         # system back to its nominal group would cause this, for example.
         return topTuple
 
-
-    def _fixSignals(self):
-        # TODO: Fix this hack.
-        # sfcb broker overrides these signals, but the python library thinks
-        # the handlers are None.  This breaks the sigprotect.py conary
-        # library.
-        import signal
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
-        signal.signal(signal.SIGUSR1, signal.SIG_DFL)
-
     @classmethod
     def parseTroveSpec(cls, troveSpec):
         n, v, f = conaryclient.cmdline.parseTroveSpec(troveSpec)
@@ -251,7 +240,7 @@ class InstallationService(update.UpdateService):
         if flags.test or updateJob is None:
             fmt.addObservedVersion(oldTop)
             return fmt.toxml()
-        self._fixSignals()
+        self.fixSignals()
         cclient.applyUpdateJob(updateJob, test=bool(flags.test))
         actualTop = self.getCurrentTop()
         fmt.addObservedVersion(actualTop)
