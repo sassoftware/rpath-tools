@@ -185,6 +185,9 @@ class SurveyTask(BaseTask):
     jobFactory = stored_objects.ConcreteSurveyJobFactory
     surveyServiceFactory = surveys.SurveyService
 
+    def postFork(self, *args, **kwargs):
+        update.SyncModel.fixSignals()
+
     def run(self, desiredTopLevelItems, systemModel):
         surveyserv = self.surveyServiceFactory()
         surveyserv.scan(self.job, desiredTopLevelItems, systemModel)
