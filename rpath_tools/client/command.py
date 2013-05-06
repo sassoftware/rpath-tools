@@ -347,27 +347,24 @@ class UpdateCommand(RpathToolsCommand):
 
     def addParameters(self, argDef):
         RpathToolsCommand.addParameters(self, argDef)
-        argDef['preview'] = options.ONE_PARAM
-        argDef['apply'] = options.ONE_PARAM
-        argDef['install'] = options.ONE_PARAM
-        argDef['update'] = options.ONE_PARAM
-        argDef['updateall'] = options.NO_PARAM
-
-
+        argDef['items'] = options.ONE_PARAM
+        argDef['jobid'] = options.ONE_PARAM
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
-        self.tli = args[-1]
-        self.jobid = None
-        if 'jobid' in args:
-            self.jobid = args.pop('jobid', None)
-        self.command_types = ['update', 'preview', 'apply', 'updateall', 'install']
+        argSet = args[1]
+        self.tlis = argSet.pop('items', [])
+        self.jobid = argSet.pop('jobid', None)
+        self.command_types = ['preview', 'apply', 'update', 'updateall', 'install']
         self.commands = [ x for x in args[-1] if x in self.command_types ]
+        up = updater.Updater()
         if 'apply' in self.commands and self.jobid:
-            updater.apply(self.cfg, self.commands, self.iid)
-        results = updater.preview(self.cfg, self.commands, self.tli)
+            results = up.debug(self.iid)
+        if 'preview' in self.commands and self.tlis:
+            results = up.debug(self.tlis)
+        else:
+            results = up.debug(self.tlis, self.commands)
         return results
-
 
 class ConfiguratorCommand(RpathToolsCommand):
     commands = ['configurator', 'read', 'write', 'validate', 'discover']
