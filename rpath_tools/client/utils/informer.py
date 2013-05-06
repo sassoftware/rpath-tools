@@ -219,14 +219,18 @@ class Informer(update.UpdateService):
             mangled = self._pythonify(data)
         return mangled
 
+
     def _getTopLevelItemsAllVersions(self):
         topLevelItems = self._getTopLevelItems()
-        top = [ trovetup.TroveTuple(name, version, flavor)
-                for name, version, flavor in topLevelItems
-                    if name.startswith('group-') ][0]
-        label = [ x for x in self.conaryCfg.installLabelPath ][0]
-        query = { top.name : { label : None } }
-        allversions = self.conaryClient.repos.getTroveVersionsByLabel(query)
+        allversions = {}
+        tops = [ trovetup.TroveTuple(name, version, flavor)
+                for name, version, flavor in topLevelItems ]
+                    #if name.startswith('group-') ][0]
+        for top in tops:
+            label = top.version.trailingLabel()
+            query = { top.name : { label : None } }
+            allversions.update(
+                        self.conaryClient.repos.getTroveVersionsByLabel(query))
         return allversions
 
 
