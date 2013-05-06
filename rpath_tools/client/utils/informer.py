@@ -72,7 +72,8 @@ class Informer(update.UpdateService):
         @type callback: object like updatecmd.Callback
         '''
         super(Informer, self).__init__()
-        self.systemModelPath = self.conaryCfg.modelPath
+        if not self.systemModelPath:
+            self.systemModelPath = self.conaryCfg.modelPath
         self.tmpDir = self.conaryCfg.tmpDir
 
         self._values = dict([ (x, True) for x in values])
