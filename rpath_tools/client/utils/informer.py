@@ -187,16 +187,18 @@ class Informer(update.UpdateService):
 
     def _sanitize(self, trovelist):
         sanitized = []
-        for name, version, flavor in trovelist:
+        for name, version, flavors in trovelist:
             try:
                 version = str(version)
             except:
                 pass
-            try:
-                flavor = str(flavor)
-            except:
-                pass
-            sanitized.append((name, version,flavor))
+            flv_str = ''
+            for flv in flavors:
+                try:
+                    flv_str = ','.join([flv_str, str(flv)])
+                except:
+                    pass
+            sanitized.append((name, version, flv_str))
         return sanitized
 
     def _jsonify(self, data):
@@ -222,11 +224,11 @@ class Informer(update.UpdateService):
         top = [ trovetup.TroveTuple(name, version, flavor)
                 for name, version, flavor in topLevelItems
                     if name.startswith('group-') ][0]
-        allversions = self.conaryClient.repos.findTroves(
-                                self.conaryCfg.installLabelPath,
-                                    [(top.name, None, None)])
-
+        label = [ x for x in self.conaryCfg.installLabelPath ][0]
+        query = { top.name : { label : None } }
+        allversions = self.conaryClient.repos.getTroveVersionsByLabel(query)
         return allversions
+
 
     def _getTopLevelItems(self):
         return sorted(self.conaryClient.getUpdateItemList())
@@ -245,9 +247,14 @@ class Informer(update.UpdateService):
     def getTopLevelItemsAllVersions(self):
         all = self._getTopLevelItemsAllVersions()
         allversions = {}
-        for trove, items in all.items():
-            name, version, flavor = trove
-            allversions.setdefault(name, self._sanitize(items))
+        for name, versions in all.items():
+            trovelist = []
+            for version, flavors in versions.items():
+                flavor = [ x for x in flavors 
+                        if x.satisfies(self.conaryCfg.flavorPreferences[0]) ]
+                if flavor:
+                    trovelist.append([ name, version, flavor ])
+            allversions.setdefault(name, self._sanitize(trovelist))
         return self.mangle(allversions)
 
     def getTopLevelItems(self):
