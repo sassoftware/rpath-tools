@@ -31,6 +31,7 @@ from rpath_tools.client import register
 from rpath_tools.client import scan
 from rpath_tools.client import updater
 from rpath_tools.client import configurator
+from rpath_tools.client import updater
 from rpath_tools.client.sysdisco import puppet
 
 
@@ -347,24 +348,23 @@ class UpdateCommand(RpathToolsCommand):
 
     def addParameters(self, argDef):
         RpathToolsCommand.addParameters(self, argDef)
-        argDef['items'] = options.ONE_PARAM
+        argDef['item'] = options.MULT_PARAM
         argDef['jobid'] = options.ONE_PARAM
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
         argSet = args[1]
-        self.tlis = argSet.pop('items', [])
+        self.tlis = argSet.pop('item', [])
         self.jobid = argSet.pop('jobid', None)
-        self.command_types = ['preview', 'apply', 'update', 'updateall', 'install']
+        self.command_types = ['preview', 'apply', 'install', 'update', 'updateall' ]
         self.commands = [ x for x in args[-1] if x in self.command_types ]
         up = updater.Updater()
         if 'apply' in self.commands and self.jobid:
-            results = up.debug(self.iid)
-        if 'preview' in self.commands and self.tlis:
-            results = up.debug(self.tlis)
+            results = up.apply(self.iid)
         else:
-            results = up.debug(self.tlis, self.commands)
+            results = up.groovy(self.tlis, self.commands)
         return results
+
 
 class ConfiguratorCommand(RpathToolsCommand):
     commands = ['configurator', 'read', 'write', 'validate', 'discover']

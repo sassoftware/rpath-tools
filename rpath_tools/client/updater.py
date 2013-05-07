@@ -109,7 +109,8 @@ class Updater(update.UpdateService):
     def getTopLevelItemsAllVersions(self):
         topLevelItems = sorted(self.conaryClient.getUpdateItemList())
         allversions = {}
-        tops = [ trovetup.TroveTuple(name, version, flavor) for name, version, flavor in topLevelItems ]
+        tops = [ trovetup.TroveTuple(name, version, flavor) for 
+                            name, version, flavor in topLevelItems ]
 
         for top in tops:
             label = top.version.trailingLabel()
@@ -123,9 +124,9 @@ class Updater(update.UpdateService):
                 flavor = [ x for x in flavors
                         if x.satisfies(self.conaryCfg.flavorPreferences[0]) ]
                 if flavor:
-                    trovespeclist.append(trovetup.TroveSpec(name, version.asString()[1:], str(flavor[0])))
+                    trovespeclist.append(trovetup.TroveSpec(
+                                name, version.asString()[1:], str(flavor[0])))
 
-        from conary.lib import debugger as epdb;epdb.st()
         return trovespeclist
 
 
@@ -149,13 +150,12 @@ class Updater(update.UpdateService):
         return newsysmodel
 
     def groovy(self, sources, commands=None):
-        newSystemModelPath = self.convertToSystemModel(sources, commands)       
+        newSystemModel = self.convertToSystemModel(sources, commands)       
         xml = self.preview(sources, newSystemModel)
         return xml
 
     def debug(self, sources, commands=None):
-        newSystemModelPath = self.convertToSystemModel(sources, commands)       
-        from conary.lib import debugger as epdb;epdb.st()
+        newSystemModel = self.convertToSystemModel(sources, commands)       
         xml = self.preview(sources, newSystemModel)
         return xml
 

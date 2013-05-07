@@ -192,13 +192,11 @@ class Informer(update.UpdateService):
                 version = str(version)
             except:
                 pass
-            flv_str = ''
-            for flv in flavors:
-                try:
-                    flv_str = ','.join([flv_str, str(flv)])
-                except:
-                    pass
-            sanitized.append((name, version, flv_str))
+            try:
+                flavors = [ str(x) for x in flavors ]
+            except:
+                pass
+            sanitized.append((name, version, flavors))
         return sanitized
 
     def _jsonify(self, data):
@@ -219,7 +217,6 @@ class Informer(update.UpdateService):
             mangled = self._pythonify(data)
         return mangled
 
-
     def _getTopLevelItemsAllVersions(self):
         topLevelItems = self._getTopLevelItems()
         allversions = {}
@@ -229,10 +226,8 @@ class Informer(update.UpdateService):
         for top in tops:
             label = top.version.trailingLabel()
             query = { top.name : { label : None } }
-            allversions.update(
-                        self.conaryClient.repos.getTroveVersionsByLabel(query))
+            allversions.update(self.conaryClient.repos.getTroveVersionsByLabel(query))
         return allversions
-
 
     def _getTopLevelItems(self):
         return sorted(self.conaryClient.getUpdateItemList())
@@ -248,16 +243,16 @@ class Informer(update.UpdateService):
                                 ['Count', str(tcounter)])
         return self.mangle(tcount)
 
+
     def getTopLevelItemsAllVersions(self):
         all = self._getTopLevelItemsAllVersions()
         allversions = {}
         for name, versions in all.items():
             trovelist = []
             for version, flavors in versions.items():
-                flavor = [ x for x in flavors 
-                        if x.satisfies(self.conaryCfg.flavorPreferences[0]) ]
+                flavor = [ flavor for flavor in flavors if flavor.satisfies(self.conaryCfg.flavorPreferences[0]) ]
                 if flavor:
-                    trovelist.append([ name, version, flavor ])
+                    trovelist.append([ name, version, flavor ]) 
             allversions.setdefault(name, self._sanitize(trovelist))
         return self.mangle(allversions)
 
