@@ -31,7 +31,6 @@ from rpath_tools.client import register
 from rpath_tools.client import scan
 from rpath_tools.client import updater
 from rpath_tools.client import configurator
-from rpath_tools.client import updater
 from rpath_tools.client.sysdisco import puppet
 
 
