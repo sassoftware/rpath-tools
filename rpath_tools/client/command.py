@@ -359,7 +359,7 @@ class UpdateCommand(RpathToolsCommand):
         self.commands = [ x for x in args[-1] if x in self.command_types ]
         up = updater.Updater()
         if 'apply' in self.commands and self.jobid:
-            results = up.apply(self.iid)
+            results = up.apply(self.jobid)
         else:
             results = up.groovy(self.tlis, self.commands)
         return results

@@ -141,7 +141,7 @@ class Updater(update.UpdateService):
         if pkglist:
             for pkg in pkglist:
                 if pkg not in possible:
-                    print "[WARNING] %s is not in current search path" % pkg
+                    print "[WARNING] %s is not in current search path" % str(pkg)
                 update = ' '.join([op,'"' + pkg.asString() + '" \n'])
                 contents.append(update)
         newsysmodel = ''.join(contents)
