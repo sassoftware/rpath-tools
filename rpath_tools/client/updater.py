@@ -17,7 +17,7 @@
 
 
 from conary.lib import util
-
+from conary import trovetup
 
 from rpath_tools.lib import update
 from rpath_tools.lib import jobs
@@ -105,21 +105,58 @@ class Updater(update.UpdateService):
         apply_xml = self.applyOperation(jobid)
         return apply_xml
 
-    def update(self, sources):
-        # DEPRECATED : As I write this...
-        # Used for non system-model systems
-        preview_xml = self.updateOperation(sources, preview=False)
-        return preview_xml
 
-    def debug(self, sources):
+    def getTopLevelItemsAllVersions(self):
+        topLevelItems = sorted(self.conaryClient.getUpdateItemList())
+        allversions = {}
+        tops = [ trovetup.TroveTuple(name, version, flavor) for name, version, flavor in topLevelItems ]
+
+        for top in tops:
+            label = top.version.trailingLabel()
+            query = { top.name : { label : None } }
+            allversions.update(
+                        self.conaryClient.repos.getTroveVersionsByLabel(query))
+
+        for name, versions in allversions.items():
+            trovespeclist = []
+            for version, flavors in versions.items():
+                flavor = [ x for x in flavors
+                        if x.satisfies(self.conaryCfg.flavorPreferences[0]) ]
+                if flavor:
+                    trovespeclist.append(trovetup.TroveSpec(name, version.asString()[1:], str(flavor[0])))
+
+        from conary.lib import debugger as epdb;epdb.st()
+        return trovespeclist
+
+
+    def convertToSystemModel(self, sources, commands):
+        op = 'update'
+        if 'install' in commands:
+            op = 'install'
+        pkglist = [ trovetup.TroveSpec(x) for x in sources ]
+        possible = self.getTopLevelItemsAllVersions()
+        with open(self.conaryCfg.modelPath) as f:
+            contents = f.readlines()
+        if pkglist:
+            for pkg in pkglist:
+                if pkg not in possible:
+                    print "[WARNING] %s is not in current search path" % pkg
+                update = ' '.join([op,'"' + pkg.asString() + '" \n'])
+                contents.append(update)
+        newsysmodel = ''.join(contents)
         systemModelPath = '/tmp/system-model.debug'
-        file(systemModelPath, "w").write(sources)
-        task = jobs.SyncPreviewTask().new()
-        # Currently we have to call the steps manually
-        # to avoid a double fork
-        task.preFork(systemModelPath)
-        task.run(systemModelPath)
-        xml = task.job.content
+        file(systemModelPath, "w").write(newsysmodel)
+        return newsysmodel
+
+    def groovy(self, sources, commands=None):
+        newSystemModelPath = self.convertToSystemModel(sources, commands)       
+        xml = self.preview(sources, newSystemModel)
+        return xml
+
+    def debug(self, sources, commands=None):
+        newSystemModelPath = self.convertToSystemModel(sources, commands)       
+        from conary.lib import debugger as epdb;epdb.st()
+        xml = self.preview(sources, newSystemModel)
         return xml
 
 
