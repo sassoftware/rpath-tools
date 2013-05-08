@@ -349,19 +349,23 @@ class UpdateCommand(RpathToolsCommand):
         RpathToolsCommand.addParameters(self, argDef)
         argDef['item'] = options.MULT_PARAM
         argDef['jobid'] = options.ONE_PARAM
+        argDef['xml'] = options.NO_PARAM
+        argDef['json'] = options.NO_PARAM
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
         argSet = args[1]
         self.tlis = argSet.pop('item', [])
         self.jobid = argSet.pop('jobid', None)
+        self.xml = argSet.pop('xml', False)
+        self.json = argSet.pop('json', False)
         self.command_types = ['preview', 'apply', 'install', 'update', 'updateall' ]
         self.commands = [ x for x in args[-1] if x in self.command_types ]
         up = updater.Updater()
         if 'apply' in self.commands and self.jobid:
             results = up.apply(self.jobid)
         else:
-            results = up.groovy(self.tlis, self.commands)
+            results = up.groovy(self.tlis, self.commands, self.xml, self.json)
         return results
 
 

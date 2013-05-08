@@ -64,6 +64,8 @@ class Updater(update.UpdateService):
             # to avoid a double fork
             task.preFork(tempSystemModelPath)
             task.run(tempSystemModelPath)
+            if not preview:
+                return task.job.keyId
         else:
             # WARNING if preview is set to False the update will be applied
             flags = installation_service.InstallationService.UpdateFlags(
@@ -125,7 +127,7 @@ class Updater(update.UpdateService):
                         if x.satisfies(self.conaryCfg.flavorPreferences[0]) ]
                 if flavor:
                     trovespeclist.append(trovetup.TroveSpec(
-                                name, version.asString()[1:], str(flavor[0])))
+                            name, version.asString()[1:], str(flavor[0])))
 
         return trovespeclist
 
@@ -149,10 +151,39 @@ class Updater(update.UpdateService):
         file(systemModelPath, "w").write(newsysmodel)
         return newsysmodel
 
-    def groovy(self, sources, commands=None):
+    def jsonify(self, xml):
+        import json
+        from lxml import etree
+
+        root = etree.fromstring(xml)
+
+        def _handler(root):
+            result = dict()
+            for e in root:
+                if len(e):
+                    if hasattr(e, 'attrib'):
+                        result.update(e.attrib)
+                    obj = _handler(e)
+                else:
+                    obj = e.text
+                if result.get(e.tag):
+                    if hasattr(result[e.tag], "append"):
+                        result[e.tag].append(obj)
+                    else:
+                        result[e.tag] = [result[e.tag], obj]
+                else:
+                    result[e.tag] = obj
+            return result
+        d = {root.tag: _handler(root)}
+        return json.dumps(d)
+
+
+    def groovy(self, sources, commands=None, xml=False, json=False):
         newSystemModel = self.convertToSystemModel(sources, commands)       
-        xml = self.preview(sources, newSystemModel)
-        return xml
+        results = self.updateOperation(sources, newSystemModel, preview=xml)
+        if json:
+            results = self.jsonify(results)
+        return results
 
     def debug(self, sources, commands=None):
         newSystemModel = self.convertToSystemModel(sources, commands)       
