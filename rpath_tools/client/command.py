@@ -352,6 +352,20 @@ class UpdateCommand(RpathToolsCommand):
         argDef['xml'] = options.NO_PARAM
         argDef['json'] = options.NO_PARAM
 
+    def shouldRun(self):
+        if len(self.commands) != 1:
+            logger.error('specify only one command action : %s' % 
+                                                str(self.command_types))
+            return False
+        if 'apply' in self.commands and not self.jobid:
+            logger.error('apply command requires --jobid <jobid string>')
+            return False
+        if 'preview' in self.commands and not self.tlis:
+            logger.info('preview command requires --item <trove spec>')
+            return False
+        return True
+
+
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
         argSet = args[1]
@@ -361,6 +375,11 @@ class UpdateCommand(RpathToolsCommand):
         self.json = argSet.pop('json', False)
         self.command_types = ['preview', 'apply', 'install', 'update', 'updateall' ]
         self.commands = [ x for x in args[-1] if x in self.command_types ]
+
+        if not self.shouldRun():
+            logger.info('Updater will not run, exiting.')
+            sys.exit(2)
+
         up = updater.Updater()
         if 'apply' in self.commands and self.jobid:
             results = up.apply(self.jobid)

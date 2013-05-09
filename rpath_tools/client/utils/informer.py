@@ -253,7 +253,7 @@ class Informer(update.UpdateService):
                 flavor = [ flavor for flavor in flavors if flavor.satisfies(self.conaryCfg.flavorPreferences[0]) ]
                 if flavor:
                     trovelist.append([ name, version, flavor ]) 
-            allversions.setdefault(name, self._sanitize(trovelist))
+            allversions.setdefault(name, self._sanitize(sorted(trovelist)))
         return self.mangle(allversions)
 
     def getTopLevelItems(self):
