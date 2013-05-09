@@ -355,13 +355,13 @@ class UpdateCommand(RpathToolsCommand):
     def shouldRun(self):
         if len(self.commands) != 1:
             logger.error('specify only one command action : %s' % 
-                                                str(self.command_types))
+                                ' '.join(self.command_types))
             return False
         if 'apply' in self.commands and not self.jobid:
             logger.error('apply command requires --jobid <jobid string>')
             return False
         if 'preview' in self.commands and not self.tlis:
-            logger.info('preview command requires --item <trove spec>')
+            logger.error('preview command requires --item <trove spec>')
             return False
         return True
 
