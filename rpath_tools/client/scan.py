@@ -23,13 +23,11 @@ import sys
 import time
 
 from conary.lib import util
-
-from rpath_tools.client import config
-
 from lxml import etree
-from rpath_tools.client.sysdisco import scanner
 
-from rpath_tools.client.register import LocalUuid
+from rpath_tools.lib.uuids import LocalUuid
+from rpath_tools.client import config
+from rpath_tools.client.sysdisco import scanner
 
 logger = logging.getLogger(__name__)
 
