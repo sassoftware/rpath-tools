@@ -17,7 +17,7 @@
 
 
 from conary.lib import util
-
+from conary import trovetup
 
 from rpath_tools.lib import update
 from rpath_tools.lib import jobs
@@ -64,6 +64,8 @@ class Updater(update.UpdateService):
             # to avoid a double fork
             task.preFork(tempSystemModelPath)
             task.run(tempSystemModelPath)
+            if not preview:
+                return task.job.keyId
         else:
             # WARNING if preview is set to False the update will be applied
             flags = installation_service.InstallationService.UpdateFlags(
@@ -105,21 +107,87 @@ class Updater(update.UpdateService):
         apply_xml = self.applyOperation(jobid)
         return apply_xml
 
-    def update(self, sources):
-        # DEPRECATED : As I write this...
-        # Used for non system-model systems
-        preview_xml = self.updateOperation(sources, preview=False)
-        return preview_xml
 
-    def debug(self, sources):
+    def getTopLevelItemsAllVersions(self):
+        topLevelItems = sorted(self.conaryClient.getUpdateItemList())
+        allversions = {}
+        tops = [ trovetup.TroveTuple(name, version, flavor) for 
+                            name, version, flavor in topLevelItems ]
+
+        for top in tops:
+            label = top.version.trailingLabel()
+            query = { top.name : { label : None } }
+            allversions.update(
+                        self.conaryClient.repos.getTroveVersionsByLabel(query))
+
+        for name, versions in allversions.items():
+            trovespeclist = []
+            for version, flavors in versions.items():
+                flavor = [ x for x in flavors
+                        if x.satisfies(self.conaryCfg.flavorPreferences[0]) ]
+                if flavor:
+                    trovespeclist.append(trovetup.TroveSpec(
+                            name, version.asString()[1:], str(flavor[0])))
+
+        return trovespeclist
+
+
+    def convertToSystemModel(self, sources, commands):
+        op = 'update'
+        if 'install' in commands:
+            op = 'install'
+        pkglist = [ trovetup.TroveSpec(x) for x in sources ]
+        possible = self.getTopLevelItemsAllVersions()
+        with open(self.conaryCfg.modelPath) as f:
+            contents = f.readlines()
+        if pkglist:
+            for pkg in pkglist:
+                if pkg not in possible:
+                    print "[WARNING] %s is not in current search path" % str(pkg)
+                update = ' '.join([op,'"' + pkg.asString() + '" \n'])
+                contents.append(update)
+        newsysmodel = ''.join(contents)
         systemModelPath = '/tmp/system-model.debug'
-        file(systemModelPath, "w").write(sources)
-        task = jobs.SyncPreviewTask().new()
-        # Currently we have to call the steps manually
-        # to avoid a double fork
-        task.preFork(systemModelPath)
-        task.run(systemModelPath)
-        xml = task.job.content
+        file(systemModelPath, "w").write(newsysmodel)
+        return newsysmodel
+
+    def jsonify(self, xml):
+        import json
+        from lxml import etree
+
+        root = etree.fromstring(xml)
+
+        def _handler(root):
+            result = dict()
+            for e in root:
+                if len(e):
+                    if hasattr(e, 'attrib'):
+                        result.update(e.attrib)
+                    obj = _handler(e)
+                else:
+                    obj = e.text
+                if result.get(e.tag):
+                    if hasattr(result[e.tag], "append"):
+                        result[e.tag].append(obj)
+                    else:
+                        result[e.tag] = [result[e.tag], obj]
+                else:
+                    result[e.tag] = obj
+            return result
+        d = {root.tag: _handler(root)}
+        return json.dumps(d)
+
+
+    def groovy(self, sources, commands=None, xml=False, json=False):
+        newSystemModel = self.convertToSystemModel(sources, commands)       
+        results = self.updateOperation(sources, newSystemModel, preview=xml)
+        if json:
+            results = self.jsonify(results)
+        return results
+
+    def debug(self, sources, commands=None):
+        newSystemModel = self.convertToSystemModel(sources, commands)       
+        xml = self.preview(sources, newSystemModel)
         return xml
 
 
