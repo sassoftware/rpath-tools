@@ -16,13 +16,11 @@
 #
 
 
-from conary import updatecmd
-from conary import conarycfg
 from conary import conaryclient
 from conary import trovetup
 from conary.lib import util
-from conary.conaryclient import cml
-from conary.conaryclient import systemmodel
+
+from rpath_tools.lib import update
 
 import os
 
@@ -31,7 +29,7 @@ import json
 
 import logging
 
-logger = logging.getLogger(name = '__name__')
+logger = logging.getLogger(__name__)
 
 class InformerError(Exception):
     "Base class"
@@ -43,20 +41,6 @@ class RepositoryError(InformerError):
     "Raised when a repository error is caught"
 
 
-class ConaryClientFactory(object):
-    def getClient(self, modelFile=None, model=True):
-        ccfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        ccfg.initializeFlavors()
-        if model:
-            if not modelFile:
-                model = cml.CML(ccfg)
-                modelFile = systemmodel.SystemModelFile(model)
-            cclient = conaryclient.ConaryClient(ccfg, modelFile=modelFile)
-        else:
-            cclient = conaryclient.ConaryClient(ccfg)
-        callback = updatecmd.callbacks.UpdateCallback()
-        cclient.setUpdateCallback(callback)
-        return cclient
 
 class InformerFlags(object):
     __slots__ = [ 'top', 'updates', 'counter', 'sync',
@@ -77,7 +61,8 @@ class InformerFlags(object):
         return self.__slots__
 
 
-class Informer(object):
+class Informer(update.UpdateService):
+
     def __init__(self, values=[], callback=None):
         '''
         Base Module Class
@@ -86,7 +71,9 @@ class Informer(object):
         @param callback: A callback for messaging can be None
         @type callback: object like updatecmd.Callback
         '''
-        self.conaryClientFactory = ConaryClientFactory
+        super(Informer, self).__init__()
+        self.systemModelPath = self.conaryCfg.modelPath
+        self.tmpDir = self.conaryCfg.tmpDir
 
         self._values = dict([ (x, True) for x in values])
         self.flags = InformerFlags()
@@ -101,27 +88,6 @@ class Informer(object):
                                  ('counter', self.getTransactionCounter),
                             ])
 
-    def _system_model_exists(self):
-        return os.path.isfile('/etc/conary/system-model')
-
-    def _getClient(self, modelfile=None, force=False):
-        if self._client is None or force:
-            if self._system_model_exists():
-                self._client = self.conaryClientFactory().getClient(
-                                            modelFile=modelfile)
-            else:
-                self._client = self.conaryClientFactory().getClient(
-                                            model=False)
-        return self._client
-
-    conaryClient = property(_getClient)
-
-    def _getCfg(self):
-        self._cfg = conarycfg.ConaryConfiguration(readConfigFiles=True)
-        self._cfg.initializeFlavors()
-        return self._cfg
-
-    conaryCfg = property(_getCfg)
 
 
     def _runProcess(self, cmd):
@@ -298,8 +264,6 @@ class Informer(object):
             if self.flags.get(item) and item in self._functionMap:
                 results = "%s\n%s" % (results, self._runFunction(item))
         return results
-
-
 
 
     def debug(self):

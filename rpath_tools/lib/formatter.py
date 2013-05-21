@@ -53,6 +53,9 @@ class Formatter(object):
         etree.SubElement(self.root, 'desired').text = troveTup.asString(
                 withTimestamp=True)
 
+    def addJobid(self, jobid):
+        self.root.attrib['id'] = str(jobid)
+
     def toxml(self):
         return etree.tostring(self.root)
 

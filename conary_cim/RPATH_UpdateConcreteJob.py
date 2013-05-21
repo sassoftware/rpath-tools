@@ -23,7 +23,7 @@ Instruments the CIM class RPATH_UpdateConcreteJob
 """
 
 import pywbem
-import concrete_job
+from rpath_tools.lib import jobs
 import baseConcreteJobProvider
 import stub_RPATH_UpdateConcreteJob
 
@@ -41,7 +41,7 @@ class RPATH_UpdateConcreteJob(baseConcreteJobProvider.ConcreteJobMixIn, stubClas
 
     def __init__ (self, env):
         stubClass.__init__(self, env)
-        self.concreteJob = concrete_job.UpdateJob()
+        self._task = jobs.SyncApplyTask()
 
     def produceResults(self, env, model, job):
         if job.content is None:
@@ -87,9 +87,13 @@ class RPATH_UpdateConcreteJob(baseConcreteJobProvider.ConcreteJobMixIn, stubClas
             return (rval, [])
 
         key = self.fromInstanceID(key)
-        self.concreteJob = concrete_job.UpdateJob.applySyncOperation(key)
+        self._task = jobs.SyncApplyTask().load(key)
+        cuJob = self._task.job
 
-        cuJob = self.concreteJob.concreteJob
+        args = [ "--mode", "sync", "--update-id", cuJob.keyId ]
+        jobProc = jobs.reexec(args)
+        jobProc.communicate()
+
         if cuJob.state != "Exception":
             rval = self.Values.ApplyUpdate.OK
             return (rval, [])

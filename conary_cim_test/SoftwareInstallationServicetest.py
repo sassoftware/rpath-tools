@@ -20,8 +20,7 @@ import pywbem
 import testbaserepo
 
 from conary.lib import util
-import concrete_job
-import installation_service
+from rpath_tools.lib import installation_service, jobs
 
 class Test(testbaserepo.TestCase):
     def testSoftwareInstallationService(self):
@@ -170,17 +169,6 @@ class Test(testbaserepo.TestCase):
              ('foo:runtime', '/localhost@rpl:linux/2-1-1', ''),
              ('group-bar', '/localhost@rpl:linux/2-1-1', '')])
 
-    def _setupRepo(self):
-        for v in ["1", "2"]:
-            self.addComponent("foo:runtime", v)
-            self.addCollection("foo", v, [":runtime"])
-            self.addCollection("group-foo", v, [ "foo" ])
-            self.addComponent("bar:runtime", v)
-            self.addCollection("bar", v, [":runtime"])
-            self.addCollection("group-bar-appliance", v, [ "bar" ])
-
-        self.updatePkg(["group-foo=1", "group-bar-appliance=1"])
-
     def testInstallFromNetworkLocations(self):
         import RPATH_SoftwareInstallationService
         RPATH_SoftwareInstallationService.pythonPath = "/usr/bin/python"
@@ -190,15 +178,12 @@ class Test(testbaserepo.TestCase):
 
         class Popen:
             def __init__(self, *args, **kwargs):
-                callArgs = args[0]
-                concreteJob = concrete_job.UpdateJob().new()
+                task = jobs.UpdateTask().new()
                 _flags = {}
                 _flags[mode] = True
                 flags = installation_service.InstallationService.UpdateFlags(**_flags)
-                concreteJob.startUpdateOperation(
-                    [sources % defLabel],
-                    flags)
-                self.jobId = concreteJob.get_job_id()
+                task([sources % defLabel], flags)
+                self.jobId = task.get_job_id()
 
             def wait(self):
                 return None
@@ -206,9 +191,10 @@ class Test(testbaserepo.TestCase):
             def communicate(self):
                 return self.jobId, None
 
-        self.mock(RPATH_SoftwareInstallationService.subprocess, "Popen", Popen)
+        self.mock(jobs.subprocess, "Popen", Popen)
 
-        self._setupRepo()
+        self.setupRepo()
+        self.updatePkg(["group-foo=1", "group-bar-appliance=1"])
         _, siObjPath = self.getProviderSoftwareIdentity()
 
         sisProv, sisObjPath = self.getProviderSoftwareInstallationService()
@@ -309,15 +295,16 @@ class Test(testbaserepo.TestCase):
 
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.AnyJob.load(jobId)
-        job.concreteJob.state = 'Exception'
-        job.concreteJob.content = None
+        task = jobs.AnyTask.load(jobId)
+        job = task.job
+        job.state = 'Exception'
+        job.content = None
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 2L))
 
-        job.concreteJob.content = 'Blahblah'
+        job.content = 'Blahblah'
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 0L))
@@ -565,14 +552,19 @@ class Test(testbaserepo.TestCase):
 
         class Popen:
             def __init__(self, *args, **kwargs):
-                idx = args[0].index('--system-model-path')
-                tmpf = args[0][idx+1]
-                # Flags are meaningless for now
-                flags = installation_service.InstallationService.UpdateFlags()
-                concreteJob = concrete_job.UpdateJob.previewSyncOperation(
-                        tmpf, flags)
-
-                self.jobId = concreteJob.get_job_id()
+                if '--system-model-path' in args[0]:
+                    idx = args[0].index('--system-model-path')
+                    tmpf = args[0][idx+1]
+                    # Flags are meaningless for now
+                    flags = installation_service.InstallationService.UpdateFlags()
+                    task = jobs.SyncPreviewTask().new()
+                    task(tmpf, flags)
+                else:
+                    idx = args[0].index('--update-id')
+                    jobId = args[0][idx+1]
+                    task = jobs.SyncApplyTask().load(jobId)
+                    task()
+                self.jobId = task.get_job_id()
 
             def wait(self):
                 return None
@@ -580,9 +572,10 @@ class Test(testbaserepo.TestCase):
             def communicate(self):
                 return self.jobId, None
 
-        self.mock(RPATH_SoftwareInstallationService.subprocess, "Popen", Popen)
+        self.mock(jobs.subprocess, "Popen", Popen)
 
-        self._setupRepo()
+        self.setupRepo()
+        self.updatePkg(["group-foo=1", "group-bar-appliance=1"])
         _, siObjPath = self.getProviderSoftwareIdentity()
 
         sisProv, sisObjPath = self.getProviderSoftwareInstallationService()
@@ -613,8 +606,8 @@ class Test(testbaserepo.TestCase):
         # Make sure we've saved the system model
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.UpdateJob().load(jobId)
-        self.assertEquals(job.concreteJob.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+        task = jobs.UpdateTask().load(jobId)
+        self.assertEquals(task.job.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
         #self.assertXMLEquals(job.concreteJob.content, "")
 
         rlProv, rlObjectPath = self.getProviderRecordLog()
@@ -694,15 +687,16 @@ class Test(testbaserepo.TestCase):
 
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.AnyJob.load(jobId)
-        job.concreteJob.state = 'Exception'
-        job.concreteJob.content = None
+        task = jobs.AnyTask.load(jobId)
+        job = task.job
+        job.state = 'Exception'
+        job.content = None
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 2L))
 
-        job.concreteJob.content = 'Blahblah'
+        job.content = 'Blahblah'
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'GetError', {})
         self.failUnlessEqual(ret, ('uint32', 0L))
@@ -712,14 +706,141 @@ class Test(testbaserepo.TestCase):
     def testApplyUpdate(self):
         sisProv, sisObjPath, jobObjectPath = self.setupSyncOperation()
 
+        # Set up versions
+        repos = self.openRepository()
+        troveMaps = {}
+        labelMaps = [
+            ('foo', 'foo'),
+            ('bar', 'bar'),
+            ('foorun', 'foo:runtime'),
+            ('groupfoo', 'group-foo'),
+            ('groupbarapp', 'group-bar-appliance'),
+        ]
+        for ver in range(1, 3):
+            for label, troveName in labelMaps:
+                troveMaps['%s-%s-1-1' % (label, ver)] = \
+                        (troveName, '%s/%s-1-1' % (self.defLabel, ver), None)
+        troveTups = repos.findTroves(None, troveMaps.values())
+        # Now convert maps to version strings
+        params = dict((x, troveTups[y][0][1].freeze())
+                for (x, y) in troveMaps.iteritems())
+
         jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
 
         # Make sure we've saved the system model
         jobId = jobObjectPath['InstanceID'].split(':', 1)[-1]
         jobId = jobId.split('/', 1)[-1]
-        job = concrete_job.UpdateJob().load(jobId)
-        self.assertEquals(job.concreteJob.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+        task = jobs.UpdateTask().load(jobId)
+        job = task.job
+        self.assertEquals(job.systemModel, 'install group-foo=localhost@rpl:linux/2-1-1\ninstall bar=localhost@rpl:linux/1-1-1')
+
+        params.update(jobId=jobId)
+
+        self.assertXMLEquals(job.content, """\
+<preview id="%(jobId)s">
+  <conary_package_changes>
+    <conary_package_change>
+      <type>changed</type>
+      <from_conary_package>
+        <name>foo</name>
+        <version>%(foo-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </from_conary_package>
+      <to_conary_package>
+        <name>foo</name>
+        <version>%(foo-2-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>2-1-1</revision>
+      </to_conary_package>
+      <conary_package_diff>
+        <version>
+          <from>%(foo-1-1-1)s</from>
+          <to>%(foo-2-1-1)s</to>
+        </version>
+        <revision>
+          <from>1-1-1</from>
+          <to>2-1-1</to>
+        </revision>
+      </conary_package_diff>
+    </conary_package_change>
+    <conary_package_change>
+      <type>changed</type>
+      <from_conary_package>
+        <name>foo:runtime</name>
+        <version>%(foorun-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </from_conary_package>
+      <to_conary_package>
+        <name>foo:runtime</name>
+        <version>%(foorun-2-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>2-1-1</revision>
+      </to_conary_package>
+      <conary_package_diff>
+        <version>
+          <from>%(foorun-1-1-1)s</from>
+          <to>%(foorun-2-1-1)s</to>
+        </version>
+        <revision>
+          <from>1-1-1</from>
+          <to>2-1-1</to>
+        </revision>
+      </conary_package_diff>
+    </conary_package_change>
+    <conary_package_change>
+      <type>removed</type>
+      <removed_conary_package>
+        <name>group-bar-appliance</name>
+        <version>%(groupbarapp-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </removed_conary_package>
+    </conary_package_change>
+    <conary_package_change>
+      <type>changed</type>
+      <from_conary_package>
+        <name>group-foo</name>
+        <version>%(groupfoo-1-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>1-1-1</revision>
+      </from_conary_package>
+      <to_conary_package>
+        <name>group-foo</name>
+        <version>%(groupfoo-2-1-1)s</version>
+        <architecture/>
+        <flavor/>
+        <revision>2-1-1</revision>
+      </to_conary_package>
+      <conary_package_diff>
+        <version>
+          <from>%(groupfoo-1-1-1)s</from>
+          <to>%(groupfoo-2-1-1)s</to>
+        </version>
+        <revision>
+          <from>1-1-1</from>
+          <to>2-1-1</to>
+        </revision>
+      </conary_package_diff>
+    </conary_package_change>
+  </conary_package_changes>
+  <desired>group-bar-appliance=%(groupbarapp-1-1-1)s[]</desired>
+  <desired>group-foo=%(groupfoo-1-1-1)s[]</desired>
+  <observed>group-bar-appliance=%(groupbarapp-1-1-1)s[]</observed>
+  <observed>group-foo=%(groupfoo-1-1-1)s[]</observed>
+</preview>
+""" % params)
+
+        self.assertEquals(jobInst.properties['JobResults'].value[0],
+                job.content)
 
         ret, params = jProv.MI_invokeMethod(self.env, jobObjectPath,
             'ApplyUpdate', {})
@@ -729,4 +850,9 @@ class Test(testbaserepo.TestCase):
         jobState, jobInst, jProv = self.waitJob(jobObjectPath, timeout = 10)
         self.failUnlessEqual(jobState, jProv.Values.JobState.Completed)
 
-
+        groupfoospec = ('group-foo', None, None)
+        barspec = ('bar', None, None)
+        troves = self.getConaryClient().db.findTroves(None,
+                [ groupfoospec, barspec ])
+        self.assertEquals(str(troves[groupfoospec][0][1].trailingRevision()),
+                '2-1-1')

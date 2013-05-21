@@ -20,7 +20,7 @@ from lxml import etree
 
 import logging
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 class ValuesParserError(Exception):
     "Raised when unable to read values.xml"

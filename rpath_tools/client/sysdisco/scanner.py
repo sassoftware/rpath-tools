@@ -32,7 +32,7 @@ import uuid
 
 import logging
 
-logger = logging.getLogger(name='__name__')
+logger = logging.getLogger(__name__)
 
 class SurveyScanner(object):
     def __init__(self, origin="scanner"):
@@ -91,10 +91,10 @@ class SurveyScanner(object):
             values_xml.append(etree.parse(valuesXmlPath).getroot())
         return values_xml
 
-    def getPreviewXML(self, sources=None):
+    def getPreviewXML(self, sources=None, systemModel=None):
         # Preview returns an empty preview tag if it fails
         preview = Preview()
-        raw_preview_xml = preview.preview(sources)
+        raw_preview_xml = preview.preview(sources, systemModel)
         if raw_preview_xml:
             try:
                 preview_xml = etree.fromstring(raw_preview_xml)
@@ -136,12 +136,12 @@ class SurveyScanner(object):
             # END FIXME
         return descriptors_xml
 
-    def scan(self, sources=None):
+    def scan(self, sources=None, systemModel=None):
         self.uuid = uuid.uuid4()
         self.sources = []
         if sources:
             self.sources = sources
-        preview_xml = self.getPreviewXML(self.sources)
+        preview_xml = self.getPreviewXML(self.sources, systemModel)
         rpm_xml, conary_xml = self.getPackagesXML()
         services_xml = self.getServicesXML()
         values_xml = self.getValuesXML()
@@ -149,9 +149,9 @@ class SurveyScanner(object):
         configurator_nodes = self.getConfigurators()
         return rpm_xml, conary_xml, services_xml, values_xml, preview_xml, configurator_nodes, descriptors_xml
 
-    def toxml(self, sources=None):
+    def toxml(self, sources=None, systemModel=None):
         # Scan first. This will create the new uuid
-        rpm_pkgs, conary_pkgs, services, values, preview, configurators, descriptors = self.scan(sources)
+        rpm_pkgs, conary_pkgs, services, values, preview, configurators, descriptors = self.scan(sources, systemModel)
         root = etree.Element('survey')
         etree.SubElement(root, 'uuid').text = str(self.uuid)
         etree.SubElement(root, 'created_date').text = str(int(time.time()))

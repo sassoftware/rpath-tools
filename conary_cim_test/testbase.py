@@ -15,17 +15,11 @@
 #
 
 
-import os
 import pywbem
 
-from conary.lib import util
-from testrunner import testcase
-from testutils import mock
-
-from rpath_tools.client import hardware, register
-
 import RPATH_SoftwareInstallationService as rSIS
-import RPATH_UpdateConcreteJob as rConcreteJob
+import RPATH_UpdateConcreteJob as rUpdateConcreteJob
+import RPATH_SurveyConcreteJob as rSurveyConcreteJob
 import RPATH_ElementSoftwareIdentity as rESI
 import RPATH_SoftwareIdentity as rSI
 import RPATH_RecordLog as rRL
@@ -36,47 +30,10 @@ import RPATH_Configuration as rCfg
 import RPATH_SystemSurvey as rSysSurvey
 import RPATH_SystemSurveyService as rSysSurveyService
 
-class TestCase(testcase.TestCaseWithWorkDir):
-    def setUp(self):
-        testcase.TestCaseWithWorkDir.setUp(self)
-        IP = hardware.HardwareData.IP
-        mockHardwareData = mock.MockObject()
-        mockHardwareData.getIpAddresses._mock.setDefaultReturn([
-            IP(ipv4='1.1.1.1', netmask='255.255.255.0', device='eth0',
-                dns_name='host1.com',),
-            IP(ipv4='2.2.2.2', netmask='255.255.0.0', device='eth1',
-                dns_name='host2.com',),
-            IP(ipv4='3.3.3.3', netmask='255.255.0.0', device='eth2',
-                dns_name='host3.com',),
-        ])
-        mockHardwareData.getHostname._mock.setDefaultReturn('localhost.localdomain')
-        mockHardwareData.getLocalIp._mock.setDefaultReturn('2.2.2.2')
-        mockHardwareData.getDeviceName._mock.setDefaultReturn('oaia aia e a ei')
+from rpath_toolstest import testbase
 
-        self.mock(hardware, 'HardwareData', mock.MockObject())
-        hardware.HardwareData._mock.setDefaultReturn(mockHardwareData)
-        self.mock(register.LocalUuid, "read", lambda *args, **kw: 'my-uuid')
-
-    def setUpRpathToolsConfig(self):
-        topDir = self.workDir + '/temp'
-        configD = os.path.join(topDir, 'config.d')
-        util.mkdirChain(configD)
-        configFilePath = os.path.join(topDir, "config")
-        file(configFilePath, "w").write("""\
-topDir %(topDir)s
-logFile %(topDir)s/log
-conaryProxyFilePath %(topDir)s/rpath-tools-conaryProxy
-remoteCertificateAuthorityStore %(topDir)s/certs
-scannerSurveyStore %(topDir)s/survey
-scannerSurveyLockFile %(topDir)s/survey.lock
-sfcbConfigurationFile %(topDir)s/sfcb.cfg
-includeConfigFile %(configD)s/*
-""" % dict(topDir=topDir, configD=configD))
-        file(os.path.join(topDir, "sfcb.cfg"), "w").write("""
-sslCertificateFilePath: %(topDir)s/sfcb.ssl
-""" % dict(topDir=topDir))
-        file(os.path.join(topDir, "sfcb.ssl"), "w").write("blah")
-        return configFilePath
+class TestCase(testbase.TestCase):
+    pass
 
 class Logger(object):
 
@@ -154,8 +111,11 @@ class ProviderMixIn(object):
     def getProviderElementSoftwareIdentity(self):
         return self.getProvider(rESI)
 
-    def getProviderConcreteJob(self):
-        return self.getProvider(rConcreteJob)
+    def getProviderUpdateConcreteJob(self):
+        return self.getProvider(rUpdateConcreteJob)
+
+    def getProviderSurveyConcreteJob(self):
+        return self.getProvider(rSurveyConcreteJob)
 
     def getProviderSoftwareIdentity(self):
         return self.getProvider(rSI)

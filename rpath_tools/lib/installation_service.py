@@ -85,6 +85,10 @@ class UpdateSet(object):
 class InstallationService(update.UpdateService):
     UpdateSetFactory = UpdateSet
     UpdateFlags = UpdateFlags
+    # XXX we should find a better place for these
+    SystemModelID = 'com.rpath.conary:system_model'
+    SystemModelElementName = 'system model'
+    SystemModelType = object()
 
     def buildUpdateJob(self, applyList):
         # We need to update to the latest version, so drop the version
@@ -127,6 +131,18 @@ class InstallationService(update.UpdateService):
         updateJob.thaw(job.updateJobDir)
         return keyId, updateJob, job
 
+    def updateAllCheck(self):
+        applyList = self.getUpdateItemList()
+        try:
+            updateJob = self.buildUpdateJob(applyList)
+        except NoUpdatesFound:
+            return
+        except RepositoryError, e:
+            # XXX FIXME: store the exception somewhere
+            raise
+
+        self.freezeUpdateJob(updateJob)
+
     def getUpdateItemList(self):
         cclient = self.conaryClient
 
@@ -134,6 +150,24 @@ class InstallationService(update.UpdateService):
         applyList = [ (x[0], (None, None), x[1:], True) for x in updateItems ]
         return applyList
 
+    def getAvailableUpdatesList(self):
+        "Return the list of available updates from a frozen update job"
+        try:
+            jobId, updateJob, concreteJob = self.thawUpdateJob()
+        except NoUpdatesFound:
+            return None, []
+        return jobId, updateJob.primaries
+
+    def updateAllApply(self, instanceId):
+        try:
+            jobId, updateJob, updateSet = self.thawUpdateJob(instanceId)
+        except NoUpdatesFound:
+            return None
+        # Set the state, so we don't pick this update set object again
+        updateSet.state = "Applying"
+
+        self.fixSignals()
+        self.conaryClient.applyUpdateJob(updateJob)
 
     def getCurrentTop(self):
         """Return the tuple for the present top-level group"""
@@ -178,17 +212,6 @@ class InstallationService(update.UpdateService):
         # system back to its nominal group would cause this, for example.
         return topTuple
 
-
-    def _fixSignals(self):
-        # TODO: Fix this hack.
-        # sfcb broker overrides these signals, but the python library thinks
-        # the handlers are None.  This breaks the sigprotect.py conary
-        # library.
-        import signal
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        signal.signal(signal.SIGQUIT, signal.SIG_DFL)
-        signal.signal(signal.SIGUSR1, signal.SIG_DFL)
-
     @classmethod
     def parseTroveSpec(cls, troveSpec):
         n, v, f = conaryclient.cmdline.parseTroveSpec(troveSpec)
@@ -217,14 +240,34 @@ class InstallationService(update.UpdateService):
         if flags.test or updateJob is None:
             fmt.addObservedVersion(oldTop)
             return fmt.toxml()
-        self._fixSignals()
+        self.fixSignals()
         cclient.applyUpdateJob(updateJob, test=bool(flags.test))
         actualTop = self.getCurrentTop()
         fmt.addObservedVersion(actualTop)
         return fmt.toxml()
 
-
-
+    def createTroveMapping(self):
+        """
+        @return: a dictionary keyed on the full trove spec, with a tuple
+            ((name, version, flavor), isInstalled) as value
+        """
+        troveList = self.getUpdateItemList()
+        # True for installed troves, False for available troves
+        troveMapping = dict(
+            ("rpath.com:%s=%s[%s]" % (n, v.freeze(), f), ((n, v, f), True))
+                for (n, (_, _), (v, f), _) in troveList)
+        jobId, troveList = self.getAvailableUpdatesList()
+        if jobId is not None:
+            troveMapping.update(dict(
+                ("rpath.com:%s:%s" % (jobId, i), ((n, v, f), False))
+                    for i, (n, (_, _), (v, f), _) in enumerate(troveList)))
+        systemModel = self.conaryClient.getSystemModel()
+        if systemModel:
+            contents = systemModel.contents
+            mtime = int(systemModel.mtime)
+            value = ('system model', contents, mtime)
+            troveMapping[self.SystemModelID] = (value, self.SystemModelType)
+        return troveMapping
 
 
 class UpdateCallback(updatecmd.UpdateCallback):

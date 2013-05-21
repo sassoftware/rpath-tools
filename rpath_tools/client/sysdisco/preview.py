@@ -16,55 +16,30 @@
 
 
 
-from rpath_tools.lib import clientfactory
-from rpath_tools.lib import concrete_job
-from rpath_tools.lib import installation_service
+from rpath_tools.client import updater
 
 import logging
 
-logger = logging.getLogger(name='__name__')
+logger = logging.getLogger(__name__)
 
 
 
 class Preview(object):
-    conaryClientFactory = clientfactory.ConaryClientFactory
 
-    def __init__(self, cclient=None):
-        self.cclient = cclient
+    def __init__(self, sources=None):
+        self.sources = sources
+        self.up = updater.Updater()
 
-    def _getClient(self, force=False):
-        if self.cclient is None or force:
-            self.cclient = self.conaryClientFactory().getClient()
-        return self.cclient
+    def preview(self, sources, systemModel=None):
+        '''
+        @param sources: should be a string representing the desired
+                        system-model for the system. For classic update
+                        path sources should be a string of the top level item
 
-    conaryClient = property(_getClient)
+        @type sources : string
+        '''
+        return self.up.preview(sources, systemModel)
 
-    def previewUpdateOperation(self, job, sources, flags, callback=None):
-        '''Use updateOperation to create a preview by setting flag.test'''
-        # FIXME XXX
-        # Create a job to pass to installation_service
-        op = installation_service.InstallationService()
-        xml = op.updateOperation(job, sources, flags)
-        return xml
-
-    def previewSystemModelOperation(self, job, sources, flags):
-        '''Use sync update method ot provide a preview'''
-        fname = "/tmp/system-model.preview"
-        file(fname, "w").write(sources)
-        job = job.previewSyncOperation(fname, flags)
-        return job.contents
-
-    def preview(self, sources):
-        flags = installation_service.UpdateFlags(test=True)
-        concreteJob = concrete_job.UpdateJob()
-        if self.is_system_model:
-            xml = self.previewSystemModelOperation(concreteJob, sources, flags)
-        else:
-            flags.migrate = True
-            xml = self.previewUpdateOperation(concreteJob, sources, flags)
-        if xml:
-            return xml
-        return '<preview/>'
 
 if __name__ == '__main__':
     import sys

@@ -18,8 +18,7 @@ import os
 
 import testbaserepo
 
-import concrete_job
-import installation_service
+from rpath_tools.lib import installation_service, jobs
 
 class ConcreteJobTest(testbaserepo.TestCase):
     def setUp(self):
@@ -37,22 +36,29 @@ class ConcreteJobTest(testbaserepo.TestCase):
 
     def testPreviewSyncOperation(self):
         flags = installation_service.InstallationService.UpdateFlags()
-        job = concrete_job.UpdateJob.previewSyncOperation(self.systemModelPath,
-            flags)
+        task = jobs.SyncPreviewTask().new()
+        task(self.systemModelPath, flags)
         # Make sure system model got copied inside the job
-        self.assertEquals(job.concreteJob.systemModel,
+        self.assertEquals(task.job.systemModel,
                 file(self.systemModelPath).read())
 
     def testApplySyncOperation(self):
-        flags = installation_service.InstallationService.UpdateFlags()
-        job = concrete_job.UpdateJob.previewSyncOperation(self.systemModelPath,
-            flags)
+        task = jobs.SyncPreviewTask().new()
+        task(self.systemModelPath)
+        jobId = task.get_job_id()
 
-        jobId = job.get_job_id()
-
-        job2 = concrete_job.UpdateJob.applySyncOperation(jobId, flags)
+        task2 = jobs.SyncApplyTask().load(jobId)
+        task2()
 
         # We reload the old job
-        self.assertEquals(job2.get_job_id(), jobId)
+        self.assertEquals(task2.get_job_id(), jobId)
 
+    def testSanitizeKey(self):
+        task = jobs.SyncPreviewTask().new()
+        task(self.systemModelPath)
+        jobId = task.get_job_id()
 
+        mangledJobId = "blah:jobs/%s" % jobId
+
+        task2 = jobs.SyncApplyTask().load(mangledJobId)
+        self.assertEquals(task2.get_job_id(), jobId)

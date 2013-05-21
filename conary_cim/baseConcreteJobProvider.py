@@ -48,8 +48,8 @@ class ConcreteJobMixIn(object):
                 % self.__class__.__name__)
 
         key = self.fromInstanceID(model['InstanceID'])
-        concreteJob = self.concreteJob.load(key)
-        cuJob = concreteJob.concreteJob
+        task = self._task.load(key)
+        cuJob = task.job
         if cuJob.state is None:
             raise pywbem.CIMError(pywbem.CIM_ERR_NOT_FOUND, model['InstanceID'])
         jobState = cuJob.state
@@ -139,7 +139,7 @@ class ConcreteJobMixIn(object):
         # we set property values on the model. 
         model.path.update({'InstanceID': None})
 
-        for job in self.concreteJob.list():
+        for job in self._task.list():
             model['InstanceID'] = self.createInstanceID(job.keyId)
             if keys_only:
                 yield model
@@ -198,8 +198,8 @@ class ConcreteJobMixIn(object):
             return (rval, [])
 
         key = self.fromInstanceID(key)
-        self.concreteJob.load(key)
-        cuJob = self.concreteJob.concreteJob
+        task = self._task.load(key)
+        cuJob = task.job
         if not cuJob.created or cuJob.state != "Exception":
             rval = self.Values.GetError.Success
             return (rval, [])

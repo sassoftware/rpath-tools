@@ -38,16 +38,19 @@ class BaseSlots(object):
             setattr(self, slotName, kwargs.get(slotName))
 
 class EXECUTABLE(BaseSlots):
-    __slots__ = [ 'name', 'type', 'execute', 'switches', 'results', 'stdout', 'stderr', 'returncode' ]
+    __slots__ = [ 'name', 'type', 'execute', 'switches',
+                        'results', 'stdout', 'stderr', 'returncode' ]
     def __repr__(self):
-        return '%s' % self.name    
+        return '%s' % self.name
     @property
     def description(self):
-        return ( "Name = %s\nConfigurator Type = %s\nExecutable = %s\nSwitches = %s\nResults = %s\n"
-                "Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
-                ('name', 'type', 'exec', 'results', 'switches', 'stdout', 'stderr', 'returncode'))
+        return ( "Name = %s\nConfigurator Type = %s\n"
+                "Executable = %s\nSwitches = %s\nResults = %s\n"
+                "Stdout = %s\nStderr = %s\nReturnCode = %s\n" %
+                ('name', 'type', 'exec', 'results',
+                    'switches', 'stdout', 'stderr', 'returncode'))
     def getdetails(self):
-        return ("Stdout = %s\nStderr = %s\nReturnCode = %s\n" % 
+        return ("Stdout = %s\nStderr = %s\nReturnCode = %s\n" %
                 (self.stdout, self.stderr, self.returncode))
 
 class Executioner(object):
@@ -81,18 +84,23 @@ class Executioner(object):
         template = open(self.errtemplate).read()
         template = template.replace('__name__',error_name)
         template = template.replace('__display_name__',result.name)
-        template = template.replace('__summary__','%s %s type configurator' % (result.execute, result.type))
-        template = template.replace('__details__','Output from %s' % result.execute)
+        template = template.replace('__summary__',
+                '%s %s type configurator' % (result.execute, result.type))
+        template = template.replace('__details__',
+                'Output from %s' % result.execute)
         template = template.replace('__error_code__',str(result.returncode))
-        template = template.replace('__error_details__',self._sanitize(result.getdetails()))
-        template = template.replace('__error_summary__','Error executing %s' % result.execute)
+        template = template.replace('__error_details__',
+                self._sanitize(result.getdetails()))
+        template = template.replace('__error_summary__',
+                'Error executing %s' % result.execute)
         error_xml = etree.fromstring(template)
         return error_xml
 
 
     def _getEnviron(self):
         env = {}
-        env['PATH'] = os.environ.get('PATH', '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin')
+        env['PATH'] = os.environ.get('PATH',
+                '/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin')
         if os.path.exists(self.values_xml):
             p = parsevalues.ValuesParser(self.values_xml)
             adds = p.parse()
@@ -109,7 +117,7 @@ class Executioner(object):
     def _getScripts(self, scriptdir):
         scripts = []
         if os.path.exists(scriptdir):
-            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x), type=self.configurator) 
+            scripts = [ EXECUTABLE(name=x, execute=os.path.join(scriptdir,x),type=self.configurator)
                             for x in sorted(os.listdir(scriptdir))
                             if os.access(os.path.join(scriptdir, x), os.X_OK) ]
             scripts.sort()

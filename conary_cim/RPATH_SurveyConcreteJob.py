@@ -26,8 +26,8 @@ import inspect
 import pywbem
 from pywbem.cim_provider2 import CIMProvider2
 
-import concrete_job
-import surveys
+from rpath_tools.lib import jobs
+from rpath_tools.lib import surveys
 import baseConcreteJobProvider
 import stub_RPATH_SurveyConcreteJob
 
@@ -45,7 +45,7 @@ class RPATH_SurveyConcreteJob(baseConcreteJobProvider.ConcreteJobMixIn, stubClas
 
     def __init__ (self, env):
         stubClass.__init__(self, env)
-        self.concreteJob = concrete_job.SurveyJob()
+        self._task = jobs.SurveyTask()
         self.surveyService = surveys.SurveyService()
 
     def produceResult(self, env, job, surveyUuid):

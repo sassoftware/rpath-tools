@@ -25,7 +25,7 @@ Instruments the CIM class RPATH_SoftwareIdentity
 import pywbem
 
 import stub_RPATH_SoftwareIdentity
-import installation_service
+from rpath_tools.lib import installation_service
 import utils
 
 stubClass = stub_RPATH_SoftwareIdentity.RPATH_SoftwareIdentity

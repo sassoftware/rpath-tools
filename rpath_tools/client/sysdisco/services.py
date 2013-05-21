@@ -28,12 +28,13 @@ from conary import errors
 from conary.cmds import query
 
 
+from rpath_tools.lib import update
 from packages import RPMInfo
 #from packages import ConaryInfo
 
 import logging
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 # ServiceInfo has to be mutable
 
@@ -89,8 +90,9 @@ class ServiceInfo(object):
 
         return root
 
-class ServiceScanner(object):
+class ServiceScanner(update.SystemModel):
     def __init__(self, ServiceInfo):
+        update.SystemModel.__init__(self)
         self.services = []
         self.servicesSet = set()
         self._serviceInfo = ServiceInfo
@@ -156,9 +158,7 @@ class ServiceScanner(object):
 
     def _getConaryPkg(self, init_script):
         conary_list = []
-        trv = ([], False)
-        cfg = conarycfg.ConaryConfiguration(True)
-        cli = conaryclient.ConaryClient(cfg)
+        cli = self.conaryClient
         db = cli.db
         try:
             trv = query.getTrovesToDisplay(db, troveSpecs=[], 

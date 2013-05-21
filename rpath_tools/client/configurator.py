@@ -26,7 +26,7 @@ from rpath_tools.client.register import LocalUuid
 from rpath_tools.client.register import GeneratedUuid
 
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 def main(cfg=None, configurators=None):
     if not cfg:

@@ -20,7 +20,7 @@ import traceback
 
 from conary.lib import util
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 class RpathToolsError(Exception):
     msg_prefix = '\n'
@@ -28,7 +28,7 @@ class RpathToolsError(Exception):
 
     def __init__(self, exception):
         self.exception = exception
-    
+
     def __str__(self):
         return self.msg_prefix + self.msg % str(self.exception)
 

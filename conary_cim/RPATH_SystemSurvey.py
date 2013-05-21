@@ -24,7 +24,7 @@ Instruments the CIM class RPATH_LogEntry
 
 import inspect
 import pywbem
-import surveys
+from rpath_tools.lib import surveys
 from pywbem.cim_provider2 import CIMProvider2
 
 import stub_RPATH_SystemSurvey

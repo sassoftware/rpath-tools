@@ -21,16 +21,18 @@ import random
 import subprocess
 import sys
 import time
-import StringIO
 
-from conary.lib import command, util, options
+from conary.lib import command, options
 
-from rpath_models import System, Networks, Network, CurrentState, ManagementInterface, Survey
+from rpath_models import System, Networks, Network, CurrentState, ManagementInterface
 from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client import scan
+from rpath_tools.client import updater
 from rpath_tools.client import configurator
 from rpath_tools.client.sysdisco import puppet
+
+
 
 from rpath_tools.client.utils.tmpwatcher import TmpWatcher
 from rpath_tools.client.utils.collector import Collector
@@ -212,8 +214,6 @@ class RegistrationCommand(RpathToolsCommand):
                 device_name=ip.device)
             networks.add_network(network)
 
-        survey = self.scanSystem()
-
         current_state = CurrentState(name=state)
         management_interface = ManagementInterface(name='cim')
         system = System(hostname=hostname,
@@ -223,8 +223,7 @@ class RegistrationCommand(RpathToolsCommand):
                         current_state=current_state,
                         agent_port=agentPort,
                         event_uuid=self.event_uuid,
-                        management_interface=management_interface,
-                        survey=Survey(survey))
+                        management_interface=management_interface)
         bootUuidFilePath = cfg.bootUuidFilePath
         if self.boot and os.path.exists(bootUuidFilePath):
             bootUuid = file(bootUuidFilePath).read().strip()
@@ -242,28 +241,6 @@ class RegistrationCommand(RpathToolsCommand):
         self._cleanup()
         logger.info("Registration complete")
         return 0
-
-    def scanSystem(self):
-        try:
-            logger.info("Running system scan...")
-            return scan.scanner.SurveyScanner(origin="registration").toxml()
-        except Exception, e:
-            logger.info("System scan failed: %s", str(e))
-            # Save the exception
-            excInfo = sys.exc_info()
-            try:
-                sio = StringIO.StringIO()
-                util.formatTrace(*excInfo, stream=sio, withLocals=False)
-                logger.info("Details: %s", sio.getvalue())
-
-                survey = scan.etree.Element("survey")
-                error = scan.etree.SubElement(survey, "error")
-                scan.etree.SubElement(error, "text").text = str(e)
-                scan.etree.SubElement(error, "details").text = sio.getvalue()
-                return survey
-            except Exception, e:
-                logger.info("Error reporting failed: %s", str(e))
-                return None
 
     def _cleanup(self):
         if self.boot and os.path.exists(self.cfg.bootUuidFilePath):
@@ -327,14 +304,44 @@ class IConfigCommand(RpathToolsCommand):
 
 
 class ScanCommand(RpathToolsCommand):
-    commands = ['scan']
+    commands = ['scan', 'toplevelitems']
     help = "Run a survey on the local host."
     requireConfig = True
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
-        results = scan.main(self.cfg)
+        self.tli = args[-1]
+        results = scan.main(self.cfg, self.tli)
         return results
+
+class UpdateCommand(RpathToolsCommand):
+    commands = ['updater', 'preview', 'apply', 'install', 'update', 'updateall',]
+    help = "Run updates on the local host."
+    requireConfig = True
+
+    def addParameters(self, argDef):
+        RpathToolsCommand.addParameters(self, argDef)
+        argDef['preview'] = options.ONE_PARAM
+        argDef['apply'] = options.ONE_PARAM
+        argDef['install'] = options.ONE_PARAM
+        argDef['update'] = options.ONE_PARAM
+        argDef['updateall'] = options.NO_PARAM
+
+
+
+    def runCommand(self, *args, **kw):
+        self.cfg = args[0]
+        self.tli = args[-1]
+        self.jobid = None
+        if 'jobid' in args:
+            self.jobid = args.pop('jobid', None)
+        self.command_types = ['update', 'preview', 'apply', 'updateall', 'install']
+        self.commands = [ x for x in args[-1] if x in self.command_types ]
+        if 'apply' in self.commands and self.jobid:
+            updater.apply(self.cfg, self.commands, self.iid)
+        results = updater.preview(self.cfg, self.commands, self.tli)
+        return results
+
 
 class ConfiguratorCommand(RpathToolsCommand):
     commands = ['configurator', 'read', 'write', 'validate', 'discover']

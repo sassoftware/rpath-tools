@@ -26,7 +26,7 @@ import pywbem
 
 import RPATH_RecordLog
 import stub_RPATH_UseOfLog
-import concrete_job
+from rpath_tools.lib import jobs
 import baseConcreteJobProvider
 
 stubClass = stub_RPATH_UseOfLog.RPATH_UseOfLog
@@ -102,7 +102,7 @@ class RPATH_UseOfLog(stubClass):
         model.path.update({'Dependent': None, 'Antecedent': None})
 
         logClassName = 'RPATH_RecordLog'
-        for job in concrete_job.AnyJob.list():
+        for job in jobs.AnyTask.list():
             # XXX make this more extensible
             if job.keyId.startswith('updates/'):
                 jobClassName = 'RPATH_UpdateConcreteJob'

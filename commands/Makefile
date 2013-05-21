@@ -17,7 +17,7 @@
 
 TOPDIR=..
 
-bin_files = rpath rpath-register rpath-hardware rpath-config rpath-iconfig rpath-scanner rpath-configurator rpath-tmpwatch rpath-collector rpath-informer
+bin_files = rpath rpath-register rpath-hardware rpath-config rpath-iconfig rpath-scanner rpath-configurator rpath-tmpwatch rpath-collector rpath-informer rpath-updater
 
 extra_dist = Makefile
 
@@ -34,6 +34,7 @@ all: default-all
 	install -m755 rpath-tmpwatch $(TOPDIR)/bin/rpath-tmpwatch
 	install -m755 rpath-collector $(TOPDIR)/bin/rpath-collector
 	install -m755 rpath-informer $(TOPDIR)/bin/rpath-informer
+	install -m755 rpath-updater $(TOPDIR)/bin/rpath-updater
 
 install:
 ifndef LIB_ONLY

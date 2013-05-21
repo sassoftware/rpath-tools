@@ -29,7 +29,7 @@ from pywbem.cim_provider2 import CIMProvider2
 from mixin_computersystem import MixInComputerSystem
 import stub_RPATH_SystemSurveyService
 
-import concrete_job
+from rpath_tools.lib import jobs
 import RPATH_SurveyConcreteJob
 
 stubClass = stub_RPATH_SystemSurveyService.RPATH_SystemSurveyService
@@ -157,6 +157,7 @@ class RPATH_SystemSurveyService(stubClass, MixInComputerSystem):
             break
 
     def cim_method_scan(self, env, object_name,
+                        param_systemmodel=None,
                         param_desiredpackages=None):
         """Implements RPATH_SystemSurveyService.Scan()
 
@@ -167,8 +168,13 @@ class RPATH_SystemSurveyService(stubClass, MixInComputerSystem):
         object_name -- A pywbem.CIMInstanceName or pywbem.CIMCLassName 
             specifying the object on which the method Scan() 
             should be invoked.
-        param_desiredpackages--  The input parameter DesiredPackages (type [unicode,]) 
+        param_systemmodel --  The input parameter SystemModel (type [unicode,]) 
+            A system model against which a preview will be computed. Takes
+            precedence over DesiredPackages
+            
+        param_desiredpackages --  The input parameter DesiredPackages (type [unicode,]) 
             A list of packages against which a preview will be computed
+            
 
         Returns a two-tuple containing the return value (type pywbem.Uint32 self.Values.Scan)
         and a list of CIMParameter objects representing the output parameters
@@ -195,10 +201,10 @@ class RPATH_SystemSurveyService(stubClass, MixInComputerSystem):
                 % self.__class__.__name__)
 
         # Create update job
-        sserv = concrete_job.SurveyJob()
-        job = sserv.scan(param_desiredpackages)
+        task = jobs.SurveyTask().new()
+        task(param_desiredpackages, param_systemmodel)
 
-        jobInstanceID = RPATH_SurveyConcreteJob.RPATH_SurveyConcreteJob.createInstanceID(job.get_job_id())
+        jobInstanceID = RPATH_SurveyConcreteJob.RPATH_SurveyConcreteJob.createInstanceID(task.get_job_id())
         job = pywbem.CIMInstanceName(classname='RPATH_SurveyConcreteJob',
             keybindings = dict(InstanceID = jobInstanceID),
             namespace = "root/cimv2")
