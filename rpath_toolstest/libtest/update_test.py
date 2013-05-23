@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+from conary import trovetup
 from lxml import etree
 import os
 
@@ -54,6 +55,17 @@ class UpdateTest(testbase.TestCaseRepo):
         preview = operation.preview(job)
         tree = etree.fromstring(preview)
         self.assertEquals(tree.attrib['id'], job.keyId)
+        group1 = self.findAndGetTrove('group-bar=1-1-1')
+        group2 = self.findAndGetTrove('group-bar=2-1-1')
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('observed') ],
+                [ self._trvAsString(group1) ])
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('desired') ],
+                # XXX FIXME: this really should be group2; but because
+                # we're removing foo, the code returns the original
+                # list. See the other test that's failing
+                [ self._trvAsString(group1) ])
         return job
 
     def testSyncModelApplyOperation(self):
@@ -64,7 +76,20 @@ class UpdateTest(testbase.TestCaseRepo):
         preview = operation.apply(job_test)
         tree = etree.fromstring(preview)
         self.assertEquals(tree.attrib['id'], job.keyId)
+        #group1 = self.findAndGetTrove('group-bar=1-1-1')
+        group2 = self.findAndGetTrove('group-bar=2-1-1')
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('observed') ],
+                [ self._trvAsString(group2) ])
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('desired') ],
+                [ self._trvAsString(group2) ])
         return job
+
+    @classmethod
+    def _trvAsString(cls, trv):
+        return trovetup.TroveTuple(trv.getNameVersionFlavor()).asString(
+                withTimestamp=True)
 
     def testSyncModelPreviewOperationBadSystemModel(self):
         systemModel = "install nosuchtrove=%s/3" % self.defLabel
