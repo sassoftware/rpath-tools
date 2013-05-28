@@ -26,6 +26,7 @@ from StringIO import StringIO
 from conary import trove
 from conary.trovetup import TroveTuple
 from conary.local.database import Database
+from conary.repository.errors import OpenError
 from conary.trove import _TROVEINFO_TAG_PROPERTIES
 
 from smartform import descriptor_errors
@@ -136,6 +137,12 @@ class ConfigDescriptorCache(object):
             for x in self._bydefault.get(nvf)
                 if x in self._properties_cache)
 
+    def _getPropertiesFromRepository(self, req):
+        try:
+            return self._repos.getTroveInfo(_TROVEINFO_TAG_PROPERTIES, req)
+        except OpenError, e:
+            return [None, ] * len(req)
+
     def _populatePropertiesCache(self, nvfs):
         specs = set()
         for nvf in nvfs:
@@ -156,7 +163,7 @@ class ConfigDescriptorCache(object):
 
         # Get properties from the repository.
         if not isinstance(self._repos, Database):
-            properties = self._repos.getTroveInfo(_TROVEINFO_TAG_PROPERTIES, req)
+            properties = self._getPropertiesFromRepository(req)
             resp = ((x, y) for x, y in itertools.izip(req, properties) if y)
         else:
             resp = ((x, trove.PropertySet(y)) for (x, y) in
