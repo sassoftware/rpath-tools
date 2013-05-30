@@ -21,11 +21,10 @@ import random
 import subprocess
 import sys
 import time
-import StringIO
 
-from conary.lib import command, util, options
+from conary.lib import command, options
 
-from rpath_models import System, Networks, Network, CurrentState, ManagementInterface, Survey
+from rpath_models import System, Networks, Network, CurrentState, ManagementInterface
 from rpath_tools.client import hardware
 from rpath_tools.client import register
 from rpath_tools.client import scan
@@ -215,8 +214,6 @@ class RegistrationCommand(RpathToolsCommand):
                 device_name=ip.device)
             networks.add_network(network)
 
-        survey = self.scanSystem()
-
         current_state = CurrentState(name=state)
         management_interface = ManagementInterface(name='cim')
         system = System(hostname=hostname,
@@ -226,8 +223,7 @@ class RegistrationCommand(RpathToolsCommand):
                         current_state=current_state,
                         agent_port=agentPort,
                         event_uuid=self.event_uuid,
-                        management_interface=management_interface,
-                        survey=Survey(survey))
+                        management_interface=management_interface)
         bootUuidFilePath = cfg.bootUuidFilePath
         if self.boot and os.path.exists(bootUuidFilePath):
             bootUuid = file(bootUuidFilePath).read().strip()
@@ -245,28 +241,6 @@ class RegistrationCommand(RpathToolsCommand):
         self._cleanup()
         logger.info("Registration complete")
         return 0
-
-    def scanSystem(self):
-        try:
-            logger.info("Running system scan...")
-            return scan.scanner.SurveyScanner(origin="registration").toxml()
-        except Exception, e:
-            logger.info("System scan failed: %s", str(e))
-            # Save the exception
-            excInfo = sys.exc_info()
-            try:
-                sio = StringIO.StringIO()
-                util.formatTrace(*excInfo, stream=sio, withLocals=False)
-                logger.info("Details: %s", sio.getvalue())
-
-                survey = scan.etree.Element("survey")
-                error = scan.etree.SubElement(survey, "error")
-                scan.etree.SubElement(error, "text").text = str(e)
-                scan.etree.SubElement(error, "details").text = sio.getvalue()
-                return survey
-            except Exception, e:
-                logger.info("Error reporting failed: %s", str(e))
-                return None
 
     def _cleanup(self):
         if self.boot and os.path.exists(self.cfg.bootUuidFilePath):

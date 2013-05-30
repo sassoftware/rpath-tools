@@ -22,6 +22,7 @@ import StringIO
 from testutils import mock
 
 from rpath_tools.client import register
+from rpath_tools.client import utils
 
 from rpath_toolstest.clienttest import RpathToolsTest
 
@@ -66,9 +67,6 @@ class RegistrationTest(RpathToolsTest):
             ssl_client_certificate = 'SSLCLIENTCERTIFICATE',
             launch_date = '2010-09-27T14:57:16.590896+00:00',
         )
-        sio = StringIO.StringIO()
-        system.serialize(sio)
-        systemXml = sio.getvalue()
 
         registerDirect = mock.MockObject()
         registerSLP = mock.MockObject()
@@ -77,7 +75,7 @@ class RegistrationTest(RpathToolsTest):
 
         # DIRECT (successful)
         success = self.discardOutput(self.reg.registerSystem, system)
-        registerDirect._mock.assertCalled(systemXml)
+        registerDirect._mock.assertCalled(system)
         registerSLP._mock.assertNotCalled()
         self.assertTrue(success)
         registerDirect._mock.calls = []
@@ -94,8 +92,8 @@ class RegistrationTest(RpathToolsTest):
         # DIRECT (failure), SLP (successful)
         registerDirect._mock.setDefaultReturn(None)
         success = self.discardOutput(self.reg.registerSystem, system)
-        registerDirect._mock.assertCalled(systemXml)
-        registerSLP._mock.assertCalled(systemXml)
+        registerDirect._mock.assertCalled(system)
+        registerSLP._mock.assertCalled(system)
         self.assertTrue(success)
         registerDirect._mock.calls = []
         registerSLP._mock.calls = []
@@ -113,10 +111,6 @@ class RegistrationTest(RpathToolsTest):
             ssl_client_certificate = 'SSLCLIENTCERTIFICATE',
         )
 
-        sio = StringIO.StringIO()
-        system.serialize(sio)
-        systemXml = sio.getvalue()
-
         self.cfg.conaryProxyFilePath = \
             os.path.join(self.testPath, 'rpath-tools-conaryProxy')
 
@@ -131,13 +125,15 @@ class RegistrationTest(RpathToolsTest):
         regclient = mock.MockObject()
         regclientClass._mock.setDefaultReturn(regclient)
 
-        regclient.register._mock.setReturn(True, systemXml)
+        regclient.register._mock.setReturn(True, system)
+        # No surveys for now
+        self.mock(self.reg, 'scanSystem', lambda *args: None)
         regclient._mock.set(system=system)
-        self.mock(register.utils.client, 'RegistrationClient', regclientClass)
+        self.mock(utils.client, 'RegistrationClient', regclientClass)
 
         certPath = os.path.join(self.testPath, "clients/c688bead.0")
         self.failIf(os.path.exists(certPath))
-        ret = self.discardOutput(self.reg.registerDirect, systemXml)
+        self.discardOutput(self.reg.registerDirect, system)
         self.failUnless(os.path.exists(certPath))
         self.failUnless(os.path.exists(os.path.join(self.testPath, 'rpath-tools-conaryProxy')))
         proxy = open(os.path.join(self.testPath, 'rpath-tools-conaryProxy'))
@@ -147,7 +143,7 @@ class RegistrationTest(RpathToolsTest):
         st = os.stat(certPath)
 
         # Running the code again should not overwrite
-        ret = self.discardOutput(self.reg.registerDirect, systemXml)
+        self.discardOutput(self.reg.registerDirect, system)
         st2 = os.stat(certPath)
         self.failUnlessEqual(
             (st.st_dev, st.st_ino),
@@ -155,7 +151,7 @@ class RegistrationTest(RpathToolsTest):
 
         # Munge cert, make sure it gets re-done
         file(certPath, "w").write("Blah!")
-        self.discardOutput(self.reg.registerDirect, systemXml)
+        self.discardOutput(self.reg.registerDirect, system)
         self.failUnless(file(certPath).read().startswith(
             "-----BEGIN CERTIFICATE-----"))
 
@@ -169,14 +165,14 @@ class RegistrationTest(RpathToolsTest):
 
         certPath = os.path.join(self.testPath, "clients/01081fc7.0")
         self.failIf(os.path.exists(certPath))
-        self.discardOutput(self.reg.registerDirect, systemXml)
+        self.discardOutput(self.reg.registerDirect, system)
         self.failUnless(os.path.exists(certPath))
         # We don't remove the LG CA just yet, since a CIM call may be running
         #self.failIf(os.path.exists(issuerCertPath))
         self.failUnless(os.path.exists(issuerCertPath))
 
     def testLocalUuidForEC2(self):
-        register.utils.runningInEC2 = lambda: True
+        utils.runningInEC2 = lambda: True
         class LocalUuid(register.LocalUuid):
             @classmethod
             def _readInstanceIdFromEC2(cls):
@@ -190,7 +186,7 @@ class RegistrationTest(RpathToolsTest):
         self.failUnlessEqual(a.uuid, '1288b599-4d13-cbf3-8d22-100353a3453b')
 
         # Return None if it claims it's not on Amazon
-        register.utils.runningInEC2 = lambda: False
+        utils.runningInEC2 = lambda: False
         self.failUnlessEqual(LocalUuid._getEC2InstanceId(), None)
 
     def testLocalUuidGetMac(self):

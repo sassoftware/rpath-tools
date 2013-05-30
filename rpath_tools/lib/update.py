@@ -479,15 +479,15 @@ class SyncModel(SystemModel):
         results = self._freezeUpdateJob(updateJob, job.updateJobDir)
         return results
 
-    def _getPreviewFromUpdateJob(self, updateJob, topLevelItems,
-                                        newTopLevelItems, jobid=None):
+    def _getPreviewFromUpdateJob(self, updateJob, observedTopLevelItems,
+                                        desiredTopLevelItems, jobid=None):
         preview_xml = '<preview/>'
         preview = formatter.Formatter(updateJob)
         if preview:
             preview.format()
-            for ntli in newTopLevelItems:
+            for ntli in desiredTopLevelItems:
                 preview.addDesiredVersion(ntli)
-            for tli in topLevelItems:
+            for tli in observedTopLevelItems:
                 preview.addObservedVersion(tli)
             if jobid:
                 preview.addJobid(jobid)
@@ -548,7 +548,10 @@ class SyncModel(SystemModel):
         logger.info("New Top Level Items")
         for n,v,f in newTopLevelItems:
             logger.info("%s %s %s" % (n,v,f))
-        preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
+        # Since we've just applied the update, the observed and desired
+        # top level items are identical, which is usually not true for
+        # previews
+        preview = self._getPreviewFromUpdateJob(updateJob, newTopLevelItems,
                                                     newTopLevelItems, jobid)
         return preview
 

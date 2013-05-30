@@ -19,21 +19,20 @@ import StringIO
 import logging
 import random
 import os
-import os.path
 import pwd
-import re
 import subprocess
 import sys
 import time
 
-from conary.lib import digestlib
 from conary.lib import networking
 from conary.lib import util
 from conary.lib.http import request
 
+from rpath_models import Survey
+from rpath_tools.lib.uuids import LocalUuid, GeneratedUuid
 from rpath_tools.client import config
 from rpath_tools.client import errors
-from rpath_tools.client import utils
+from rpath_tools.client import scan
 from rpath_tools.client.utils import x509
 from rpath_tools.client.utils import client as UtilsClient
 
@@ -44,214 +43,6 @@ def main():
     cfg.topDir = '/etc/conary'
     r = Registration(cfg)
     return r.generatedUuid, r.localUuid
-
-
-class Uuid(object):
-    def __init__(self, uuidFile=None):
-        self.uuidFile = uuidFile
-        self._uuid = None
-
-    @property
-    def uuid(self):
-        if self._uuid is None:
-            self._uuid = self.read()
-        return self._uuid
-
-    def read(self):
-        return None
-
-    def _readFile(cls, path):
-        return file(path).readline().strip()
-
-    def _writeFile(cls, path, contents):
-        util.mkdirChain(os.path.dirname(path))
-        file(path, "w").write(contents)
-
-    @classmethod
-    def asString(cls, data):
-        """Generate a UUID out of the data"""
-        assert len(data) == 16
-        h = "%02x"
-        fmt = '-'.join([h * 4, h * 2, h * 2, h * 2, h * 6])
-        return fmt % tuple(ord(x) for x in data)
-
-class GeneratedUuid(Uuid):
-    def read(self):
-        uuid = self._generateUuid()
-        if self.uuidFile:
-            if not os.path.exists(self.uuidFile):
-                uuid = self._generateUuid()
-                self._writeFile(self.uuidFile, uuid)
-            else:
-                uuid = self._readFile(self.uuidFile)
-        return uuid
-
-    @classmethod
-    def _generateUuid(cls):
-        data = file("/dev/urandom").read(16)
-        return cls.asString(data)
-
-class LocalUuid(Uuid):
-    def __init__(self, uuidFile, oldDir, deviceName=None):
-        self.oldDirPath = os.path.join(os.path.dirname(uuidFile), oldDir)
-        Uuid.__init__(self, uuidFile)
-        self._targetSystemId = None
-        self.deviceName = deviceName
-
-    @classmethod
-    def _readProcVersion(cls):
-        try:
-            version = file("/proc/version").read()
-        except IOError:
-            return None
-        return version
-
-    @classmethod
-    def _readInstanceIdFromEC2(cls):
-        try:
-            from amiconfig import instancedata
-        except ImportError:
-            return None
-        return instancedata.InstanceData().getInstanceId()
-
-    @classmethod
-    def _getEC2InstanceId(cls):
-        """
-        Return the EC2 instance ID if the system is running in EC2
-        Return None otherwise.
-        """
-        if not utils.runningInEC2():
-            return None
-        return cls._readInstanceIdFromEC2()
-
-    @property
-    def ec2InstanceId(self):
-        if self._targetSystemId is None:
-            self._targetSystemId = self._getEC2InstanceId()
-        return self._targetSystemId
-
-    @property
-    def targetSystemId(self):
-        return self.ec2InstanceId
-
-    def read(self):
-        instanceId = self.ec2InstanceId
-        if instanceId is not None:
-            sha = digestlib.sha1(instanceId)
-            retuuid = GeneratedUuid.asString(sha.digest()[:16])
-        else:
-            dmidecodeUuid = self._getDmidecodeUuid().lower()
-            retuuid = dmidecodeUuid
-
-        if os.path.exists(self.uuidFile):
-            persistedUuid = self._readFile(self.uuidFile)
-            if persistedUuid.lower() != retuuid:
-                self._writeDmidecodeUuid(retuuid)
-        else:
-            self._writeDmidecodeUuid(retuuid)
-
-        return retuuid
-
-    def _getUuidFromMac(self):
-        """
-        Use the mac address from the system to hash a uuid.
-        """
-        # Read mac address of self.deviceName
-        if utils.runningInEC2():
-            self.deviceName = 'eth0'
-
-        mac = None
-
-        if os.path.exists('/sys/class/net'):
-            if not self.deviceName:
-                deviceList = sorted( [ x for x in os.listdir('/sys/class/net') 
-                                        if x != 'lo' ] )
-                if deviceList:
-                    self.deviceName = deviceList[0]
-
-            mac = open('/sys/class/net/%s/address' % self.deviceName).read().strip()
-
-        if not mac:
-            # Legacy code
-            if os.path.exists('/sbin/ifconfig'):
-                logger.warn("No sysfs, falling back to ifconfig command.")
-                cmd = ['/sbin/ifconfig']
-                p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-                sts = p.wait()
-                if sts != 0:
-                    raise Exception("Unable to run ifconfig to find mac address"
-                        " for local uuid generation")
-                lines = p.stdout.read().strip()
-
-                # Work around for empty deviceName bug 
-
-                deviceList = None
-
-                if not self.deviceName:
-                    deviceList = sorted([ x.split()[0] for x in lines.split('\n')
-                                        if 'lo' not in x and 'HWaddr' in x ])
-                    if deviceList:
-                        self.deviceName = deviceList[0]
-
-                matcher = re.compile('^%s.*HWaddr\W(.*)$' % self.deviceName)
-
-                for line in lines.split('\n'):
-                    match = matcher.match(line)
-                    if match:
-                        mac = match.groups()[0].strip()
-
-        if not mac:
-            raise Exception("Unable to find mac address for "
-                "local uuid generation")
-
-        mac = mac.lower()
-
-        if len(mac) > 16:
-            mac = mac[-16:]
-        elif len(mac) < 16:
-            mac = mac + '0'*(16-len(mac))
-        return self.asString(mac)
-
-    def _getDmidecodeUuid(self):
-        if not os.access("/dev/mem", os.R_OK):
-            raise Exception("Must run as root")
-        try:
-            import dmidecode
-        except ImportError:
-            logger.warn("Can't import dmidecode, falling back to dmidecode command.")
-            return self._getDmidecodeUuidCommand()
-
-        try:
-            return dmidecode.system()['0x0001']['data']['UUID']
-        except Exception:
-            # Depending on the target type, various Exceptions can be raised,
-            # so just handle any exception.
-            # kvm - AttributeError
-            # xen - RuntimeError
-            logger.warn("Can't use dmidecode library, falling back to mac address")
-            return self._getUuidFromMac()
-
-    def _getDmidecodeUuidCommand(self):
-        try:
-            dmidecode = "/usr/sbin/dmidecode"
-            cmd = [ dmidecode, "-s", "system-uuid" ]
-            p = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-            sts = p.wait()
-            if sts != 0:
-                raise Exception("Unable to extract system-uuid from dmidecode")
-            uuid = p.stdout.readline().strip()
-            if not uuid:
-                raise Exception("Unable to extract system-uuid from dmidecode")
-            return uuid
-        except Exception:
-            logger.warn("Can't use dmidecode command, falling back to mac address")
-            return self._getUuidFromMac()
-
-    def _writeDmidecodeUuid(self, uuid):
-        destFilePath = os.path.join(self.oldDirPath, "%.1f" % time.time())
-        self._writeFile(destFilePath, uuid)
-        self._writeFile(self.uuidFile, uuid)
-
 
 class Registration(object):
 
@@ -447,9 +238,6 @@ class Registration(object):
         return remote
 
     def registerSystem(self, system):
-        sio = StringIO.StringIO()
-        system.serialize(sio)
-        systemXml = sio.getvalue()
         for method in self.cfg.registrationMethod:
             func = self.registrationMethods.get(method.upper(), None)
 
@@ -458,7 +246,7 @@ class Registration(object):
                 logger.error(msg)
                 raise errors.RpathToolsError(msg)
 
-            registered = func(systemXml)
+            registered = func(system)
             # If we registered successfully, there is no need to try other
             # methods.
             if registered:
@@ -469,7 +257,7 @@ class Registration(object):
                 self.cfg.logFile)
         return False
 
-    def registerDirect(self, systemXml):
+    def registerDirect(self, system):
         logger.info("Using Direct registration.")
         actResp = None
         self.writeConaryProxies(self.cfg.directMethod)
@@ -478,13 +266,13 @@ class Registration(object):
             if not remote:
                 # Simetimes we see the empty string being passed in. Ignore it
                 continue
-            actResp = self._register(remote, systemXml)
+            actResp = self._register(remote, system)
             if actResp:
                 break
 
         return actResp
 
-    def registerSLP(self, systemXml):
+    def registerSLP(self, system):
         logger.info("Using SLP registration.")
         actResp = None
         for service in self.cfg.slpMethod:
@@ -504,13 +292,19 @@ class Registration(object):
                 continue
 
             self.writeConaryProxies(remotes)
-            actResp = self._register(remote, systemXml)
+            actResp = self._register(remote, system)
 
             if actResp:
                 break
         return actResp
 
-    def _register(self, remote, systemXml):
+    def _register(self, remote, system):
+        survobj = self.scanSystem()
+        system.set_survey(survobj)
+        sio = StringIO.StringIO()
+        system.serialize(sio)
+        systemXml = sio.getvalue()
+
         system = self._register_system(remote, systemXml)
         if system is None:
             return system
@@ -562,6 +356,29 @@ class Registration(object):
             sleepTime = sleepTime + int(randSleepInc)
             attempts += 1
         return None
+
+    def scanSystem(self):
+        try:
+            logger.info("Running system scan...")
+            return Survey(scan.scanner.SurveyScanner(origin="registration").toxml())
+        except Exception, e:
+            logger.info("System scan failed: %s", str(e))
+            # Save the exception
+            excInfo = sys.exc_info()
+            try:
+                sio = StringIO.StringIO()
+                util.formatTrace(*excInfo, stream=sio, withLocals=False)
+                logger.info("Details: %s", sio.getvalue())
+
+                survey = scan.etree.Element("survey")
+                error = scan.etree.SubElement(survey, "error")
+                scan.etree.SubElement(error, "text").text = str(e)
+                scan.etree.SubElement(error, "details").text = sio.getvalue()
+                return Survey(survey)
+            except Exception, e:
+                logger.info("Error reporting failed: %s", str(e))
+                return None
+
 
 if __name__ == '__main__':
     sys.exit(main())
