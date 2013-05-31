@@ -181,7 +181,7 @@ class SyncApplyTask(BaseUpdateTask):
         return (cls.jobFactory.factory.keyPrefix,
                 key.rsplit('/', 1)[-1])
 
-class UpdatePreviewTast(BaseUpdateTask):
+class UpdatePreviewTask(BaseUpdateTask):
     def preFork(self, systemModelPath, flags=None):
         self.job.systemModel = file(systemModelPath).read()
 
