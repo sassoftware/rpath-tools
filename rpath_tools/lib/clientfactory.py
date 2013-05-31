@@ -26,7 +26,7 @@ from conary.conaryclient import systemmodel
 
 import logging
 
-logger = logging.getLogger(name = '__name__')
+logger = logging.getLogger(__name__)
 
 
 class ConaryClientFactory(object):
