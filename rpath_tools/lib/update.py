@@ -614,7 +614,7 @@ class UpdateModel(SyncModel):
         for x in model.modelOps:
             items = str(x.item)
             if isinstance(x.item, types.ListType):
-                items = ' '.join([str(y) for y in x.item])
+                items = ' '.join(['"'+str(y)+'"' for y in x.item])
             newline = '''%s %s\n''' % (x.key,items)
             newModelFile = newModelFile + newline
         return newModelFile
