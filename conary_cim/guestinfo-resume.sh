@@ -16,6 +16,6 @@
 #
 
 
-/usr/sbin/vmware-guestd --cmd 'info-set guestinfo.vmware.vami.version 0.1' > /dev/null
-/usr/sbin/vmware-guestd --cmd 'info-set guestinfo.vmware.vami.features SUP' > /dev/null
-/usr/sbin/vmware-guestd --cmd 'info-set guestinfo.vmware.vami.https-port 5989' > /dev/null
+/usr/sbin/vmtoolsd --cmd 'info-set guestinfo.vmware.vami.version 0.1' > /dev/null
+/usr/sbin/vmtoolsd --cmd 'info-set guestinfo.vmware.vami.features SUP' > /dev/null
+/usr/sbin/vmtoolsd --cmd 'info-set guestinfo.vmware.vami.https-port 5989' > /dev/null
