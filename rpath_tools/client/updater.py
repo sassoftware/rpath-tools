@@ -163,7 +163,7 @@ class Updater(update.UpdateService):
         if pkglist:
             for pkg in pkglist:
                 if pkg not in possible:
-                    print "[WARNING] %s is not in current search path or it is a new pkg" % str(pkg)
+                    logger.warn("%s is not in current search path or it is a new pkg" % str(pkg))
                 update = ' '.join([op, pkg.asString() + '\n'])
                 contents.append(update)
         newsysmodel = ''.join(contents)
@@ -200,7 +200,10 @@ class Updater(update.UpdateService):
 
 
     def groovy(self, sources, commands=None, xml=False, json=False):
-        sourcesAsPartialSystemModel = self.convertToPartialSystemModel(sources, commands)       
+        sourcesAsPartialSystemModel = self.convertToPartialSystemModel(sources, commands)
+        if json:
+            xml = True   
+    
         results = self.updateOperation(sourcesAsPartialSystemModel, preview=xml)
         if json:
             results = self.jsonify(results)
