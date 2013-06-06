@@ -392,7 +392,7 @@ class CollectorCommand(RpathToolsCommand):
 
 class InformerCommand(RpathToolsCommand):
     commands = ['informer', 'top', 'updates', 'counter' ]
-    help = "Gather conary nformation about the local host"
+    help = "Gather conary information about the local host"
     requireConfig = True
 
     def runCommand(self, *args, **kw):
