@@ -28,7 +28,6 @@ from conary.lib import util
 from rpath_tools.lib import errors
 from rpath_tools.lib import clientfactory
 from rpath_tools.lib import callbacks
-from rpath_tools.lib import stored_objects
 from rpath_tools.lib import formatter
 
 import copy
@@ -38,7 +37,7 @@ import os
 import logging
 import traceback
 
-logger = logging.getLogger(name = '__name__')
+logger = logging.getLogger(__name__)
 
 
 
@@ -272,22 +271,21 @@ class SystemModel(UpdateService):
         raise errors.NotImplementedError
 
 
-    def _buildUpdateJob(self, sysmod, callback=None):
+    def _buildUpdateJob(self, model, modelFile, callback=None, 
+                                                changeSetList=[]):
         '''
         Build an update job from a system model
         @sysmod = SystemModelFile object
         @callback = UpdateCallback object
         return updJob, suggMapp
         '''
-
-        model = sysmod.model
         cache = self._cache(callback)
-        cclient = self._getClient(modelfile=sysmod)
+        cclient = self._getClient(modelfile=modelFile)
         # Need to sync the capsule database before updating
         if cclient.cfg.syncCapsuleDatabase:
             cclient.syncCapsuleDatabase(callback)
         updJob = cclient.newUpdateJob()
-        troveSetGraph = cclient.cmlGraph(model)
+        troveSetGraph = cclient.cmlGraph(model, changeSetList = changeSetList)
         try:
             suggMap = cclient._updateFromTroveSetGraph(updJob,
                             troveSetGraph, cache)
@@ -320,7 +318,7 @@ class SystemModel(UpdateService):
                 else:
                     logger.info("simplified model changed result; ignoring")
         model = finalModel
-        sysmod.model = finalModel
+        modelFile.model = finalModel
 
         if cache.cacheModified():
             logger.info("saving model cache to %s", self._model_cache_path)
@@ -330,7 +328,7 @@ class SystemModel(UpdateService):
             if callback:
                 callback.done()
 
-        return updJob, suggMap
+        return updJob, suggMap, model, modelFile
 
     def _applyUpdateJob(self, updJob, callback=None):
         '''
@@ -443,146 +441,6 @@ class SystemModel(UpdateService):
         raise NotImplementedError
 
 
-class UpdateModel(SystemModel):
-    '''
-    Update the current system-model non destructive
-    '''
-    def __init__(self, preview=False, apply=False,
-                        modelfile=None, instanceid=None):
-        super(UpdateModel, self).__init__()
-        # New System Model
-        self._newSystemModel = None
-        self._model = None
-        self.preview = preview
-        self.apply = apply
-        self.iid = instanceid
-        self.thaw = True
-        # Setup flags
-        self.flags = SystemModelFlags(apply=self.apply, preview=self.preview,
-                freeze=True, thaw=self.thaw, iid=self.iid)
-
-    def _load_model_with_list_of_tuples(self, opargs):
-        '''
-        Updated system model from current system model
-        @param opargs: a list of tuples of operation and a tuple
-        of packages that go with the operation
-        ie: [ ('install'('lynx', 'joe')),
-                ('remove', ('httpd')),
-                ('update', ('wget')),
-                ]
-        @type opargs: list of tuples [(op, args)]
-        @param op: a conary system model operation 'install', 'update', 'erase'
-        @type op: string
-        @param args: a tuple of conary packages for an operation 
-        @type args: ( pkg1, pkg2 )
-        @param pkg: a name of a conary package
-        @type pkg: string
-        @return: conary SystemModelFile object
-        '''
-        # FIXME
-        # This should append to the current system-model
-        # need a dictionary of { op : arg } to parse
-        cfg = self.conaryCfg
-        model = cml.CML(cfg)
-        model.setVersion(str(time.time()))
-        # I think this is how it should work
-        # Take some uglies from stdin and append them
-        # to current system model
-        # apparently in the most ugly way I can
-        for op, args in opargs.items():
-            arg = ' '.join([ x for x in args ])
-            model.appendOpByName(op, arg)
-        newmodel = self._modelFile(model)
-        return newmodel
-
-    def _system_model_update(self, cfg, op, args, callback, dry_run=False):
-        '''
-        conary update action for a system model
-        op can be 'update'||'updateall'||'install'||'erase'.
-        args is a list of packages.
-
-        dry_run == True, return UpdateJob, suggMap
-        '''
-        # FIXME
-        # FUTURE CODE THAT IS A MESS
-        updated = False
-        updJob, suggMap = None, {}
-        model = cml.CML(cfg)
-        modelFile = systemmodel.SystemModelFile(model)
-        model.appendOpByName(op, args)
-        modelFile.writeSnapshot()
-        try:
-            updJob, suggMap = self._buildUpdateJob(model)
-            if not dry_run:
-                self._applyUpdateJob(updJob, callback)
-                updated = True
-        except:
-            pass
-        if updated:
-            modelFile.write()
-            modelFile.closeSnapshot()
-        return updJob, suggMap
-
-    def _base_update(self, arg, pkglist, callback, dry_run):
-        '''
-        update helper so I don't have to repeat code
-        '''
-        cfg = self.conaryCfg
-        updJob, suggMap = None, {}
-        if self._using_system_model():
-            updJob, suggMap = self._system_model_update(cfg,
-                                arg, pkglist, callback, dry_run)
-        return updJob, suggMap
-
-    def update(self, pkglist, callback, dry_run=False):
-        '''
-        conary install for system model
-        '''
-        cfg = self.conaryCfg
-        updJob, suggMap = None, {}
-        if self._using_system_model():
-            updJob, suggMap = self._system_model_update(cfg,
-                                'update', pkglist,
-                    callback, dry_run)
-        return updJob, suggMap
-
-
-    def install(self, pkglist, callback, dry_run=False):
-        '''
-        conary install for system model
-        return updJob, suggMap
-        '''
-        return self._base_updater('install', pkglist,
-                                callback, dry_run)
-
-
-    def erase(self, pkglist, callback, dry_run=False):
-        '''
-        conary erase for system model
-        return updJob, suggMap
-        '''
-        return self._base_updater('erase', pkglist,
-                                callback, dry_run)
-
-    def updateall(self, pkglist=[], dry_run=False):
-        '''
-        conary updateall for system model
-        return updJob, suggMap
-        '''
-        return self._base_updater('updateall', pkglist,
-                                 dry_run)
-
-
-    def sync(self):
-        return NotImplementedError
-
-    def preview(self):
-        return NotImplementedError
-
-    def apply(self):
-        return NotImplementedError
-
-
 class SyncModel(SystemModel):
     '''
     Sync to system-model destructive
@@ -600,7 +458,7 @@ class SyncModel(SystemModel):
         return callbacks.UpdateCallback(job)
 
     def _getNewModelFromFile(self, modelfile):
-        if modelfile and os.path.exists(modelfile):
+        if not os.path.exists(modelfile):
             modelfile = '/etc/conary/system-model'
         return self._load_model_from_file(modelfile)
 
@@ -619,15 +477,15 @@ class SyncModel(SystemModel):
         results = self._freezeUpdateJob(updateJob, job.updateJobDir)
         return results
 
-    def _getPreviewFromUpdateJob(self, updateJob, topLevelItems,
-                                        newTopLevelItems, jobid=None):
+    def _getPreviewFromUpdateJob(self, updateJob, observedTopLevelItems,
+                                        desiredTopLevelItems, jobid=None):
         preview_xml = '<preview/>'
         preview = formatter.Formatter(updateJob)
         if preview:
             preview.format()
-            for ntli in newTopLevelItems:
+            for ntli in desiredTopLevelItems:
                 preview.addDesiredVersion(ntli)
-            for tli in topLevelItems:
+            for tli in observedTopLevelItems:
                 preview.addObservedVersion(tli)
             if jobid:
                 preview.addJobid(jobid)
@@ -651,8 +509,10 @@ class SyncModel(SystemModel):
         for n,v,f in topLevelItems:
             logger.info("%s %s %s" % (n,v,f))
 
-        model = self._getNewModelFromString(job.systemModel)
-        updateJob, suggMap = self._buildUpdateJob(model, callback)
+        modelFile = self._getNewModelFromString(job.systemModel)
+        model = modelFile.model
+
+        updateJob, suggMap, model, modelFile = self._buildUpdateJob(model, modelFile, callback)
 
         logger.info("Conary DB Transaction Counter: %s" % updateJob.getTransactionCounter())
 
@@ -688,6 +548,9 @@ class SyncModel(SystemModel):
         logger.info("New Top Level Items")
         for n,v,f in newTopLevelItems:
             logger.info("%s %s %s" % (n,v,f))
+        # Since we've just applied the update, the observed and desired
+        # top level items are identical, which is usually not true for
+        # previews
         preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
                                                     newTopLevelItems, jobid)
         return preview
@@ -734,6 +597,92 @@ class SyncModel(SystemModel):
     def debug(self):
         #epdb.st()
         pass
+
+class UpdateModel(SyncModel):
+    def __init__(self, modelfile=None, instanceid=None):
+        super(UpdateModel, self).__init__()
+        self._newSystemModel = None
+        self._modelfile = modelfile
+        self.iid = instanceid
+        # Setup flags
+        self.flags = SystemModelFlags(apply=False, preview=False,
+                freeze=False, thaw=False, iid=self.iid)
+
+
+    def _newModelFile(self, model):
+        newModelFile = "# Generated by rpath-tools \n"
+        for x in model.modelOps:
+            items = str(x.item)
+            if isinstance(x.item, types.ListType):
+                items = ' '.join(['"'+str(y)+'"' for y in x.item])
+            newline = '''%s %s\n''' % (x.key,items)
+            newModelFile = newModelFile + newline
+        return newModelFile
+
+    def _prepareUpdateUpdateJob(self, job, callback):
+        '''
+        Used to create an update job to make a preview from
+        return job
+        '''
+        preview = None
+        frozen = False
+        jobid = job.keyId
+
+        logger.info("BEGIN Update operation for job : %s" % jobid)
+
+        # Top Level Items
+        topLevelItems = self._getTopLevelItems()
+
+        logger.info("Top Level Items")
+
+        for n,v,f in topLevelItems:
+            logger.info("%s %s %s" % (n,v,f))
+
+
+        modelFile = self.conaryClient.getSystemModel()
+
+        model = modelFile.model
+
+        updates = [ x for x in job.systemModel.split('\n') if x ]
+
+        for update in updates:
+            op, troveSpec = update.split(None, 1)
+            model.appendOpByName(op, text=troveSpec)
+
+        updateJob, suggMap, model, modelFile = self._buildUpdateJob(model, modelFile, callback)
+
+        logger.info("Conary DB Transaction Counter: %s" % updateJob.getTransactionCounter())
+
+        job.systemModel = self._newModelFile(model)
+
+        self.freezeSyncUpdateJob(updateJob, job)
+        newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
+                                                                updateJob)
+        preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
+                                                    newTopLevelItems, jobid)
+        return preview
+
+    def preview(self, job, raiseExceptions=False):
+        '''
+        return preview
+        '''
+        callback = self._callback(job)
+        try:
+            job.content = self._prepareUpdateUpdateJob(job, callback)
+        except:
+            callback.done()
+            job.content = traceback.format_exc()
+            job.state = "Exception"
+            logger.error("Error: %s", job.content)
+            if raiseExceptions:
+                raise
+            return None
+        else:
+            job.state = "Completed"
+
+        return job.content
+
+
 
 if __name__ == '__main__':
     import sys

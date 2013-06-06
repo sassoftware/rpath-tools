@@ -321,25 +321,44 @@ class UpdateCommand(RpathToolsCommand):
 
     def addParameters(self, argDef):
         RpathToolsCommand.addParameters(self, argDef)
-        argDef['preview'] = options.ONE_PARAM
-        argDef['apply'] = options.ONE_PARAM
-        argDef['install'] = options.ONE_PARAM
-        argDef['update'] = options.ONE_PARAM
-        argDef['updateall'] = options.NO_PARAM
+        argDef['item'] = options.MULT_PARAM
+        argDef['jobid'] = options.ONE_PARAM
+        argDef['xml'] = options.NO_PARAM
+        argDef['json'] = options.NO_PARAM
 
+    def shouldRun(self):
+        if len(self.commands) != 1:
+            logger.error('specify only one command action : %s' % 
+                                ' '.join(self.command_types))
+            return False
+        if 'apply' in self.commands and not self.jobid:
+            logger.error('apply command requires --jobid <jobid string>')
+            return False
+        if 'preview' in self.commands and not self.tlis:
+            logger.error('preview command requires --item <trove spec>')
+            return False
+        return True
 
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
-        self.tli = args[-1]
-        self.jobid = None
-        if 'jobid' in args:
-            self.jobid = args.pop('jobid', None)
-        self.command_types = ['update', 'preview', 'apply', 'updateall', 'install']
+        argSet = args[1]
+        self.tlis = argSet.pop('item', [])
+        self.jobid = argSet.pop('jobid', None)
+        self.xml = argSet.pop('xml', False)
+        self.json = argSet.pop('json', False)
+        self.command_types = ['preview', 'apply', 'install', 'update', 'updateall' ]
         self.commands = [ x for x in args[-1] if x in self.command_types ]
+
+        if not self.shouldRun():
+            logger.info('Updater will not run, exiting.')
+            sys.exit(2)
+
+        up = updater.Updater()
         if 'apply' in self.commands and self.jobid:
-            updater.apply(self.cfg, self.commands, self.iid)
-        results = updater.preview(self.cfg, self.commands, self.tli)
+            results = up.apply(self.jobid)
+        else:
+            results = up.groovy(self.tlis, self.commands, self.xml, self.json)
         return results
 
 

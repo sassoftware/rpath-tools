@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/conary/bin/python2.6
 #
 # Copyright (c) SAS Institute Inc.
 #
@@ -180,6 +180,18 @@ class SyncApplyTask(BaseUpdateTask):
     def sanitizeKey(cls, key):
         return (cls.jobFactory.factory.keyPrefix,
                 key.rsplit('/', 1)[-1])
+
+class UpdatePreviewTask(BaseUpdateTask):
+    def preFork(self, systemModelPath, flags=None):
+        self.job.systemModel = file(systemModelPath).read()
+
+    def postFork(self, *args, **kwargs):
+        update.SyncModel.fixSignals()
+
+    def run(self, systemModelPath, flags=None):
+        operation = update.UpdateModel()
+        operation.preview(self.job, raiseExceptions=True)
+
 
 class SurveyTask(BaseTask):
     jobFactory = stored_objects.ConcreteSurveyJobFactory
