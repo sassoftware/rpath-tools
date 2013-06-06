@@ -72,7 +72,8 @@ class Informer(update.UpdateService):
         @type callback: object like updatecmd.Callback
         '''
         super(Informer, self).__init__()
-        self.systemModelPath = self.conaryCfg.modelPath
+        if not self.systemModelPath:
+            self.systemModelPath = self.conaryCfg.modelPath
         self.tmpDir = self.conaryCfg.tmpDir
 
         self._values = dict([ (x, True) for x in values])
@@ -186,16 +187,16 @@ class Informer(update.UpdateService):
 
     def _sanitize(self, trovelist):
         sanitized = []
-        for name, version, flavor in trovelist:
+        for name, version, flavors in trovelist:
             try:
                 version = str(version)
             except:
                 pass
             try:
-                flavor = str(flavor)
+                flavors = [ str(x) for x in flavors ]
             except:
                 pass
-            sanitized.append((name, version,flavor))
+            sanitized.append((name, version, flavors))
         return sanitized
 
     def _jsonify(self, data):
@@ -218,13 +219,14 @@ class Informer(update.UpdateService):
 
     def _getTopLevelItemsAllVersions(self):
         topLevelItems = self._getTopLevelItems()
-        top = [ trovetup.TroveTuple(name, version, flavor)
-                for name, version, flavor in topLevelItems
-                    if name.startswith('group-') ][0]
-        allversions = self.conaryClient.repos.findTroves(
-                                self.conaryCfg.installLabelPath,
-                                    [(top.name, None, None)])
-
+        allversions = {}
+        tops = [ trovetup.TroveTuple(name, version, flavor)
+                for name, version, flavor in topLevelItems ]
+                    #if name.startswith('group-') ][0]
+        for top in tops:
+            label = top.version.trailingLabel()
+            query = { top.name : { label : None } }
+            allversions.update(self.conaryClient.repos.getTroveVersionsByLabel(query))
         return allversions
 
     def _getTopLevelItems(self):
@@ -241,12 +243,17 @@ class Informer(update.UpdateService):
                                 ['Count', str(tcounter)])
         return self.mangle(tcount)
 
+
     def getTopLevelItemsAllVersions(self):
         all = self._getTopLevelItemsAllVersions()
         allversions = {}
-        for trove, items in all.items():
-            name, version, flavor = trove
-            allversions.setdefault(name, self._sanitize(items))
+        for name, versions in all.items():
+            trovelist = []
+            for version, flavors in versions.items():
+                flavor = [ flavor for flavor in flavors if flavor.satisfies(self.conaryCfg.flavorPreferences[0]) ]
+                if flavor:
+                    trovelist.append([ name, version, flavor ]) 
+            allversions.setdefault(name, self._sanitize(sorted(trovelist)))
         return self.mangle(allversions)
 
     def getTopLevelItems(self):
