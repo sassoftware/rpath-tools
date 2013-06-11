@@ -184,7 +184,8 @@ class Updater(update.UpdateService):
         return json.dumps(d)
 
 
-    def groovy(self, sources, commands=None, xml=False, json=False):
+    def cmdlineUpdate(self, sources, commands=None, 
+                            xml=False, json=False):
         partialSystemModel = self.convertToPartialSystemModel(sources, commands)
         if json:
             xml = True   
@@ -192,6 +193,15 @@ class Updater(update.UpdateService):
         if json:
             results = self.jsonify(results)
         return results
+
+    def cmdlineApply(self, jobid, xml=False, json=False):
+        results = self.applyOperation(jobid)
+        if json:
+            return self.jsonify(results)
+        if xml:
+            return results
+        return
+
 
     def debug(self, sources, commands=None, xml=False, json=False):
         pass
