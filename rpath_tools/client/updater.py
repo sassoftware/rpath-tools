@@ -49,19 +49,23 @@ class Updater(update.UpdateService):
             raise Exception, str(e)
         return path
 
-    def updateOperation(self, sources, systemModel=None, preview=True):
+    def updateOperation(self, sources, systemModel=None, 
+                            preview=True, update=False):
         '''
         system-model sources must be a string representation of
         the system-model file
         classic method sources is a list of top level items
+        
         '''
         if self.isSystemModel:
-            if systemModel:
-                tempSystemModelPath = self.storeTempSystemModel(systemModel)
-                task = jobs.SyncPreviewTask().new()
-            elif sources and not systemModel:
-                tempSystemModelPath = self.storeTempSystemModel(sources)
+            if not systemModel:
+                systemModel = file(self.systemModelPath).read()
+            tempSystemModelPath = self.storeTempSystemModel(systemModel)
+            if update:
                 task = jobs.UpdatePreviewTask().new()
+            else:
+                task = jobs.SyncPreviewTask().new()
+
             # Currently we have to call the steps manually
             # to avoid a double fork
             task.preFork(tempSystemModelPath)
@@ -134,25 +138,6 @@ class Updater(update.UpdateService):
         return trovespeclist
 
 
-    def convertToSystemModel(self, sources, commands):
-        op = 'update'
-        if 'install' in commands:
-            op = 'install'
-        pkglist = [ trovetup.TroveSpec(x) for x in sources ]
-        possible = self.getTopLevelItemsAllVersions()
-        with open(self.conaryCfg.modelPath) as f:
-            contents = f.readlines()
-        if pkglist:
-            for pkg in pkglist:
-                if pkg not in possible:
-                    print "[WARNING] %s is not in current search path or it is new pkg" % str(pkg)
-                update = ' '.join([op, pkg.asString() + '\n'])
-                contents.append(update)
-        newsysmodel = ''.join(contents)
-        systemModelPath = '/tmp/system-model.debug'
-        file(systemModelPath, "w").write(newsysmodel)
-        return newsysmodel
-
     def convertToPartialSystemModel(self, sources, commands):
         op = 'update'
         if 'install' in commands:
@@ -200,20 +185,16 @@ class Updater(update.UpdateService):
 
 
     def groovy(self, sources, commands=None, xml=False, json=False):
-        sourcesAsPartialSystemModel = self.convertToPartialSystemModel(sources, commands)
+        partialSystemModel = self.convertToPartialSystemModel(sources, commands)
         if json:
             xml = True   
-    
-        results = self.updateOperation(sourcesAsPartialSystemModel, preview=xml)
+        results = self.updateOperation(sources, systemModel=partialSystemModel, preview=xml, update=True)
         if json:
             results = self.jsonify(results)
         return results
 
     def debug(self, sources, commands=None, xml=False, json=False):
-        sourcesAsPartialSystemModel = self.convertToPartialSystemModel(sources, commands)       
-        xml = self.preview(sourcesAsPartialSystemModel)
-        return xml
-
+        pass
 
 if __name__ == '__main__':
     import sys
