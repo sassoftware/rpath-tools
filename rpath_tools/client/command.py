@@ -304,14 +304,19 @@ class IConfigCommand(RpathToolsCommand):
 
 
 class ScanCommand(RpathToolsCommand):
-    commands = ['scan', 'toplevelitems']
+    commands = ['scan']
     help = "Run a survey on the local host."
     requireConfig = True
 
+    def addParameters(self, argDef):
+        RpathToolsCommand.addParameters(self, argDef)
+        argDef['item'] = options.MULT_PARAM
+
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
-        self.tli = args[-1]
-        results = scan.main(self.cfg, self.tli)
+        argSet = args[1]
+        self.tlis = argSet.pop('item', [])
+        results = scan.main(self.cfg, self.tlis)
         return results
 
 class UpdateCommand(RpathToolsCommand):

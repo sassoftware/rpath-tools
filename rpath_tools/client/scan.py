@@ -112,7 +112,6 @@ class Scanner(object):
         cfgVals = (x for x in cfgVals if len(x) == 2)
         return dict((x.strip(), y.strip()) for (x, y) in cfgVals)
 
-
     @classmethod
     def _getUserIds(cls, user):
         try:
@@ -121,19 +120,15 @@ class Scanner(object):
         except KeyError:
             return (0, 0)
 
-    def _scan_system(self, desiredTopLevelItems, systemModel):
-        dom = self.surveyScanner.toxml(desiredTopLevelItems, systemModel)
-        xml = etree.tostring(dom)
-        return xml, self.surveyScanner.uuid
-
     def _scanner(self, desiredTopLevelItems, systemModel):
-        self.survey, self.surveyUuid = self._scan_system(desiredTopLevelItems,
-                systemModel)
+        dom = self.surveyScanner.toxml(desiredTopLevelItems, systemModel)
+        self.survey = etree.tostring(dom)
         if self.survey is None:
             return self.survey
         # If the server returned something back, save
         survey_path = self.writeSurveytoStore(self.survey,
-                        self.cfg.scannerSurveyStore, uuid=self.surveyUuid,
+                        self.cfg.scannerSurveyStore,
+                        uuid=self.surveyScanner.uuid,
                         uid=None, gid=None)
         return survey_path
 
