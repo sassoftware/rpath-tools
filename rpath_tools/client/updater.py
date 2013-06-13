@@ -165,6 +165,8 @@ class Updater(update.UpdateService):
 
         def _handler(root):
             result = dict()
+            if hasattr(root, 'attrib'):
+                result.update(root.attrib)
             for e in root:
                 if len(e):
                     if hasattr(e, 'attrib'):
@@ -180,8 +182,8 @@ class Updater(update.UpdateService):
                 else:
                     result[e.tag] = obj
             return result
-        d = {root.tag: _handler(root)}
-        return json.dumps(d)
+        dump = {root.tag: _handler(root)}
+        return json.dumps(dump)
 
 
     def cmdlineUpdate(self, sources, commands=None, 
