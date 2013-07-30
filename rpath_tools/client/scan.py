@@ -125,6 +125,8 @@ class Scanner(object):
         self.survey = etree.tostring(dom)
         if self.survey is None:
             return self.survey
+        # need this variable for CIM
+        self.surveyUuid = self.surveyScanner.uuid
         # If the server returned something back, save
         survey_path = self.writeSurveytoStore(self.survey,
                         self.cfg.scannerSurveyStore,
