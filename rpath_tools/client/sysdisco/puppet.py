@@ -75,6 +75,6 @@ if __name__ == '__main__':
     sys.excepthook = util.genExcepthook()
     ruppet = Puppet()
     import logging
-    logger = logging.getLogger('client')
+    logger = logging.getLogger(__name__)
     pc = ruppet.run(logger)
     print pc
