@@ -45,6 +45,7 @@ class RpathToolsCommand(command.AbstractCommand):
     def addParameters(self, argDef):
         command.AbstractCommand.addParameters(self, argDef)
         argDef['quiet'] = options.NO_PARAM
+        argDef['verbose'] = options.NO_PARAM
 
     def runCommand(self, *args, **kw):
         pass
