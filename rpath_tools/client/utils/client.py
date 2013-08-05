@@ -25,7 +25,7 @@ from rpath_tools.client.utils.apifinder import ApiFinder
 from rpath_tools.client.errors import RpathToolsRegistrationError
 from rpath_tools.client.utils import httpslib
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 class Client(object):
     def __init__(self, url, ssl_context=None):

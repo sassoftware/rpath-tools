@@ -38,7 +38,7 @@ from rpath_tools.client.utils.tmpwatcher import TmpWatcher
 from rpath_tools.client.utils.collector import Collector
 from rpath_tools.client.utils.informer import Informer
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 class RpathToolsCommand(command.AbstractCommand):
 

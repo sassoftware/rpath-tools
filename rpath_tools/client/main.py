@@ -27,7 +27,7 @@ from rpath_tools.client import config
 from rpath_tools.client import constants
 from rpath_tools.client import errors
 
-logger = logging.getLogger('client')
+logger = logging.getLogger(__name__)
 
 
 class RpathToolsMain(mainhandler.MainHandler):
@@ -47,15 +47,18 @@ class RpathToolsMain(mainhandler.MainHandler):
 
     setSysExcepthook = False
 
-    def configureLogging(self, logFile, debug, quiet):
+    def configureLogging(self, logFile, debug, quiet, verbose):
         if debug:
             consoleLevel = logging.DEBUG
             fileLevel = logging.DEBUG
+        elif verbose:
+            consoleLevel = logging.INFO
+            fileLevel = logging.INFO 
         elif quiet:
             consoleLevel = logging.ERROR
             fileLevel = logging.INFO
         else:
-            consoleLevel = logging.INFO
+            consoleLevel = logging.ERROR
             fileLevel = logging.INFO
         cny_log.setupLogging(
                 logPath=logFile,
@@ -63,13 +66,14 @@ class RpathToolsMain(mainhandler.MainHandler):
                 consoleFormat='apache',
                 fileLevel=fileLevel,
                 fileFormat='apache',
-                logger='client',
+                logger='rpath_tools',
                 )
 
     def runCommand(self, command, cfg, argSet, *args, **kw):
         debug = cfg.debugMode
         quiet = argSet.get('quiet', False)
-        self.configureLogging(cfg.logFile, debug, quiet)
+        verbose = argSet.get('verbose', False)
+        self.configureLogging(cfg.logFile, debug, quiet, verbose)
         logger.info("Running command: %s" % command.commands[0])
         response = mainhandler.MainHandler.runCommand(self, command, cfg,
                 argSet, *args, **kw)

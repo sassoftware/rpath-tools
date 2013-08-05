@@ -27,7 +27,7 @@ from rpath_tools.client import config
 from rpath_tools.client import hardware
 from rpath_tools.client import main
 
-logger = logging.getLogger('client')
+logger = logging.getLogger('rpath_tools')
 
 class Registration(object):
     CONFIG_D_DIRECTORY = "config.d"
