@@ -99,12 +99,15 @@ class RegistrationCommand(RpathToolsCommand):
         return exists
 
     def _checkTimeout(self, timeoutFile, timeout):
+        if not timeout:
+            logger.warn("Disabled in config. Timeout set to %s" % timeout)
+            return False
         try:
             f = open(timeoutFile)
         except IOError, e:
             # If the file was not found, be safe and assume we need to
             # register
-            logger.error("Could not open file %s for reading." % timeoutFile)
+            logger.warn("Could not open file %s for reading." % timeoutFile)
             return True
         tStamp = f.read().strip()
         tStamp = int(float(tStamp))
@@ -140,12 +143,12 @@ class RegistrationCommand(RpathToolsCommand):
         if registrationDisabled:
             return False
 
-        if self.boot and self.cfg.bootRegistration:
-            logger.info('--boot specified and bootRegistration is True, running registration')
-            return True
-
         if self.force:
             logger.info('--force specified, running registration')
+            return True
+
+        if self.boot and self.cfg.bootRegistration:
+            logger.info('--boot specified and bootRegistration is True, running registration')
             return True
 
         if self.shutdown:
