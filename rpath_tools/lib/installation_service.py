@@ -17,9 +17,9 @@
 
 import os
 
+from conary.cmds import updatecmd
 from conary.deps import deps
 from conary import conaryclient
-from conary import updatecmd
 from conary import versions
 from conary import trovetup
 
