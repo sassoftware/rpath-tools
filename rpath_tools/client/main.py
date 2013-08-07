@@ -47,13 +47,10 @@ class RpathToolsMain(mainhandler.MainHandler):
 
     setSysExcepthook = False
 
-    def configureLogging(self, logFile, debug, quiet, verbose):
+    def configureLogging(self, logFile, debug, quiet):
         if debug:
             consoleLevel = logging.DEBUG
             fileLevel = logging.DEBUG
-        elif verbose:
-            consoleLevel = logging.INFO
-            fileLevel = logging.INFO 
         elif quiet:
             consoleLevel = logging.ERROR
             fileLevel = logging.INFO
@@ -72,8 +69,7 @@ class RpathToolsMain(mainhandler.MainHandler):
     def runCommand(self, command, cfg, argSet, *args, **kw):
         debug = cfg.debugMode
         quiet = argSet.get('quiet', False)
-        verbose = argSet.get('verbose', False)
-        self.configureLogging(cfg.logFile, debug, quiet, verbose)
+        self.configureLogging(cfg.logFile, debug, quiet)
         logger.info("Running command: %s" % command.commands[0])
         response = mainhandler.MainHandler.runCommand(self, command, cfg,
                 argSet, *args, **kw)
