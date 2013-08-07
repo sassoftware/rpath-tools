@@ -104,4 +104,4 @@ class Registration(object):
         m = main.RpathToolsMain()
         cmd = command.RegistrationCommand()
         return m.runCommand(cmd, self.cfg,
-            {'force' : True, 'event-uuid' : self.event_uuid}, ())
+            {'force' : False, 'event-uuid' : self.event_uuid}, ())
