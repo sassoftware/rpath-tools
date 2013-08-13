@@ -247,6 +247,7 @@ class Informer(update.UpdateService):
     def getTopLevelItemsAllVersions(self):
         all = self._getTopLevelItemsAllVersions()
         allversions = {}
+        self.conaryCfg.initializeFlavors()
         for name, versions in all.items():
             trovelist = []
             for version, flavors in versions.items():

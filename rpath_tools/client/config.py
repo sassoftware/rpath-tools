@@ -20,11 +20,11 @@ import os
 from conary.lib import cfg
 
 class RpathToolsConfiguration(cfg.ConfigFile):
-    bootRegistration = (cfg.CfgBool, 1)
+    bootRegistration = (cfg.CfgBool, 0)
     bootUuidFile = (cfg.CfgString, "boot-uuid")
     conaryProxyFilePath = (cfg.CfgString, 
         '/etc/conary/config.d/rpath-tools-conaryProxy')
-    contactTimeoutInterval = (cfg.CfgInt, 3)
+    contactTimeoutInterval = (cfg.CfgInt, 0)
     debugMode = (cfg.CfgBool, False)
     directMethod = (cfg.CfgList(cfg.CfgString), "")
     disableRegistrationFileName = (cfg.CfgString, 'disableRegistration')
@@ -36,7 +36,7 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     logFile = (cfg.CfgString, '/var/log/rpath-tools.log')
     randomWaitFileName = (cfg.CfgString, 'randomWait')
     randomWaitMax = (cfg.CfgInt, 14400)
-    registrationInterval = (cfg.CfgInt, 1)
+    registrationInterval = (cfg.CfgInt, 0)
     registrationMethod = (cfg.CfgList(cfg.CfgString), ["DIRECT",])
     registrationPort = (cfg.CfgInt, 13579)
     registrationRetryCount = (cfg.CfgInt, 3)
@@ -45,7 +45,7 @@ class RpathToolsConfiguration(cfg.ConfigFile):
     retrySlotTime = (cfg.CfgInt, 15)
     sfcbConfigurationFile = (cfg.CfgString, "/etc/conary/sfcb/sfcb.cfg")
     sfcbUrl = (cfg.CfgString, "/tmp/sfcbHttpSocket")
-    shutdownDeRegistration = (cfg.CfgBool, 1)
+    shutdownDeRegistration = (cfg.CfgBool, 0)
     slpMethod = (cfg.CfgList(cfg.CfgString), ["rpath-inventory",])
     topDir = (cfg.CfgString, "/etc/conary/rpath-tools")
     validateRemoteIdentity = (cfg.CfgBool, True)
