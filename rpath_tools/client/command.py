@@ -345,6 +345,9 @@ class UpdateCommand(RpathToolsCommand):
         if 'preview' in self.commands and not self.tlis:
             logger.error('preview command requires --item <trove spec>')
             return False
+        if 'update' in self.commands and not self.tlis:
+            logger.error('update command requires --item <trove spec>')
+            return False
         return True
 
 
