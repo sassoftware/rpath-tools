@@ -342,10 +342,10 @@ class UpdateCommand(RpathToolsCommand):
         if 'apply' in self.commands and not self.jobid:
             logger.error('apply command requires --jobid <jobid string>')
             return False
-        if 'preview' in self.commands and not self.tlis:
+        if 'preview' in self.commands and not [ x for x in self.tlis if x ]:
             logger.error('preview command requires --item <trove spec>')
             return False
-        if 'update' in self.commands and not self.tlis:
+        if 'update' in self.commands and not [ x for x in self.tlis if x ]:
             logger.error('update command requires --item <trove spec>')
             return False
         return True
