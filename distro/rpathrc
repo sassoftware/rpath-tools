@@ -34,7 +34,7 @@ includeConfigFile /etc/conary/rpath-tools/config.d/*
 #
 # Minimum value: 0 (disables boot-time registration)
 # Maximum value: 1 (enables boot-time registration)
-bootRegistration 1
+bootRegistration 0
 
 # Deregister at shutdown -- Attempt to deregister the system as the
 # system goes through its normal shutdown processing.  Disabling this
@@ -45,7 +45,7 @@ bootRegistration 1
 #
 # Minimum value: 0 (disables deregistration at shutdown)
 # Maximum value: 1 (enables deregistration at shutdown)
-shutdownDeregistration 1
+shutdownDeregistration 0
 
 # Registration interval -- Attempt to register the system on a periodic
 # basis.  NOTE: Enabling this feature with a short interval on a large
@@ -55,7 +55,7 @@ shutdownDeregistration 1
 # Minimum value: 0 (disables periodic registration)
 # Minimum interval: 1
 # Maximum interval: 30 (days)
-registrationInterval 1
+registrationInterval 0
 
 # Contact timeout interval -- Attempt to register the system if rBuilder
 # has not contacted the system within this time period.  Disabling this
@@ -66,7 +66,7 @@ registrationInterval 1
 #
 # Minimum value: 0 (no timeout)
 # Maximum value: 30 (days)
-contactTimeoutInterval 3
+contactTimeoutInterval 0
 
 # *** PARAMETERS CONTROLLING THE REGISTRATION PROCESS ***
 #

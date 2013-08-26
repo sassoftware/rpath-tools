@@ -17,7 +17,7 @@
 
 
 
-from conary import updatecmd
+from conary.cmds import updatecmd
 from conary import conarycfg
 from conary import conaryclient
 from conary.conaryclient import cml

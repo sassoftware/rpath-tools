@@ -16,7 +16,7 @@
 #
 
 
-from conary import updatecmd
+from conary.cmds import updatecmd
 
 
 class UpdateCallback(updatecmd.UpdateCallback):

@@ -28,11 +28,9 @@ from conary.lib import networking
 from conary.lib import util
 from conary.lib.http import request
 
-from rpath_models import Survey
 from rpath_tools.lib.uuids import LocalUuid, GeneratedUuid
 from rpath_tools.client import config
 from rpath_tools.client import errors
-from rpath_tools.client import scan
 from rpath_tools.client.utils import x509
 from rpath_tools.client.utils import client as UtilsClient
 
@@ -299,8 +297,6 @@ class Registration(object):
         return actResp
 
     def _register(self, remote, system):
-        survobj = self.scanSystem()
-        system.set_survey(survobj)
         sio = StringIO.StringIO()
         system.serialize(sio)
         systemXml = sio.getvalue()
@@ -356,29 +352,6 @@ class Registration(object):
             sleepTime = sleepTime + int(randSleepInc)
             attempts += 1
         return None
-
-    def scanSystem(self):
-        try:
-            logger.info("Running system scan...")
-            return Survey(scan.scanner.SurveyScanner(origin="registration").toxml())
-        except Exception, e:
-            logger.info("System scan failed: %s", str(e))
-            # Save the exception
-            excInfo = sys.exc_info()
-            try:
-                sio = StringIO.StringIO()
-                util.formatTrace(*excInfo, stream=sio, withLocals=False)
-                logger.info("Details: %s", sio.getvalue())
-
-                survey = scan.etree.Element("survey")
-                error = scan.etree.SubElement(survey, "error")
-                scan.etree.SubElement(error, "text").text = str(e)
-                scan.etree.SubElement(error, "details").text = sio.getvalue()
-                return Survey(survey)
-            except Exception, e:
-                logger.info("Error reporting failed: %s", str(e))
-                return None
-
 
 if __name__ == '__main__':
     sys.exit(main())
