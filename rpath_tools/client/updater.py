@@ -129,9 +129,11 @@ class Updater(update.UpdateService):
         for name, versions in allversions.items():
             trovespeclist = []
             for version, flavors in versions.items():
-                flavor = [ x for x in flavors
+                flavor = None
+                if self.conaryCfg.flavorPreferences:
+                    flavor = [ x for x in flavors
                         if x.satisfies(self.conaryCfg.flavorPreferences[0]) ]
-                if flavor:
+                if isinstance(flavor, list) and len(flavor):
                     trovespeclist.append(trovetup.TroveSpec(
                             name, version.asString()[1:], str(flavor[0])))
 
