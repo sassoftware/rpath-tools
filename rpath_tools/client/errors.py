@@ -39,18 +39,16 @@ class RpathToolsInternalError(RpathToolsError):
     pass
 
 _ERROR_MESSAGE = '''
-ERROR: An unexpected condition has occurred in rpath-tools.  This is
+ERROR: An unexpected condition has occurred in yggdrasil.  This is
 most likely due to insufficient handling of erroneous input, but
 may be some other bug.  In either case, please report the error at
-https://issues.rpath.com/ and attach to the issue the file
+https://opensource.sas.com/its and attach to the issue the file
 %(stackfile)s
 
 To get a debug prompt, rerun the command with the --debug-all argument.
 
 For more information, go to:
-http://wiki.rpath.com/wiki/Conary:How_To_File_An_Effective_Bug_Report
-For more debugging help, please go to #conary on freenode.net
-or email conary-list@lists.rpath.com.
+http://delphi.unx.sas.com/docs/
 
 Error details follow:
 
@@ -59,6 +57,7 @@ Error details follow:
 
 The complete related traceback has been saved as %(stackfile)s
 '''
+
 
 def genExcepthook(*args, **kw):
     #pylint: disable-msg=C0999
