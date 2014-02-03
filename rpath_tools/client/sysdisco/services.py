@@ -174,6 +174,16 @@ class ServiceScanner(update.SystemModel):
         return conary_list
 
 
+    def _valid_chars(self, i):
+        return ( 0x20 <= i <= 0xD7FF 
+                or i in (0x9, 0xA, 0xD)
+                or 0xE000 <= i <= 0xFFFD
+                or 0x10000 <= i <= 0x10FFFF
+                )
+
+    def _sanitize(self, status):
+        return ''.join([ x for x in status if 
+                            self._valid_chars(ord(x)) ])
 
     def _fromString(self, cls, srv):
         self.current_runlevel = self._getRunlevel()
@@ -184,6 +194,7 @@ class ServiceScanner(update.SystemModel):
             name = name.strip(':')
         service = [ '/sbin/service', name, 'status' ]
         status = self._runProcess(service)
+        status = self._sanitize(status)
         if len(srv[1:]) == 1:
             runlevels = {'xinetd' : srv[1:][0]}
             status = '''run in xinetd... %s''' % srv[1:][0]
