@@ -59,19 +59,18 @@ class Ractivate(PackageRecipe):
 
         r.ExcludeDirectories(exceptions='/etc/conary/rpath-tools/config.d')
         r.ExcludeDirectories(exceptions='%(prefix)s/lib/rpath-tools/postinstall.d')
-        r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools')
         r.ExcludeDirectories(exceptions='%(localstatedir)s/lib/rpath-tools/postinstall.lock')
 
         r.ComponentSpec('postinstall',
-            '/etc/conary/tags/postinstall'
+            '/etc/conary/tags/postinstall',
             '/usr/libexec/conary/tags/postinstall',
             '%(prefix)s/lib/rpath-tools/postinstall.d',
             '%(localstatedir)s/lib/rpath-tools/postinstall.lock',
+            '%(initdir)s/rpath-tools-postinstall',
             )
 
-        r.ComponentSpec("lib",
-            r".*\.sh",
-            )
+        r.ComponentSpec("lib", r".*\.sh")
+        r.ComponentSpec('config', '/etc/conary/rpath-tools/')
 
         # Fix init script to use the proper initdir
         r.Replace('/etc/init.d/functions', '%(initdir)s/functions',
