@@ -16,50 +16,13 @@
 
 
 import socket
+import struct
 from conary.lib import util
 from rpath_tools.client import utils
-from rpath_tools.client.utils import wbemlib
-
-class WBEMData(object):
-    
-    cimClasses = []
-
-    def __init__(self, url=None):
-        self.url = url or '/tmp/sfcbHttpSocket'
-        self.server = wbemlib.WBEMServer(self.url)
-        self.data = {}
-    
-    def populate(self):
-        for cimClassDict in self.cimClasses:
-            for cimClass, cimProperties in cimClassDict.items():
-                self.data[cimClass] = {}
-                insts = getattr(self.server, cimClass).EnumerateInstances()
-                for inst in insts:
-                    instId = inst.properties['instanceID'].value
-                    if not instId:
-                        instId = inst.properties['Name'].value
-                    self.data[cimClass][instId] = {} 
-                    for cimProperty in cimProperties:
-                        self.data[cimClass][instId][cimProperty] = \
-                            inst.properties[cimProperty].value
-
-    def getData(self):
-        return self.data
+from rpath_tools.lib import netlink
 
 
-class HardwareData(WBEMData):
-    
-    cimSystemClasses = {'Linux_OperatingSystem' : ['ElementName',
-                            'OSType', 'Version']}
-    cimCpuClasses = {'Linux_Processor' : ['ElementName',
-                            'NumberOfEnabledCores', 'MaxClockSpeed']}
-    cimNetworkClasses = {'Linux_IPProtocolEndpoint' : [
-                            'IPv4Address', 'IPv6Address',
-                            'SubnetMask', 'ProtocolType', 'SystemName',
-                            'Name', 'NameFormat',
-                            ]}
-
-    cimClasses = [cimNetworkClasses]
+class HardwareData(object):
 
     class IP(object):
         __slots__ = ['ipv4', 'ipv6', 'device', 'netmask', 'dns_name']
@@ -68,39 +31,31 @@ class HardwareData(WBEMData):
                 setattr(self, k, kwargs.get(k, None))
 
     def __init__(self, cfg):
-        self.cfg = cfg
-        WBEMData.__init__(self, cfg.sfcbUrl)
         self.ips = []
         self.deviceName = ''
-
-    @property
-    def hardware(self):
-        self.populate()
-        return self.getData()
 
     def getIpAddresses(self):
         if self.ips:
             return self.ips
-        else:
-            for iface in self.hardware['Linux_IPProtocolEndpoint'].values():
-                ipv4 = iface['IPv4Address']
-                if ipv4 is not None and  ipv4 not in ('NULL', '127.0.0.1'):
-                    device = iface['Name']
-                    device = device.split('_')
-                    if len(device) > 1:
-                        deviceName = device[1]
-                    else:
-                        deviceName = device[0]
-                    dnsName = self.resolve(ipv4) or ipv4
-                    ip = self.IP(ipv4=ipv4, netmask=iface['SubnetMask'],
-                        device=deviceName, dns_name=dnsName)
-                    self.ips.append(ip)
+        rnl = netlink.RoutingNetlink()
+        for iface, addrs in rnl.getAllAddresses().items():
+            for family, address, prefix in addrs:
+                if family != 'inet':
+                    continue
+                netmask = ((1 << prefix) - 1) << (32 - prefix)
+                netmask = socket.inet_ntop(socket.AF_INET,
+                        struct.pack('>I', netmask))
+                self.ips.append(self.IP(
+                    ipv4=address,
+                    netmask=netmask,
+                    device=iface,
+                    dnsname=self.resolve(address) or address,
+                    ))
 
         if utils.runningInEC2():
             self.ips.append(self._getExternalEC2Network())
 
         return self.ips
-
 
     def resolve(self, ipaddr):
         try:
@@ -167,12 +122,3 @@ class HardwareData(WBEMData):
             netmask='255.255.255.0',
             device='eth0-ec2',
             dns_name=instanceData.getPublicHostname())
-        
-
-def main(cfg=None):
-    h = HardwareData(cfg)
-    return h.hardware
-
-if __name__ == '__main__':
-    hwData = main()
-    print hwData

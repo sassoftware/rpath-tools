@@ -1,3 +1,0 @@
-class RPATH_SystemSurvey : CIM_LogicalElement {
-   string Value;
-};

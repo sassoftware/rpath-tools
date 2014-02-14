@@ -1,2 +1,0 @@
-class RPATH_ElementSoftwareIdentity : CIM_ElementSoftwareIdentity {
-};

@@ -1,4 +1,0 @@
-class RPATH_SurveyConcreteJob : CIM_ConcreteJob {
-    [ Description("The results of running this job, serialized as strings") ]
-    string JobResults[];
-};

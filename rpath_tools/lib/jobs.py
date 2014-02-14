@@ -24,7 +24,7 @@ import sys
 import traceback
 
 from rpath_tools.lib import stored_objects
-from rpath_tools.lib import installation_service, update, surveys
+from rpath_tools.lib import installation_service, update
 
 class TaskRunner(object):
     def runAsync(self, task, *args, **kwargs):
@@ -193,20 +193,9 @@ class UpdatePreviewTask(BaseUpdateTask):
         operation.preview(self.job, raiseExceptions=True)
 
 
-class SurveyTask(BaseTask):
-    jobFactory = stored_objects.ConcreteSurveyJobFactory
-    surveyServiceFactory = surveys.SurveyService
-
-    def postFork(self, *args, **kwargs):
-        update.SyncModel.fixSignals()
-
-    def run(self, desiredTopLevelItems, systemModel):
-        surveyserv = self.surveyServiceFactory()
-        surveyserv.scan(self.job, desiredTopLevelItems, systemModel)
-
 class AnyTask(object):
     # XXX Make this more extensible
-    _allClasses = [ UpdateTask, SurveyTask, ]
+    _allClasses = [ UpdateTask, ]
 
     @classmethod
     def list(cls):

@@ -19,7 +19,7 @@ import os
 from conary import callbacks as conaryCallbacks
 from conary.lib import util
 
-from rpath_tools.client import hardware, register
+from rpath_tools.client import hardware
 
 from conary_test import rephelp
 
@@ -45,7 +45,6 @@ class RpathToolsMixIn(object):
 
         self.mock(hardware, 'HardwareData', mock.MockObject())
         hardware.HardwareData._mock.setDefaultReturn(mockHardwareData)
-        self.mock(register.LocalUuid, "read", lambda *args, **kw: 'my-uuid')
 
     def tearDown(self):
         pass

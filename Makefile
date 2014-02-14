@@ -25,9 +25,6 @@ export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
 export CFGDEVEL=rpathrc
 
 SUBDIRS=rpath_tools distro commands
-ifndef LIB_ONLY
-SUBDIRS+=conary_cim
-endif
 
 extra_files = \
 	Make.rules 		\
@@ -38,7 +35,7 @@ extra_files = \
 	LICENSE
 
 
-.PHONY: clean dist install subdirs html
+.PHONY: clean install subdirs
 
 subdirs: default-subdirs
 
@@ -46,25 +43,6 @@ install: install-subdirs
 
 clean: clean-subdirs default-clean
 
-doc: html
-
-html:
-	ln -fs plugins/ rbuild_plugins
-	scripts/generate_docs.sh
-	rm -f rbuild_plugins
-
-dist:
-	if ! grep "^Changes in $(VERSION)" NEWS > /dev/null 2>&1; then \
-		echo "no NEWS entry"; \
-		exit 1; \
-	fi
-	$(MAKE) forcedist
-
-
-archive:
-	hg archive  --exclude .hgignore -t tbz2 rbuild-$(VERSION).tar.bz2
-
-forcedist: archive
 
 forcetag:
 	hg tag -f rpath-tools-$(VERSION)

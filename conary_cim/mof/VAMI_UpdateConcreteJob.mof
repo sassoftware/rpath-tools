@@ -1,3 +1,0 @@
-// The VAMI_UpdateConcreteJob expose progress information for running jobs
-class VAMI_UpdateConcreteJob : CIM_ConcreteJob {
-};
