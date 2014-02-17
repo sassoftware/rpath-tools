@@ -2,7 +2,7 @@
 #
 # chkconfig: 2345 15 92
 #
-# description: rPath Remote Update enabler
+# description: SAS Remote Update enabler
 #
 # processname:
 #
@@ -162,8 +162,8 @@ start() {
     fi
     touch $LOCK_FILE
 
-    echo -n $"Enabling rPath Remote Updates"
-    log_info "Enabling rPath Remote Access"
+    echo -n $"Enabling SAS Remote Updates"
+    log_info "Enabling SAS Remote Access"
     enable_cert_auth
     mkdir -p $CLIENTS_CERT_DIR
     chmod 700 $CLIENTS_CERT_DIR
