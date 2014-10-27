@@ -203,7 +203,20 @@ class Informer(update.UpdateService):
         '''
         Do some json stuff
         '''
-        return json.dumps(data)
+        import re
+
+        invalid_escape = re.compile(r'\\[0-7]{1,6}')  
+
+        def fix(match):
+            return unichr(int(match.group(0)[1:], 8))
+
+        def repair(data):
+            return invalid_escape.sub(fix, data)
+    
+        return json.dumps(repair(str(data)), 
+                    sort_keys=True, 
+                    indent=4, 
+                    separators=(',', ': '))
 
     def mangle(self, data):
         mangled = data
@@ -289,5 +302,8 @@ if __name__ == '__main__':
                     'test', 'json' ]
 
     obj = Informer(items)
-    obj.debug()
+    top, tcount, alltop = obj.debug()
+    print top
+    print tcount
+    
 
