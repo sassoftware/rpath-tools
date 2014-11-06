@@ -30,7 +30,9 @@ class UpdateTest(testbase.TestCaseRepo):
         testbase.TestCaseRepo.setUp(self)
         self.openRepository()
         for v in ["1", "2"]:
-            self.addComponent("foo:runtime", v)
+            self.addComponent("foo:runtime", v, fileContents=[
+                ('/foo.txt', '123456789012345' + v),
+            ])
             self.addCollection("foo", v, [":runtime"])
             self.addCollection("group-bar", v, [ "foo" ])
 
@@ -66,10 +68,61 @@ class UpdateTest(testbase.TestCaseRepo):
                 # we're removing foo, the code returns the original
                 # list. See the other test that's failing
                 [ self._trvAsString(group1) ])
+
+        downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
+        self.assertEqual(len(downloadSize), 1)
+        # XXX FIXME: we really should be able to count on a stable value for
+        # download size...
+        #self.assertTrue(int(downloadSize[0]) < 1370)
+        #self.assertTrue(int(downloadSize[0]) >= 1330)
         return job
 
-    def testSyncModelApplyOperation(self):
+    def testSyncModelDownloadSizeMultiRepo(self):
+        repo1 = self.openRepository(1)
+        self.addComponent('bar:runtime', '1')
+        self.addCollection('bar', '1', [':runtime'])
+        self.addComponent('bar:runtime', '/localhost1@rpl:linux/2-1-1',
+                          repos=repo1)
+        self.addCollection('bar', '/localhost1@rpl:linux/2-1-1', [':runtime'],
+                           repos=repo1)
+        self.addComponent('baz:runtime', '/localhost1@rpl:linux/1-1-1',
+                          repos=repo1)
+        self.addCollection('baz', '/localhost1@rpl:linux/1-1-1', [':runtime'],
+                           repos=repo1)
+        self.addComponent('baz:runtime', '/localhost1@rpl:linux/2-1-1',
+                          repos=repo1)
+        self.addCollection('baz', '/localhost1@rpl:linux/2-1-1', [':runtime'],
+                           repos=repo1)
+        self.addCollection('group-bar', '3', [
+            'foo=1-1-1',
+            'bar=1-1-1',
+            'baz=/localhost1@rpl:linux/1-1-1',
+        ])
+        self.addCollection('group-bar', '4', [
+            'foo=1-1-1',
+            'bar=/localhost1@rpl:linux/2-1-1',
+            'baz=/localhost1@rpl:linux/2-1-1',
+        ])
+        self.updatePkg('group-bar=3')
+        file(self.systemModelPath, "w").write("install group-bar=%s/4\n" % self.defLabel)
+        job = self.newJob()
+        job.systemModel = file(self.systemModelPath).read()
+        operation = update.SyncModel()
+        preview = operation.preview(job)
+        tree = etree.fromstring(preview)
+        downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
+        self.assertTrue(len(downloadSize) == 1)
+
+    def testSyncModelDownloadOperation(self):
         job = self.testSyncModelPreviewOperation()
+        job_test = self.loadJob(job.keyId)
+        operation = update.SyncModel()
+        operation.download(job_test)
+        self.assertTrue(os.listdir(job_test.downloadDir))
+        return job_test
+
+    def testSyncModelApplyOperation(self):
+        job = self.testSyncModelDownloadOperation()
         job_test = self.loadJob(job.keyId)
 
         operation = update.SyncModel()

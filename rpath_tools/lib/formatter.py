@@ -56,6 +56,9 @@ class Formatter(object):
     def addJobid(self, jobid):
         self.root.attrib['id'] = str(jobid)
 
+    def addDownloadSize(self, size):
+        etree.SubElement(self.root, 'downloadSize').text = str(size)
+
     def toxml(self):
         return etree.tostring(self.root)
 

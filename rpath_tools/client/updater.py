@@ -49,13 +49,13 @@ class Updater(update.UpdateService):
             raise Exception, str(e)
         return path
 
-    def updateOperation(self, sources, systemModel=None, 
+    def updateOperation(self, sources, systemModel=None,
                             preview=True, update=False):
         '''
         system-model sources must be a string representation of
         the system-model file
         classic method sources is a list of top level items
-        
+
         '''
         if self.isSystemModel:
             if not systemModel:
@@ -85,11 +85,24 @@ class Updater(update.UpdateService):
         xml = task.job.content
         return xml
 
-
     def applyOperation(self, jobid):
         xml = '<preview/>'
         if self.isSystemModel:
             task = jobs.SyncApplyTask().load(jobid)
+            # Currently we have to call the steps manually
+            # to avoid a double fork
+            task.preFork()
+            task.run()
+            xml = task.job.content
+        else:
+            logger.error('Classic systems do not'
+                ' freeze jobs so we can not apply a frozen job')
+            raise errors.NotImplementedError
+        return xml
+
+    def downloadOperation(self, jobid):
+        if self.isSystemModel:
+            task = jobs.DownloadTask().load(jobid)
             # Currently we have to call the steps manually
             # to avoid a double fork
             task.preFork()
@@ -113,11 +126,10 @@ class Updater(update.UpdateService):
         apply_xml = self.applyOperation(jobid)
         return apply_xml
 
-
     def getTopLevelItemsAllVersions(self):
         topLevelItems = sorted(self.conaryClient.getUpdateItemList())
         allversions = {}
-        tops = [ trovetup.TroveTuple(name, version, flavor) for 
+        tops = [ trovetup.TroveTuple(name, version, flavor) for
                             name, version, flavor in topLevelItems ]
 
         for top in tops:
@@ -139,7 +151,6 @@ class Updater(update.UpdateService):
 
         return trovespeclist
 
-
     def convertToPartialSystemModel(self, sources, commands):
         op = 'update'
         if 'install' in commands:
@@ -157,7 +168,6 @@ class Updater(update.UpdateService):
         systemModelPath = '/tmp/partial-system-model.debug'
         file(systemModelPath, "w").write(newsysmodel)
         return newsysmodel
-
 
     def jsonify(self, xml):
         import json
@@ -187,16 +197,23 @@ class Updater(update.UpdateService):
         dump = {root.tag: _handler(root)}
         return json.dumps(dump)
 
-
-    def cmdlineUpdate(self, sources, commands=None, 
+    def cmdlineUpdate(self, sources, commands=None,
                             xml=False, json=False):
         partialSystemModel = self.convertToPartialSystemModel(sources, commands)
         if json:
-            xml = True   
+            xml = True
         results = self.updateOperation(sources, systemModel=partialSystemModel, preview=xml, update=True)
         if json:
             results = self.jsonify(results)
         return results
+
+    def cmdlineDownload(self, jobid, xml=False, json=False):
+        results = self.downloadOperation(jobid)
+        if json:
+            return self.jsonify(results)
+        if xml:
+            return results
+        return
 
     def cmdlineApply(self, jobid, xml=False, json=False):
         results = self.applyOperation(jobid)
@@ -206,9 +223,9 @@ class Updater(update.UpdateService):
             return results
         return
 
-
     def debug(self, sources, commands=None, xml=False, json=False):
         pass
+
 
 if __name__ == '__main__':
     import sys

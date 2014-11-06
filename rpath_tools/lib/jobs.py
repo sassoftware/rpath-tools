@@ -192,6 +192,14 @@ class UpdatePreviewTask(BaseUpdateTask):
         operation = update.UpdateModel()
         operation.preview(self.job, raiseExceptions=True)
 
+class DownloadTask(BaseUpdateTask):
+    def postFork(self, *args, **kwargs):
+        update.SyncModel.fixSignals()
+
+    def run(self, flags=None):
+        operation = update.SyncModel()
+        operation.download(self.job, raiseExceptions=True)
+
 
 class AnyTask(object):
     # XXX Make this more extensible

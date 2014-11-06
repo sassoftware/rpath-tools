@@ -14,9 +14,44 @@
 # limitations under the License.
 #
 
+import difflib
+
 from testutils import mock
 from rpath_toolstest.clienttest import RpathToolsTest
 from rpath_tools.client import command
+
+
+configDisplay = """\
+bootRegistration          0
+bootUuidFile              boot-uuid
+conaryProxyFilePath       /etc/conary/config.d/rpath-tools-conaryProxy
+contactTimeoutInterval    0
+debugMode                 False
+directMethod              []
+disableRegistrationFileName disableRegistration
+generatedUuidFile         generated-uuid
+lastPollFileName          lastPoll
+lastRegistrationFileName  lastRegistration
+localUuidBackupDirectoryName old-registrations
+localUuidFile             local-uuid
+logFile                   %TESTPATH%/log
+randomWaitFileName        randomWait
+randomWaitMax             14400
+registrationInterval      0
+registrationMethod        DIRECT
+registrationPort          13579
+registrationRetryCount    3
+remoteCertificateAuthorityStore /etc/conary/rpath-tools/certs
+retrySlotTime             15
+scannerSurveyLockFile     /var/lock/subsys/survey
+scannerSurveyStore        /var/lib/conary-cim/surveys
+sfcbConfigurationFile     /etc/conary/sfcb/sfcb.cfg
+sfcbUrl                   /tmp/sfcbHttpSocket
+shutdownDeRegistration    0
+slpMethod                 rpath-inventory
+topDir                    %TESTPATH%
+validateRemoteIdentity    True
+"""
 
 
 class RpathToolsCommandTest(RpathToolsTest):
@@ -46,37 +81,10 @@ class ConfigCommandTest(RpathToolsCommandTest):
         # Replace the test tmp path in the config display with the
         # correct value from this test.
         cfgDisplay = configDisplay.replace('%TESTPATH%', self.testPath)
-        self.assertEquals(cfgDisplay, stdout)
-
-
-configDisplay = """\
-bootRegistration          1
-bootUuidFile              boot-uuid
-conaryProxyFilePath       /etc/conary/config.d/rpath-tools-conaryProxy
-contactTimeoutInterval    3
-debugMode                 False
-directMethod              []
-disableRegistrationFileName disableRegistration
-generatedUuidFile         generated-uuid
-lastPollFileName          lastPoll
-lastRegistrationFileName  lastRegistration
-localUuidBackupDirectoryName old-registrations
-localUuidFile             local-uuid
-logFile                   %TESTPATH%/log
-randomWaitFileName        randomWait
-randomWaitMax             14400
-registrationInterval      1
-registrationMethod        DIRECT
-registrationPort          13579
-registrationRetryCount    3
-remoteCertificateAuthorityStore /etc/conary/rpath-tools/certs
-retrySlotTime             15
-scannerSurveyLockFile     /var/lock/subsys/survey
-scannerSurveyStore        /var/lib/conary-cim/surveys
-sfcbConfigurationFile     /etc/conary/sfcb/sfcb.cfg
-sfcbUrl                   /tmp/sfcbHttpSocket
-shutdownDeRegistration    1
-slpMethod                 rpath-inventory
-topDir                    %TESTPATH%
-validateRemoteIdentity    True
-"""
+        try:
+            self.assertEquals(cfgDisplay, stdout)
+        except AssertionError as e:
+            raise AssertionError(e.message + '\n'.join(difflib.unified_diff(
+                cfgDisplay.split('\n'),
+                stdout.split('\n'),
+            )))

@@ -77,7 +77,8 @@ commandList.append(HelpCommand)
 
 
 class UpdateCommand(RpathToolsCommand):
-    commands = ['updater', 'preview', 'apply', 'install', 'update', 'updateall',]
+    commands = ['updater', 'preview', 'apply', 'install', 'update', 'updateall',
+                'download']
     help = "Run updates on the local host."
     requireConfig = True
 
@@ -90,7 +91,7 @@ class UpdateCommand(RpathToolsCommand):
 
     def shouldRun(self):
         if len(self.commands) != 1:
-            logger.error('specify only one command action : %s' % 
+            logger.error('specify only one command action : %s' %
                                 ' '.join(self.command_types))
             return False
         if 'apply' in self.commands and not self.jobid:
@@ -102,8 +103,10 @@ class UpdateCommand(RpathToolsCommand):
         if 'update' in self.commands and not [ x for x in self.tlis if x ]:
             logger.error('update command requires --item <trove spec>')
             return False
+        if 'download' in self.commands and not self.jobid:
+            logger.error('download command requires --jobid <jobid string>')
+            return False
         return True
-
 
     def runCommand(self, *args, **kw):
         self.cfg = args[0]
@@ -112,7 +115,8 @@ class UpdateCommand(RpathToolsCommand):
         self.jobid = argSet.pop('jobid', None)
         self.xml = argSet.pop('xml', False)
         self.json = argSet.pop('json', False)
-        self.command_types = ['preview', 'apply', 'install', 'update', 'updateall' ]
+        self.command_types = ['preview', 'apply', 'install', 'update',
+                              'updateall', 'download']
         self.commands = [ x for x in args[-1] if x in self.command_types ]
 
         if not self.shouldRun():
@@ -122,6 +126,8 @@ class UpdateCommand(RpathToolsCommand):
         up = updater.Updater()
         if 'apply' in self.commands and self.jobid:
             results = up.cmdlineApply(self.jobid, self.xml, self.json)
+        elif 'download' in self.commands and self.jobid:
+            results = up.cmdlineDownload(self.jobid, self.xml, self.json)
         else:
             results = up.cmdlineUpdate(self.tlis, self.commands, self.xml, self.json)
         return results

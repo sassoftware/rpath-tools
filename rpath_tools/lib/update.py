@@ -17,11 +17,13 @@
 
 
 from conary import conarycfg
+from conary import errors as cerrors
 from conary import trovetup
 
 from conary.conaryclient import cml
 from conary.conaryclient import systemmodel
 from conary.conaryclient import modelupdate
+from conary.repository import errors as repo_errors
 from conary.lib import util
 
 
@@ -31,6 +33,7 @@ from rpath_tools.lib import callbacks
 from rpath_tools.lib import formatter
 
 import copy
+import itertools
 import types
 import time
 import os
@@ -261,7 +264,6 @@ class SystemModel(UpdateService):
                 raise
         return model
 
-
     def _cleanSystemModel(self, modelFile):
         '''
         Clean up after applying the updates
@@ -270,8 +272,7 @@ class SystemModel(UpdateService):
         #self.modelFile.closeSnapshot(fileName=modelFile.snapName)
         raise errors.NotImplementedError
 
-
-    def _buildUpdateJob(self, model, modelFile, callback=None, 
+    def _buildUpdateJob(self, model, modelFile, callback=None,
                                                 changeSetList=[]):
         '''
         Build an update job from a system model
@@ -305,7 +306,7 @@ class SystemModel(UpdateService):
             try:
                 suggMap2 = cclient._updateFromTroveSetGraph(updJob2,
                                     troveSetGraph2, cache)
-            except errors.TroveNotFound:
+            except cerrors.TroveNotFound:
                 logger.info("bad model generated; bailing")
             else:
                 if (suggMap == suggMap2 and
@@ -354,6 +355,25 @@ class SystemModel(UpdateService):
             callback.done()
         return updated
 
+    def _downloadUpdateJob(self, updJob, destDir, callback=None):
+        downloaded = False
+        jobs = updJob.getJobs()
+        if not jobs:
+            if callback:
+                callback.done()
+            return downloaded
+
+        try:
+            cclient = self.conaryClient
+            cclient.setUpdateCallback(callback)
+            cclient.downloadUpdate(updJob, destDir)
+            downloaded = True
+        except Exception, e:
+            raise errors.SystemModelServiceError, e
+        if downloaded and callback:
+            callback.done()
+        return downloaded
+
     def _freezeUpdateJob(self, updateJob, path):
         '''
         freeze an update job and store it on the filesystem
@@ -363,7 +383,7 @@ class SystemModel(UpdateService):
             updateJob.freeze(path)
             frozen = True
         except Exception, e:
-            # FIXME still wrong... 
+            # FIXME still wrong...
             raise errors.FrozenUpdateJobError, errors.FrozenUpdateJobError(e)
         return frozen
 
@@ -419,7 +439,7 @@ class SystemModel(UpdateService):
         # Not mentioned, so reuse the old version. Migrating to "remediate" a
         # system back to its nominal group would cause this, for example.
         return topTuples
- 
+
     # OVERWRITE THESE FUNCTIONS
 
     def install(self):
@@ -457,6 +477,26 @@ class SyncModel(SystemModel):
     def _callback(self, job):
         return callbacks.UpdateCallback(job)
 
+    def _calculateDownloadSize(self, updateJob):
+        serverBatch = {}
+        sizes = []
+        for jobs in updateJob.getJobs():
+            for job in jobs:
+                _, (oldVersion, _), (newVersion, _), _ = job
+                oldHost = oldVersion.getHost() if oldVersion else None
+                newHost = newVersion.getHost() if newVersion else None
+                if oldHost != newHost and newHost is not None:
+                    oldHost = None
+                serverBatch.setdefault((oldHost, newHost), []).append(job)
+
+        for (oldHost, newHost), jobs in serverBatch.iteritems():
+            if oldHost is None:
+                jobs = [(name, (None, None), newVersionFlavor, isAbsolute)
+                        for name, _, newVersionFlavor, isAbsolute in jobs]
+            sizes.append(
+                sum(self.conaryClient.repos.getChangeSetSize(jobs)))
+        return sum(sizes)
+
     def _getNewModelFromFile(self, modelfile):
         if not os.path.exists(modelfile):
             modelfile = '/etc/conary/system-model'
@@ -489,6 +529,7 @@ class SyncModel(SystemModel):
                 preview.addObservedVersion(tli)
             if jobid:
                 preview.addJobid(jobid)
+            preview.addDownloadSize(self._calculateDownloadSize(updateJob))
             preview_xml = preview.toxml()
         return preview_xml
 
@@ -551,52 +592,69 @@ class SyncModel(SystemModel):
         # Since we've just applied the update, the observed and desired
         # top level items are identical, which is usually not true for
         # previews
-        preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
-                                                    newTopLevelItems, jobid)
+        preview = self._getPreviewFromUpdateJob(updateJob, newTopLevelItems,
+                                                newTopLevelItems, jobid)
         return preview
+
+    def _downloadSyncUpdateJob(self, job, callback):
+        """
+        Used to download the changeset for a frozen job
+        """
+        jobid = job.keyId
+
+        logger.info("BEGIN Downloading changeset(s) for JOBID: %s" % jobid)
+        updateJob, model = self.thawSyncUpdateJob(job)
+        logger.debug('Deleting frozen update job')
+        job.storage.delete((job.keyId, 'frozen-update-job'))
+        job.state = "Downloading"
+        logger.info("Downloading update job JOBID: %s to %s" %
+                    (jobid, job.updateJobDir))
+        downloaded = self._downloadUpdateJob(updateJob, job.downloadDir, callback)
+        updateJob.setChangesetsDownloaded(downloaded)
+        self.freezeSyncUpdateJob(updateJob, job)
+
+    def _applyAction(self, action, job, raiseExceptions):
+        """
+        Applies the action `action` to `job`
+        """
+        callback = self._callback(job)
+        try:
+            job.content = action(job, callback)
+        except:
+            callback.done()
+            job.content = traceback.format_exc()
+            job.state = "Exception"
+            logger.error("Error: %s", job.content)
+            if raiseExceptions:
+                raise
+            return None
+        else:
+            job.state = "Completed"
+
+        return job.content
 
     def preview(self, job, raiseExceptions=False):
         '''
         return preview
         '''
-        callback = self._callback(job)
-        try:
-            job.content = self._prepareSyncUpdateJob(job, callback)
-        except:
-            callback.done()
-            job.content = traceback.format_exc()
-            job.state = "Exception"
-            logger.error("Error: %s", job.content)
-            if raiseExceptions:
-                raise
-            return None
-        else:
-            job.state = "Completed"
-
-        return job.content
+        return self._applyAction(self._prepareSyncUpdateJob, job,
+                                 raiseExceptions)
 
     def apply(self, job, raiseExceptions=False):
         '''
         returns topLevelItems
         '''
-        callback = self._callback(job)
-        try:
-            job.content = self._applySyncUpdateJob(job, callback)
-        except:
-            callback.done()
-            job.content = traceback.format_exc()
-            job.state = "Exception"
-            logger.error("Error: %s", job.content)
-            if raiseExceptions:
-                raise
-            return None
-        else:
-            job.state = "Completed"
-        return job.content
+        return self._applyAction(self._applySyncUpdateJob, job,
+                                 raiseExceptions)
+
+    def download(self, job, raiseExceptions=False):
+        return self._applyAction(self._downloadSyncUpdateJob, job,
+                                 raiseExceptions)
 
     def debug(self):
         #epdb.st()
         pass
+
 
 class UpdateModel(SyncModel):
     def __init__(self, modelfile=None, instanceid=None):
@@ -666,21 +724,9 @@ class UpdateModel(SyncModel):
         '''
         return preview
         '''
-        callback = self._callback(job)
-        try:
-            job.content = self._prepareUpdateUpdateJob(job, callback)
-        except:
-            callback.done()
-            job.content = traceback.format_exc()
-            job.state = "Exception"
-            logger.error("Error: %s", job.content)
-            if raiseExceptions:
-                raise
-            return None
-        else:
-            job.state = "Completed"
-
-        return job.content
+        job_content = self._applyAction(self._prepareUpdateUpdateJob, job,
+                                        raiseExceptions)
+        return job_content
 
 
 
