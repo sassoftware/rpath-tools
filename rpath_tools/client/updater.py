@@ -49,7 +49,7 @@ class Updater(update.UpdateService):
             raise Exception, str(e)
         return path
 
-    def updateOperation(self, sources, systemModel=None,
+    def updateOperation(self, sources=None, systemModel=None,
                             preview=True, update=False):
         '''
         system-model sources must be a string representation of
@@ -114,7 +114,7 @@ class Updater(update.UpdateService):
             raise errors.NotImplementedError
         return xml
 
-    def preview(self, sources, systemModel=None):
+    def preview(self, sources=None, systemModel=None):
         # Stub for preview operation
         preview_xml = self.updateOperation(sources, systemModel)
 
@@ -199,10 +199,15 @@ class Updater(update.UpdateService):
 
     def cmdlineUpdate(self, sources, commands=None,
                             xml=False, json=False):
-        partialSystemModel = self.convertToPartialSystemModel(sources, commands)
         if json:
             xml = True
-        results = self.updateOperation(sources, systemModel=partialSystemModel, preview=xml, update=True)
+
+        if self.isSystemModel:
+            partialSystemModel = self.convertToPartialSystemModel(sources, commands)
+            results = self.updateOperation(systemModel=partialSystemModel,
+                                           preview=xml, update=True)
+        else:
+            results = self.updateOperation(sources, preview=xml, update=True)
         if json:
             results = self.jsonify(results)
         return results
