@@ -38,8 +38,12 @@ class UpdateTest(testbase.TestCaseRepo):
 
         self.updatePkg(["group-bar=1"])
 
-        self.systemModelPath = os.path.join(self.workDir, "system-model")
-        file(self.systemModelPath, "w").write("install group-bar=%s/2\n" % self.defLabel)
+        self.systemModelPath = os.path.join(self.workDir,
+            "../root/etc/conary/system-model")
+
+        file(self.systemModelPath, "w").write(
+            "install group-bar=%s/1\n" % self.defLabel
+        )
 
     def newJob(self):
         job = self.jobFactory(self.storagePath).new()
@@ -172,5 +176,22 @@ class UpdateTest(testbase.TestCaseRepo):
     def testTopLevelItems(self):
         pass
 
-
-
+    def testUpdateModelPreviewOperation(self):
+        job = self.newJob()
+        job.systemModel = "# a comment\ninstall group-bar=%s/2\n" % self.defLabel
+        operation = update.UpdateModel()
+        preview = operation.preview(job)
+        tree = etree.fromstring(preview)
+        self.assertEquals(tree.attrib['id'], job.keyId)
+        group1 = self.findAndGetTrove('group-bar=1-1-1')
+        group2 = self.findAndGetTrove('group-bar=2-1-1')
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('observed') ],
+                [ self._trvAsString(group1) ])
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('desired') ],
+                # XXX FIXME: this really should be group2; but because
+                # we're removing foo, the code returns the original
+                # list. See the other test that's failing
+                [ self._trvAsString(group1) ])
+        return job

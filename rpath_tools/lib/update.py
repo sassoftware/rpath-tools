@@ -701,7 +701,8 @@ class UpdateModel(SyncModel):
 
         model = modelFile.model
 
-        updates = [ x for x in job.systemModel.split('\n') if x ]
+        updates = [x for x in job.systemModel.split('\n')
+                   if x and not x.startswith('#')]
 
         for update in updates:
             op, troveSpec = update.split(None, 1)
