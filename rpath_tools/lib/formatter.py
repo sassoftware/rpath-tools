@@ -59,6 +59,10 @@ class Formatter(object):
     def addDownloadSize(self, size):
         etree.SubElement(self.root, 'downloadSize').text = str(size)
 
+    def setDownloaded(self, downloaded):
+        etree.SubElement(self.root, 'downloaded').text = \
+            'true' if downloaded else 'false'
+
     def toxml(self):
         return etree.tostring(self.root)
 

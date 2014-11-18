@@ -56,7 +56,7 @@ class UpdateTest(testbase.TestCaseRepo):
 
     def testSyncModelPreviewOperation(self):
         job = self.newJob()
-        job.systemModel = file(self.systemModelPath).read()
+        job.systemModel = 'install group-bar=%s/2-1-1\n' % self.defLabel
         operation = update.SyncModel()
         preview = operation.preview(job)
         tree = etree.fromstring(preview)
@@ -75,6 +75,7 @@ class UpdateTest(testbase.TestCaseRepo):
 
         downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
         self.assertEqual(len(downloadSize), 1)
+        self.assertTrue(tree.find('downloaded').text == 'false')
         # XXX FIXME: we really should be able to count on a stable value for
         # download size...
         #self.assertTrue(int(downloadSize[0]) < 1370)
@@ -121,9 +122,20 @@ class UpdateTest(testbase.TestCaseRepo):
         job = self.testSyncModelPreviewOperation()
         job_test = self.loadJob(job.keyId)
         operation = update.SyncModel()
-        operation.download(job_test)
+        preview = operation.download(job_test)
+        tree = etree.fromstring(preview)
         self.assertTrue(os.listdir(job_test.downloadDir))
+        self.assertTrue(tree.find('downloaded').text == 'true')
         return job_test
+
+    def testRepeatedDownload(self):
+        job = self.testSyncModelDownloadOperation()
+        job_test = self.loadJob(job.keyId)
+        operation = update.SyncModel()
+        preview = operation.download(job_test)
+        tree = etree.fromstring(preview)
+        self.assertTrue(os.listdir(job_test.downloadDir))
+        self.assertTrue(tree.find('downloaded').text == 'true')
 
     def testSyncModelApplyOperation(self):
         job = self.testSyncModelDownloadOperation()
@@ -141,6 +153,7 @@ class UpdateTest(testbase.TestCaseRepo):
         self.assertEquals(
                 [ x.text for x in tree.iterchildren('desired') ],
                 [ self._trvAsString(group2) ])
+        self.assertTrue(tree.find('downloaded').text == 'true')
         return job
 
     @classmethod
