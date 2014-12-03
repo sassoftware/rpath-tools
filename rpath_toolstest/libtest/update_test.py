@@ -56,7 +56,7 @@ class UpdateTest(testbase.TestCaseRepo):
 
     def testSyncModelPreviewOperation(self):
         job = self.newJob()
-        job.systemModel = file(self.systemModelPath).read()
+        job.systemModel = "install group-bar=%s/2\n" % self.defLabel
         operation = update.SyncModel()
         preview = operation.preview(job)
         tree = etree.fromstring(preview)
