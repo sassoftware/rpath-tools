@@ -156,7 +156,7 @@ class UpdateTest(testbase.TestCaseRepo):
         ret = operation.preview(job)
         self.assertEquals(ret, None)
         self.assertEquals(job.state, "Exception")
-        self.assertIn("TroveSpecsNotFound: No troves found matching: nosuchtrove=localhost@rpl:linux/3", job.content)
+        self.assertIn("No troves found matching: nosuchtrove=localhost@rpl:linux/3", job.content)
 
     def testFreezeUpdateJob(self):
         pass

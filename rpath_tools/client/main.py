@@ -47,17 +47,16 @@ class RpathToolsMain(mainhandler.MainHandler):
             fileLevel = logging.DEBUG
         elif verbose:
             consoleLevel = logging.INFO
-            fileLevel = logging.INFO 
+            fileLevel = logging.INFO
         elif quiet:
             consoleLevel = logging.ERROR
             fileLevel = logging.INFO
         else:
-            consoleLevel = logging.ERROR
+            consoleLevel = logging.WARNING
             fileLevel = logging.INFO
         cny_log.setupLogging(
                 logPath=logFile,
                 consoleLevel=consoleLevel,
-                consoleFormat='apache',
                 fileLevel=fileLevel,
                 fileFormat='apache',
                 logger='rpath_tools',
@@ -102,7 +101,7 @@ def _main(argv, MainClass):
             return 0
         return rc
     except errors.RpathToolsError, e:
-        print e
+        logger.error(e)
         return 1
     except debuggerException, err:
         raise
@@ -110,7 +109,7 @@ def _main(argv, MainClass):
         # allow broken pipe to exit
         if e.errno != errno.EPIPE:
             raise
-    except KeyboardInterrupt:
+    except:
         return 1
     return 0
 

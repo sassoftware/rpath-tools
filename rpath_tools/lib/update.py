@@ -395,7 +395,8 @@ class SystemModel(UpdateService):
                 updateJob.thaw(path)
             except:
                 # FIXME
-                raise errors.FrozenJobPathMissing
+                raise errors.FrozenJobPathMissing(
+                    'No such file or directory: %s' % path)
         return updateJob
 
     def _getTopLevelItems(self):
@@ -620,11 +621,11 @@ class SyncModel(SystemModel):
         callback = self._callback(job)
         try:
             job.content = action(job, callback)
-        except:
+        except Exception as e:
             callback.done()
-            job.content = traceback.format_exc()
+            job.content = str(e)
             job.state = "Exception"
-            logger.error("Error: %s", job.content)
+            logger.error(job.content)
             if raiseExceptions:
                 raise
             return None
