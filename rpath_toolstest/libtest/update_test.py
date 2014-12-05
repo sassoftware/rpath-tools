@@ -125,6 +125,13 @@ class UpdateTest(testbase.TestCaseRepo):
         self.assertTrue(os.listdir(job_test.downloadDir))
         return job_test
 
+    def testDuplicateDownload(self):
+        job = self.testSyncModelDownloadOperation()
+        job_test = self.loadJob(job.keyId)
+        operation = update.SyncModel()
+        operation.download(job_test)
+        self.assertTrue(os.listdir(job_test.downloadDir))
+
     def testSyncModelApplyOperation(self):
         job = self.testSyncModelDownloadOperation()
         job_test = self.loadJob(job.keyId)

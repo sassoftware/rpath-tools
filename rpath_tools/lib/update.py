@@ -379,24 +379,15 @@ class SystemModel(UpdateService):
         freeze an update job and store it on the filesystem
         '''
         frozen = False
-        try:
-            updateJob.freeze(path)
-            frozen = True
-        except Exception, e:
-            # FIXME still wrong...
-            raise errors.FrozenUpdateJobError, errors.FrozenUpdateJobError(e)
+        updateJob.freeze(path)
+        frozen = True
         return frozen
 
     def _thawUpdateJob(self, path):
         if os.path.exists(path):
-            try:
-                cclient = self.conaryClient
-                updateJob = cclient.newUpdateJob()
-                updateJob.thaw(path)
-            except:
-                # FIXME
-                raise errors.FrozenJobPathMissing(
-                    'No such file or directory: %s' % path)
+            cclient = self.conaryClient
+            updateJob = cclient.newUpdateJob()
+            updateJob.thaw(path)
         return updateJob
 
     def _getTopLevelItems(self):
@@ -605,6 +596,11 @@ class SyncModel(SystemModel):
 
         logger.info("BEGIN Downloading changeset(s) for JOBID: %s" % jobid)
         updateJob, model = self.thawSyncUpdateJob(job)
+
+        if updateJob.getChangesetsDownloaded():
+            logger.info("Update already downloaded")
+            return
+
         logger.debug('Deleting frozen update job')
         job.storage.delete((job.keyId, 'frozen-update-job'))
         job.state = "Downloading"
