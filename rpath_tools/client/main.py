@@ -52,7 +52,7 @@ class RpathToolsMain(mainhandler.MainHandler):
             consoleLevel = logging.ERROR
             fileLevel = logging.INFO
         else:
-            consoleLevel = logging.WARNING
+            consoleLevel = logging.INFO
             fileLevel = logging.INFO
         cny_log.setupLogging(
                 logPath=logFile,
