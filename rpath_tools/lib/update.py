@@ -545,9 +545,16 @@ class SyncModel(SystemModel):
         modelFile = self._getNewModelFromString(job.systemModel)
         model = modelFile.model
 
+        if not job.systemModel:
+            # we are doing a system update
+            model.refreshVersionSnapshots()
+
         updateJob, suggMap, model, modelFile = self._buildUpdateJob(model, modelFile, callback)
 
         logger.info("Conary DB Transaction Counter: %s" % updateJob.getTransactionCounter())
+
+        # update the job's system model with the newly calculated one
+        job.systemModel = model.format()
 
         self.freezeSyncUpdateJob(updateJob, job)
         newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,

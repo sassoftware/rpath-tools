@@ -54,6 +54,33 @@ class UpdateTest(testbase.TestCaseRepo):
         job = self.jobFactory(self.storagePath).load(jobId)
         return job
 
+    def testSyncModelPreviewOperationNoSystemModel(self):
+        """Should be the same update"""
+        job = self.newJob()
+        operation = update.SyncModel()
+        preview = operation.preview(job)
+        tree = etree.fromstring(preview)
+        self.assertEquals(tree.attrib['id'], job.keyId)
+        group1 = self.findAndGetTrove('group-bar=1-1-1')
+        group2 = self.findAndGetTrove('group-bar=2-1-1')
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('observed') ],
+                [ self._trvAsString(group1) ])
+        self.assertEquals(
+                [ x.text for x in tree.iterchildren('desired') ],
+                # XXX FIXME: this really should be group2; but because
+                # we're removing foo, the code returns the original
+                # list. See the other test that's failing
+                [ self._trvAsString(group1) ])
+
+        downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
+        self.assertEqual(len(downloadSize), 1)
+        # XXX FIXME: we really should be able to count on a stable value for
+        # download size...
+        #self.assertTrue(int(downloadSize[0]) < 1370)
+        #self.assertTrue(int(downloadSize[0]) >= 1330)
+        return job
+
     def testSyncModelPreviewOperation(self):
         job = self.newJob()
         job.systemModel = "install group-bar=%s/2\n" % self.defLabel
