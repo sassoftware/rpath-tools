@@ -19,6 +19,32 @@
 from conary.cmds import updatecmd
 
 
+class JsonUpdateCallback(updatecmd.JsonUpdateCallback):
+    class LogStream(object):
+        def __init__(self, job):
+            self.job = job
+            self.json_logs = []
+
+        def write(self, text):
+            if text.startswith('{'):
+                self.json_logs.append(text)
+            self.job.logs.add(text)
+
+    def __init__(self, job):
+        updatecmd.JsonUpdateCallback.__init__(self)
+        self.job = job
+        self.out = self.LogStream(job)
+
+    def _message(self, text):
+        if not text:
+            return
+	self.out.write(text)
+
+    def done(self):
+        self.out.write("Done")
+    updateDone = done
+
+
 class UpdateCallback(updatecmd.UpdateCallback):
     class LogStream(object):
         def __init__(self, job):

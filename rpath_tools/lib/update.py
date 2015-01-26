@@ -457,7 +457,7 @@ class SyncModel(SystemModel):
     '''
     Sync to system-model destructive
     '''
-    def __init__(self, modelfile=None, instanceid=None):
+    def __init__(self, modelfile=None, instanceid=None, callbackClass=None):
         super(SyncModel, self).__init__()
         self._newSystemModel = None
         self._modelfile = modelfile
@@ -466,8 +466,14 @@ class SyncModel(SystemModel):
         self.flags = SystemModelFlags(apply=False, preview=False,
                 freeze=False, thaw=False, iid=self.iid)
 
+        # setup callback class
+        if callbackClass is not None:
+            self.callbackClass = callbackClass
+        else:
+            self.callbackClass = callbacks.UpdateCallback
+
     def _callback(self, job):
-        return callbacks.UpdateCallback(job)
+        return self.callbackClass(job)
 
     def _calculateDownloadSize(self, updateJob):
         serverBatch = {}
