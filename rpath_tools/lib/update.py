@@ -424,10 +424,10 @@ class SystemModel(UpdateService):
             appliances = sorted(x for x in added
                     if x.name.endswith('-appliance'))
             if appliances:
-                return appliances[0]
+                return [appliances[0]]
             else:
                 # Pick any group
-                return sorted(added)[0]
+                return [sorted(added)[0]]
         # Not mentioned, so reuse the old version. Migrating to "remediate" a
         # system back to its nominal group would cause this, for example.
         return topTuples
