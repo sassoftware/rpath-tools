@@ -623,7 +623,7 @@ class SyncModel(SystemModel):
         updateJob.setChangesetsDownloaded(downloaded)
         self.freezeSyncUpdateJob(updateJob, job)
 
-    def _applyAction(self, action, job, raiseExceptions):
+    def _applyAction(self, action, job, endState, raiseExceptions):
         """
         Applies the action `action` to `job`
         """
@@ -639,7 +639,7 @@ class SyncModel(SystemModel):
                 raise
             return None
         else:
-            job.state = "Completed"
+            job.state = endState
 
         return job.content
 
@@ -648,18 +648,18 @@ class SyncModel(SystemModel):
         return preview
         '''
         return self._applyAction(self._prepareSyncUpdateJob, job,
-                                 raiseExceptions)
+                                 "Previewed", raiseExceptions)
 
     def apply(self, job, raiseExceptions=False):
         '''
         returns topLevelItems
         '''
         return self._applyAction(self._applySyncUpdateJob, job,
-                                 raiseExceptions)
+                                 "Applied", raiseExceptions)
 
     def download(self, job, raiseExceptions=False):
         return self._applyAction(self._downloadSyncUpdateJob, job,
-                                 raiseExceptions)
+                                 "Downloaded", raiseExceptions)
 
     def debug(self):
         #epdb.st()
@@ -736,7 +736,7 @@ class UpdateModel(SyncModel):
         return preview
         '''
         job_content = self._applyAction(self._prepareUpdateUpdateJob, job,
-                                        raiseExceptions)
+                                        "Previewed", raiseExceptions)
         return job_content
 
 

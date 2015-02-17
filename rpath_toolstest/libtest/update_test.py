@@ -79,6 +79,8 @@ class UpdateTest(testbase.TestCaseRepo):
         # download size...
         #self.assertTrue(int(downloadSize[0]) < 1370)
         #self.assertTrue(int(downloadSize[0]) >= 1330)
+        self.assertEqual(job.state, "Previewed")
+
         return job
 
     def testSyncModelPreviewOperation(self):
@@ -106,6 +108,8 @@ class UpdateTest(testbase.TestCaseRepo):
         # download size...
         #self.assertTrue(int(downloadSize[0]) < 1370)
         #self.assertTrue(int(downloadSize[0]) >= 1330)
+        self.assertEqual(job.state, "Previewed")
+
         return job
 
     def testSyncModelDownloadSizeMultiRepo(self):
@@ -143,6 +147,8 @@ class UpdateTest(testbase.TestCaseRepo):
         tree = etree.fromstring(preview)
         downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
         self.assertTrue(len(downloadSize) == 1)
+        self.assertEqual(job.state, "Previewed")
+
 
     def testSyncModelDownloadOperation(self):
         job = self.testSyncModelPreviewOperation()
@@ -150,6 +156,7 @@ class UpdateTest(testbase.TestCaseRepo):
         operation = update.SyncModel()
         operation.download(job_test)
         self.assertTrue(os.listdir(job_test.downloadDir))
+        self.assertEqual(job_test.state, "Downloaded")
         return job_test
 
     def testDuplicateDownload(self):
@@ -158,6 +165,7 @@ class UpdateTest(testbase.TestCaseRepo):
         operation = update.SyncModel()
         operation.download(job_test)
         self.assertTrue(os.listdir(job_test.downloadDir))
+        self.assertEqual(job_test.state, "Downloaded")
 
     def testSyncModelApplyOperation(self):
         job = self.testSyncModelDownloadOperation()
@@ -175,6 +183,7 @@ class UpdateTest(testbase.TestCaseRepo):
         self.assertEquals(
                 [ x.text for x in tree.iterchildren('desired') ],
                 [ self._trvAsString(group2) ])
+        self.assertEqual(job_test.state, "Applied")
         return job
 
     @classmethod
