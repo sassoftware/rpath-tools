@@ -70,8 +70,6 @@ class Updater(update.UpdateService):
             # to avoid a double fork
             task.preFork(tempSystemModelPath)
             task.run(tempSystemModelPath)
-            if not preview:
-                return task.job.keyId
         else:
             # WARNING if preview is set to False the update will be applied
             flags = installation_service.InstallationService.UpdateFlags(
@@ -83,6 +81,12 @@ class Updater(update.UpdateService):
             if task.job.state != 'Completed':
                 raise Exception(task.job.content)
         xml = task.job.content
+        keyId = task.job.keyId
+        if not task.job.downloadSize:
+            task.cleanJob()
+
+        if not preview:
+            return keyId
         return xml
 
     def applyOperation(self, jobid):
@@ -94,6 +98,7 @@ class Updater(update.UpdateService):
             task.preFork()
             task.run()
             xml = task.job.content
+            task.cleanJob()
         else:
             logger.error('Classic systems do not'
                 ' freeze jobs so we can not apply a frozen job')

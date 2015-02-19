@@ -19,6 +19,7 @@
 import itertools
 import optparse
 import os
+import shutil
 import subprocess
 import sys
 import traceback
@@ -139,8 +140,17 @@ class BaseTask(object):
     def sanitizeKey(cls, jobId):
         return jobId
 
+    def cleanJob(self):
+        for key in self.job.storage.enumerateAll():
+            self.job.storage.delete(key)
+
 class BaseUpdateTask(BaseTask):
     jobFactory = stored_objects.ConcreteUpdateJobFactory
+
+    def cleanJob(self):
+        super(BaseUpdateTask, self).cleanJob()
+        shutil.rmtree(os.path.join(
+            self.job.storage.cfg.storagePath, self.job.keyId))
 
 class UpdateCheckTask(BaseUpdateTask):
     def run(self):
