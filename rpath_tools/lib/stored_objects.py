@@ -207,6 +207,19 @@ class ConcreteUpdateJob(StoredObject):
         downloadDir = self.storage.newCollection((self.keyId, "downloaded-changesets"))
         return self.storage.getFileFromKey(downloadDir)
 
+    def _setDownloadSize(self, size):
+        assert self.keyId is not None
+        return self.storage.set((self.keyId, "downloadSize"), size)
+
+    def _getDownloadSize(self):
+        assert self.keyId is not None
+        size = self.storage.get((self.keyId, "downloadSize"))
+        if size is None:
+            return 0
+        return int(size.strip())
+
+    downloadSize = property(_getDownloadSize, _setDownloadSize)
+
 class ConcreteSurveyJob(ConcreteUpdateJob):
     keyPrefix = "surveys"
 

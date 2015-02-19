@@ -104,6 +104,7 @@ class UpdateTest(testbase.TestCaseRepo):
 
         downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
         self.assertEqual(len(downloadSize), 1)
+        self.assertEqual(int(downloadSize[0]), job.downloadSize)
         # XXX FIXME: we really should be able to count on a stable value for
         # download size...
         #self.assertTrue(int(downloadSize[0]) < 1370)
@@ -148,7 +149,6 @@ class UpdateTest(testbase.TestCaseRepo):
         downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
         self.assertTrue(len(downloadSize) == 1)
         self.assertEqual(job.state, "Previewed")
-
 
     def testSyncModelDownloadOperation(self):
         job = self.testSyncModelPreviewOperation()

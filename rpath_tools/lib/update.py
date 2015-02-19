@@ -516,7 +516,7 @@ class SyncModel(SystemModel):
         return results
 
     def _getPreviewFromUpdateJob(self, updateJob, observedTopLevelItems,
-                                        desiredTopLevelItems, jobid=None):
+            desiredTopLevelItems, jobid, downloadSize):
         preview_xml = '<preview/>'
         preview = formatter.Formatter(updateJob)
         if preview:
@@ -527,7 +527,7 @@ class SyncModel(SystemModel):
                 preview.addObservedVersion(tli)
             if jobid:
                 preview.addJobid(jobid)
-            preview.addDownloadSize(self._calculateDownloadSize(updateJob))
+            preview.addDownloadSize(downloadSize)
             preview_xml = preview.toxml()
         return preview_xml
 
@@ -562,11 +562,15 @@ class SyncModel(SystemModel):
         # update the job's system model with the newly calculated one
         job.systemModel = model.format()
 
+        # update job download size
+        job.downloadSize = self._calculateDownloadSize(updateJob)
+
         self.freezeSyncUpdateJob(updateJob, job)
         newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
                                                                 updateJob)
-        preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
-                                                    newTopLevelItems, jobid)
+        preview = self._getPreviewFromUpdateJob(
+            updateJob, topLevelItems, newTopLevelItems, jobid, job.downloadSize)
+
         return preview
 
     def _applySyncUpdateJob(self, job, callback):
@@ -598,7 +602,7 @@ class SyncModel(SystemModel):
         # top level items are identical, which is usually not true for
         # previews
         preview = self._getPreviewFromUpdateJob(updateJob, newTopLevelItems,
-                                                newTopLevelItems, jobid)
+            newTopLevelItems, jobid, job.downloadSize)
         return preview
 
     def _downloadSyncUpdateJob(self, job, callback):
@@ -728,7 +732,7 @@ class UpdateModel(SyncModel):
         newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
                                                                 updateJob)
         preview = self._getPreviewFromUpdateJob(updateJob, topLevelItems,
-                                                    newTopLevelItems, jobid)
+                newTopLevelItems, jobid, job.downloadSize)
         return preview
 
     def preview(self, job, raiseExceptions=False):
