@@ -105,6 +105,7 @@ class UpdateTest(testbase.TestCaseRepo):
         downloadSize = [x.text for x in tree.iterchildren('downloadSize')]
         self.assertEqual(len(downloadSize), 1)
         self.assertEqual(int(downloadSize[0]), job.downloadSize)
+        self.assertTrue(tree.find('downloaded').text == 'false')
         # XXX FIXME: we really should be able to count on a stable value for
         # download size...
         #self.assertTrue(int(downloadSize[0]) < 1370)
@@ -154,18 +155,23 @@ class UpdateTest(testbase.TestCaseRepo):
         job = self.testSyncModelPreviewOperation()
         job_test = self.loadJob(job.keyId)
         operation = update.SyncModel()
-        operation.download(job_test)
+        preview = operation.download(job_test)
+        tree = etree.fromstring(preview)
         self.assertTrue(os.listdir(job_test.downloadDir))
         self.assertEqual(job_test.state, "Downloaded")
+        self.assertTrue(tree.findtext('downloaded') == 'true')
         return job_test
 
     def testDuplicateDownload(self):
         job = self.testSyncModelDownloadOperation()
         job_test = self.loadJob(job.keyId)
         operation = update.SyncModel()
-        operation.download(job_test)
+        preview = operation.download(job_test)
+        tree = etree.fromstring(preview)
         self.assertTrue(os.listdir(job_test.downloadDir))
         self.assertEqual(job_test.state, "Downloaded")
+        self.assertTrue(tree.findtext('downloaded') == 'true')
+        return job_test
 
     def testSyncModelApplyOperation(self):
         job = self.testSyncModelDownloadOperation()
@@ -184,6 +190,7 @@ class UpdateTest(testbase.TestCaseRepo):
                 [ x.text for x in tree.iterchildren('desired') ],
                 [ self._trvAsString(group2) ])
         self.assertEqual(job_test.state, "Applied")
+        self.assertTrue(tree.findtext('downloaded') == 'true')
         return job
 
     @classmethod

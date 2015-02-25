@@ -23,7 +23,6 @@ from conary import trovetup
 from conary.conaryclient import cml
 from conary.conaryclient import systemmodel
 from conary.conaryclient import modelupdate
-from conary.repository import errors as repo_errors
 from conary.lib import util
 
 
@@ -33,7 +32,6 @@ from rpath_tools.lib import callbacks
 from rpath_tools.lib import formatter
 
 import copy
-import itertools
 import types
 import time
 import os
@@ -47,9 +45,11 @@ logger = logging.getLogger(__name__)
 class SystemModelFlags(object):
     __slots__ = [ 'migrate', 'update', 'updateall', 'sync', 'test',
                     'freeze', 'thaw', 'iid',  'preview', 'apply', ]
+
     def __init__(self, **kwargs):
         for s in self.__slots__:
             setattr(self, s, kwargs.pop(s, None))
+
 
 class UpdateService(object):
     conaryClientFactory = clientfactory.ConaryClientFactory
@@ -516,7 +516,7 @@ class SyncModel(SystemModel):
         return results
 
     def _getPreviewFromUpdateJob(self, updateJob, observedTopLevelItems,
-            desiredTopLevelItems, jobid, downloadSize):
+            desiredTopLevelItems, jobid, downloadSize, downloaded=False):
         preview_xml = '<preview/>'
         preview = formatter.Formatter(updateJob)
         if preview:
@@ -528,6 +528,7 @@ class SyncModel(SystemModel):
             if jobid:
                 preview.addJobid(jobid)
             preview.addDownloadSize(downloadSize)
+            preview.setDownloaded(downloaded)
             preview_xml = preview.toxml()
         return preview_xml
 
@@ -537,7 +538,6 @@ class SyncModel(SystemModel):
         return job
         '''
         preview = None
-        frozen = False
         jobid = job.keyId
 
         logger.info("BEGIN Sync update operation for job : %s" % jobid)
@@ -545,8 +545,8 @@ class SyncModel(SystemModel):
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
         logger.info("Top Level Items")
-        for n,v,f in topLevelItems:
-            logger.info("%s %s %s" % (n,v,f))
+        for n, v, f in topLevelItems:
+            logger.info("%s %s %s" % (n, v, f))
 
         modelFile = self._getNewModelFromString(job.systemModel)
         model = modelFile.model
@@ -602,7 +602,7 @@ class SyncModel(SystemModel):
         # top level items are identical, which is usually not true for
         # previews
         preview = self._getPreviewFromUpdateJob(updateJob, newTopLevelItems,
-            newTopLevelItems, jobid, job.downloadSize)
+            newTopLevelItems, jobid, job.downloadSize, downloaded=True)
         return preview
 
     def _downloadSyncUpdateJob(self, job, callback):
@@ -612,20 +612,36 @@ class SyncModel(SystemModel):
         jobid = job.keyId
 
         logger.info("BEGIN Downloading changeset(s) for JOBID: %s" % jobid)
+        topLevelItems = self._getTopLevelItems()
+        logger.info("Top Level Items")
+        for n, v, f in topLevelItems:
+            logger.info("%s %s %s" % (n, v, f))
+
         updateJob, model = self.thawSyncUpdateJob(job)
 
-        if updateJob.getChangesetsDownloaded():
+        if not updateJob.getChangesetsDownloaded():
+            logger.debug('Deleting frozen update job')
+            job.storage.delete((job.keyId, 'frozen-update-job'))
+            job.state = "Downloading"
+            logger.info("Downloading update job JOBID: %s to %s" %
+                        (jobid, job.updateJobDir))
+            downloaded = self._downloadUpdateJob(updateJob, job.downloadDir, callback)
+            updateJob.setChangesetsDownloaded(downloaded)
+            self.freezeSyncUpdateJob(updateJob, job)
+        else:
             logger.info("Update already downloaded")
-            return
 
-        logger.debug('Deleting frozen update job')
-        job.storage.delete((job.keyId, 'frozen-update-job'))
-        job.state = "Downloading"
-        logger.info("Downloading update job JOBID: %s to %s" %
-                    (jobid, job.updateJobDir))
-        downloaded = self._downloadUpdateJob(updateJob, job.downloadDir, callback)
-        updateJob.setChangesetsDownloaded(downloaded)
-        self.freezeSyncUpdateJob(updateJob, job)
+        newTopLevelItems = self._getTopLevelItems()
+        logger.info("New Top Level Items")
+        for n,v,f in newTopLevelItems:
+            logger.info("%s %s %s" % (n,v,f))
+        # Since we've just applied the update, the observed and desired
+        # top level items are identical, which is usually not true for
+        # previews
+        preview = self._getPreviewFromUpdateJob(updateJob, newTopLevelItems,
+            newTopLevelItems, jobid, job.downloadSize,
+            updateJob.getChangesetsDownloaded())
+        return preview
 
     def _applyAction(self, action, job, endState, raiseExceptions):
         """
