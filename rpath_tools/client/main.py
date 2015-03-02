@@ -93,7 +93,7 @@ def _main(argv, MainClass):
         if debugAll:
             argv.remove('--debug-all')
         else:
-            debuggerException = errors.RpathToolsError
+            debuggerException = errors.RpathToolsInternalError
         sys.excepthook = errors.genExcepthook(debug=debugAll,
                                               debugCtrlC=debugAll)
         rc = MainClass().main(argv, debuggerException=debuggerException)
@@ -101,14 +101,13 @@ def _main(argv, MainClass):
             return 0
         return rc
     except errors.RpathToolsError, e:
-        logger.error(e)
         return 1
     except debuggerException, err:
         raise
     except IOError, e:
         # allow broken pipe to exit
         if e.errno != errno.EPIPE:
-            raise
+            return 1
     except:
         return 1
     return 0
