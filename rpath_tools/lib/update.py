@@ -541,6 +541,7 @@ class SyncModel(SystemModel):
         jobid = job.keyId
 
         logger.info("BEGIN Sync update operation for job : %s" % jobid)
+        job.state = "Previewing"
 
         # Top Level Items
         topLevelItems = self._getTopLevelItems()
@@ -566,6 +567,8 @@ class SyncModel(SystemModel):
         job.downloadSize = self._calculateDownloadSize(updateJob)
 
         self.freezeSyncUpdateJob(updateJob, job)
+        job.state = "Previewed"
+
         newTopLevelItems = self._getTopLevelItemsFromUpdate(topLevelItems,
                                                                 updateJob)
         preview = self._getPreviewFromUpdateJob(
@@ -594,6 +597,9 @@ class SyncModel(SystemModel):
         self._applyUpdateJob(updateJob, callback)
 
         model.closeSnapshot()
+
+        job.state = "Applied"
+
         newTopLevelItems = self._getTopLevelItems()
         logger.info("New Top Level Items")
         for n,v,f in newTopLevelItems:
@@ -628,6 +634,7 @@ class SyncModel(SystemModel):
             downloaded = self._downloadUpdateJob(updateJob, job.downloadDir, callback)
             updateJob.setChangesetsDownloaded(downloaded)
             self.freezeSyncUpdateJob(updateJob, job)
+            job.state = "Downloaded"
         else:
             logger.info("Update already downloaded")
 
@@ -643,7 +650,7 @@ class SyncModel(SystemModel):
             updateJob.getChangesetsDownloaded())
         return preview
 
-    def _applyAction(self, action, job, endState, raiseExceptions):
+    def _applyAction(self, action, job, raiseExceptions):
         """
         Applies the action `action` to `job`
         """
@@ -658,8 +665,6 @@ class SyncModel(SystemModel):
             if raiseExceptions:
                 raise
             return None
-        else:
-            job.state = endState
 
         return job.content
 
@@ -668,18 +673,17 @@ class SyncModel(SystemModel):
         return preview
         '''
         return self._applyAction(self._prepareSyncUpdateJob, job,
-                                 "Previewed", raiseExceptions)
+                                 raiseExceptions)
 
     def apply(self, job, raiseExceptions=False):
         '''
         returns topLevelItems
         '''
-        return self._applyAction(self._applySyncUpdateJob, job,
-                                 "Applied", raiseExceptions)
+        return self._applyAction(self._applySyncUpdateJob, job, raiseExceptions)
 
     def download(self, job, raiseExceptions=False):
         return self._applyAction(self._downloadSyncUpdateJob, job,
-                                 "Downloaded", raiseExceptions)
+                                 raiseExceptions)
 
     def debug(self):
         #epdb.st()
@@ -756,7 +760,7 @@ class UpdateModel(SyncModel):
         return preview
         '''
         job_content = self._applyAction(self._prepareUpdateUpdateJob, job,
-                                        "Previewed", raiseExceptions)
+                                        raiseExceptions)
         return job_content
 
 
