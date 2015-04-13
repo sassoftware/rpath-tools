@@ -24,7 +24,7 @@ export TOPDIR = $(shell pwd)
 export TIMESTAMP = $(shell python -c "import time; print time.time(); exit;")
 export CFGDEVEL=rpathrc
 
-SUBDIRS=rpath_tools distro commands
+SUBDIRS=rpath_tools distro
 
 extra_files = \
 	Make.rules 		\

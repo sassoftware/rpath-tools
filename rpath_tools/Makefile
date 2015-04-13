@@ -17,7 +17,7 @@
 
 python_files =	$(wildcard *.py)
 
-SUBDIRS	=	client lib
+SUBDIRS	= lib
 
 all: default-subdirs default-all
 
