@@ -28,7 +28,6 @@ class Ractivate(PackageRecipe):
         'make:rpm',
         'net-tools:rpm',
         'python-devel',
-        'rpath-models:python',
         'smartform:python',
         ]
 
