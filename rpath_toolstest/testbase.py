@@ -19,46 +19,20 @@ import os
 from conary import callbacks as conaryCallbacks
 from conary.lib import util
 
-from rpath_tools.client import hardware
-
 from conary_test import rephelp
 
 from testrunner import testcase
 from testutils import mock
 from rpath_tools.lib import clientfactory, installation_service, jobs, update
 
-class RpathToolsMixIn(object):
-    def setUp(self):
-        IP = hardware.HardwareData.IP
-        mockHardwareData = mock.MockObject()
-        mockHardwareData.getIpAddresses._mock.setDefaultReturn([
-            IP(ipv4='1.1.1.1', netmask='255.255.255.0', device='eth0',
-                dns_name='host1.com',),
-            IP(ipv4='2.2.2.2', netmask='255.255.0.0', device='eth1',
-                dns_name='host2.com',),
-            IP(ipv4='3.3.3.3', netmask='255.255.0.0', device='eth2',
-                dns_name='host3.com',),
-        ])
-        mockHardwareData.getHostname._mock.setDefaultReturn('localhost.localdomain')
-        mockHardwareData.getLocalIp._mock.setDefaultReturn('2.2.2.2')
-        mockHardwareData.getDeviceName._mock.setDefaultReturn('oaia aia e a ei')
 
-        self.mock(hardware, 'HardwareData', mock.MockObject())
-        hardware.HardwareData._mock.setDefaultReturn(mockHardwareData)
-
-    def tearDown(self):
-        pass
-
-
-class TestCase(RpathToolsMixIn, testcase.TestCaseWithWorkDir):
+class TestCase(testcase.TestCaseWithWorkDir):
     def setUp(self):
         testcase.TestCaseWithWorkDir.setUp(self)
-        RpathToolsMixIn.setUp(self)
 
-class TestCaseRepo(RpathToolsMixIn, rephelp.RepositoryHelper):
+class TestCaseRepo(rephelp.RepositoryHelper):
     def setUp(self):
         rephelp.RepositoryHelper.setUp(self)
-        RpathToolsMixIn.setUp(self)
         self.openRepository()
         self._conaryClient = self.getConaryClient()
         util.mkdirChain(os.path.dirname(self._conaryClient.cfg.root + self._conaryClient.cfg.modelPath))
@@ -77,5 +51,4 @@ class TestCaseRepo(RpathToolsMixIn, rephelp.RepositoryHelper):
         self.mock(jobs.BaseUpdateTask, "storagePath", self.storagePath)
 
     def tearDown(self):
-        RpathToolsMixIn.tearDown(self)
         rephelp.RepositoryHelper.tearDown(self)
