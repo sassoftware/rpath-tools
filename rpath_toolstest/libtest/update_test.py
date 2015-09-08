@@ -32,6 +32,7 @@ class UpdateTest(testbase.TestCaseRepo):
         for v in ["1", "2"]:
             self.addComponent("foo:runtime", v, fileContents=[
                 ('/foo.txt', '123456789012345' + v),
+                ('/etc/bar', '123456789012345' + v),
             ])
             self.addCollection("foo", v, [":runtime"])
             self.addCollection("group-bar", v, [ "foo" ])
@@ -192,6 +193,70 @@ class UpdateTest(testbase.TestCaseRepo):
         self.assertEqual(job_test.state, "Applied")
         self.assertTrue(tree.findtext('downloaded') == 'true')
         return job
+
+    def testSyncModelApplyOperationChangedFiles(self):
+        oldJob = self.testSyncModelPreviewOperation()
+        job = self.loadJob(oldJob.keyId)
+
+        # content conflict
+        with open(os.path.join(self.rootDir, "foo.txt"), 'w') as fh:
+            fh.write("some other content")
+
+        operation = update.SyncModel()
+        preview = operation.apply(job)
+        self.assertEqual(None, preview)
+        self.assertEqual(job.state, "Exception")
+        self.assertIn("contents conflict", job.content)
+
+        preview = operation.apply(job, replaceModifiedFiles=True)
+        self.assertEqual(job.state, "Applied")
+
+    def testSyncModelApplyOperationChangedConfigFiles(self):
+        oldJob = self.testSyncModelPreviewOperation()
+        job = self.loadJob(oldJob.keyId)
+
+        # config conflict
+        target = os.path.join(self.rootDir, "etc/bar")
+        os.unlink(target)
+        os.symlink('danglingSymlink', target)
+
+        operation = update.SyncModel()
+        preview = operation.apply(job)
+        self.assertEqual(None, preview)
+        self.assertEqual("Exception", job.state)
+        self.assertIn("file type of /etc/bar changed", job.content)
+
+        preview = operation.apply(job, replaceModifiedConfigFiles=True)
+        self.assertEqual("Applied", job.state)
+
+    def testSyncModelApplyOperationUnmanagedFile(self):
+        self.addComponent("foo:runtime", "3", fileContents=[
+            ('/foo.txt', '1234567890123453'),
+            ('/etc/bar', '1234567890123453'),
+            ('/baz.txt', '1234567890123453'),
+        ])
+        self.addCollection("foo", "3", [":runtime"])
+        self.addCollection("group-bar", "3", ["foo"])
+
+        job = self.newJob()
+        job.systemModel = "install group-bar=%s/3\n" % self.defLabel
+
+        operation = update.SyncModel()
+        operation.preview(job)
+        self.assertEqual("Previewed", job.state)
+
+        with open(os.path.join(self.rootDir, "baz.txt"), 'w') as fh:
+            fh.write("some content")
+
+        job = self.loadJob(job.keyId)
+        operation = update.SyncModel()
+        preview = operation.apply(job)
+        self.assertEqual(None, preview)
+        self.assertEqual(job.state, "Exception")
+        self.assertIn("in the way of a newly created file", job.content)
+
+        preview = operation.apply(job, replaceUnmanagedFiles=True)
+        self.assertEqual(job.state, "Applied")
 
     @classmethod
     def _trvAsString(cls, trv):

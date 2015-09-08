@@ -331,7 +331,7 @@ class SystemModel(UpdateService):
 
         return updJob, suggMap, model, modelFile
 
-    def _applyUpdateJob(self, updJob, callback=None):
+    def _applyUpdateJob(self, updJob, callback=None, *args, **kwargs):
         '''
         Apply a thawed|current update job to the system
         '''
@@ -347,7 +347,7 @@ class SystemModel(UpdateService):
             cclient = self.conaryClient
             cclient.setUpdateCallback(callback)
             cclient.checkWriteableRoot()
-            cclient.applyUpdateJob(updJob, noRestart=True)
+            cclient.applyUpdateJob(updJob, noRestart=True, *args, **kwargs)
             updated = True
         except Exception, e:
             raise errors.SystemModelServiceError, e
@@ -576,7 +576,7 @@ class SyncModel(SystemModel):
 
         return preview
 
-    def _applySyncUpdateJob(self, job, callback):
+    def _applySyncUpdateJob(self, job, callback, *args, **kwargs):
         '''
         Used to apply a frozen job
         return a job
@@ -594,7 +594,7 @@ class SyncModel(SystemModel):
         model.writeSnapshot()
         logger.info("Applying update job JOBID : %s from  %s"
                                 % (jobid, job.updateJobDir))
-        self._applyUpdateJob(updateJob, callback)
+        self._applyUpdateJob(updateJob, callback, *args, **kwargs)
 
         model.closeSnapshot()
 
@@ -650,13 +650,13 @@ class SyncModel(SystemModel):
             updateJob.getChangesetsDownloaded())
         return preview
 
-    def _applyAction(self, action, job, raiseExceptions):
+    def _applyAction(self, action, job, raiseExceptions, *args, **kwargs):
         """
         Applies the action `action` to `job`
         """
         callback = self._callback(job)
         try:
-            job.content = action(job, callback)
+            job.content = action(job, callback, *args, **kwargs)
         except Exception as e:
             callback.done()
             job.content = str(e)
@@ -675,11 +675,17 @@ class SyncModel(SystemModel):
         return self._applyAction(self._prepareSyncUpdateJob, job,
                                  raiseExceptions)
 
-    def apply(self, job, raiseExceptions=False):
+    def apply(self, job, raiseExceptions=False, replaceUnmanagedFiles=False,
+              replaceModifiedFiles=False, replaceModifiedConfigFiles=False):
         '''
         returns topLevelItems
         '''
-        return self._applyAction(self._applySyncUpdateJob, job, raiseExceptions)
+        return self._applyAction(
+            self._applySyncUpdateJob, job, raiseExceptions,
+            replaceUnmanagedFiles=replaceUnmanagedFiles,
+            replaceModifiedFiles=replaceModifiedFiles,
+            replaceModifiedConfigFiles=replaceModifiedConfigFiles,
+            )
 
     def download(self, job, raiseExceptions=False):
         return self._applyAction(self._downloadSyncUpdateJob, job,
