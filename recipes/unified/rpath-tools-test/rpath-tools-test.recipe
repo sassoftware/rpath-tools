@@ -22,6 +22,7 @@ class rPathToolsTest(TestPackageRecipe):
     # Requirements
     buildRequires = [
         'conary-test:python',
+        'rpath-tools',
         'python-lxml',
     ]
 
